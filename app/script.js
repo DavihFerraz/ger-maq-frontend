@@ -41,30 +41,53 @@ function checkAuth() {
 
 async function carregarDados() {
     try {
-        const loading = document.getElementById('loading-indicator');
-        if (loading) loading.style.display = 'block';
-
         const [itens, emprestimos] = await Promise.all([
             getItens(),
             getEmprestimos()
         ]);
-
-        todoEstoque = itens;
         
-        // Separa empréstimos ativos de computadores e mobiliário
+        todoEstoque = itens;
         const emprestimosAtivos = emprestimos.filter(e => !e.data_devolucao);
         
+        console.log("--- INICIANDO VERIFICAÇÃO DETALHADA DO FILTRO ---");
+        
         todasAssociacoes = emprestimosAtivos.filter(e => {
-            const item = itens.find(i => i.id === e.item_id);
-            return item && item.categoria === 'COMPUTADOR';
-        });
+            console.log(`A processar o empréstimo ID: ${e.id}, para o item_id: ${e.item_id} (tipo: ${typeof e.item_id})`);
+            
+            // Tenta encontrar o item correspondente no estoque
+            const item = itens.find(i => {
+                // Compara o ID do item do estoque com o item_id do empréstimo
+                return i.id == e.item_id;
+            });
 
-        todasAssociacoesMobiliario = emprestimosAtivos.filter(e => {
-            const item = itens.find(i => i.id === e.item_id);
-            return item && item.categoria === 'MOBILIARIO';
+            if (!item) {
+                console.log(`--> FALHA: Não encontrei o item com ID ${e.item_id} no estoque.`);
+                return false; // Rejeita este empréstimo
+            }
+
+            console.log(`--> SUCESSO: Encontrei o item:`, item);
+            
+            // Verifica a categoria
+            const categoriaCorreta = item.categoria && item.categoria.toUpperCase() === 'COMPUTADOR';
+            
+            if (!categoriaCorreta) {
+                console.log(`--> FALHA: A categoria do item é "${item.categoria}", não "COMPUTADOR".`);
+                return false; // Rejeita este empréstimo
+            }
+            
+            console.log(`--> SUCESSO FINAL: Este empréstimo foi aceite.`);
+            return true; // Aceita este empréstimo
         });
         
-        // TODO: Popular o histórico (precisaria de um endpoint GET /api/emprestimos/historico)
+        console.log("--- VERIFICAÇÃO DO FILTRO CONCLUÍDA ---");
+        console.log("Resultado final para 'todasAssociacoes':", todasAssociacoes);
+        
+        // O resto da função continua igual
+        todasAssociacoesMobiliario = emprestimosAtivos.filter(e => {
+             const item = itens.find(i => i.id == e.item_id);
+             return item && item.categoria && item.categoria.toUpperCase() === 'MOBILIARIO';
+        });
+        
         todoHistorico = emprestimos.filter(e => e.data_devolucao);
 
         renderizarTudo();
@@ -72,12 +95,8 @@ async function carregarDados() {
     } catch (error) {
         console.error("Erro ao carregar dados da API:", error);
         alert("Não foi possível carregar os dados. Verifique a sua conexão e tente novamente.");
-    } finally {
-        const loading = document.getElementById('loading-indicator');
-        if (loading) loading.style.display = 'none';
     }
 }
-
 // =================================================================
 // 4. FUNÇÕES DE RENDERIZAÇÃO
 // =================================================================
@@ -101,19 +120,31 @@ function renderizarAssociacoes() {
     const listaUI = document.getElementById('lista-associacoes');
     if (!listaUI) return;
 
-    // A lógica de filtragem e renderização permanece muito similar
-    // Apenas ajuste os nomes dos campos se necessário
-    listaUI.innerHTML = '';
+
+    listaUI.innerHTML = ''; // Limpa a lista antes de renderizar
+
+    // Adiciona uma verificação para o caso de não haver associações
+    if (todasAssociacoes.length === 0) {
+        listaUI.innerHTML = '<li>Nenhuma máquina associada encontrada.</li>';
+        return;
+    }
+
     todasAssociacoes.forEach(assoc => {
+        // Encontra o item correspondente no nosso estoque geral
         const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-        if (!itemAssociado) return;
+
+        // Se, por algum motivo, o item não for encontrado no estoque, regista um aviso e pula para o próximo
+        if (!itemAssociado) {
+            console.warn(`Aviso: Não foi possível encontrar o item com ID ${assoc.item_id} no estoque para a associação ID ${assoc.id}.`);
+            return; 
+        }
 
         const li = document.createElement('li');
         li.innerHTML = `
         <span>
             <strong>${assoc.pessoa_depto}</strong> está com: 
             <a href="#" class="spec-link" data-id="${itemAssociado.id}">${itemAssociado.modelo_tipo}</a>
-            <br><small class="patrimonio-info">Patrimônio: ${itemAssociado.patrimonio}</small>
+            <br><small class="patrimonio-info">Património: ${itemAssociado.patrimonio}</small>
         </span>
         <div class="botoes-item">
             <button class="btn-item btn-devolver" data-id="${assoc.id}">Devolver</button>
