@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Mobiliário Associado</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+  <div class="container container-largo">
+        <a href="index.html" class="btn-voltar">‹ Menu Principal</a>
+
+        <div class="list-container">
+            <h2>Mobiliário Associado</h2>
+
+            <div class="list-controls"> 
+                <button id="btn-exportar-mobiliario" class="btn-exportar">Exportar para CSV</button>
+                <div class="search-container">
+                    <input type="text" id="campo-busca" placeholder="Buscar por pessoa, tipo ou patrimônio...">
+                </div>
+            </div>
+
+            <ul id="lista-associacoes-mobiliario">
+                <li class="loading-indicator-item">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    A carregar a lista...
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="modal-confirmacao" class="modal-overlay">
+        <div class="modal-content">
+            <p id="modal-texto">Tem certeza que deseja executar esta ação?</p>
+            <div class="modal-buttons">
+                <button id="btn-modal-cancelar" class="btn-modal">Cancelar</button>
+                <button id="btn-modal-confirmar" class="btn-modal btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="script.js" type="module"></script>  
+    <script src="api.js" type="module"></script>  
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</body>
+</html>

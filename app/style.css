@@ -1,0 +1,997 @@
+:root {
+  --cor-fundo: #f4f7f9;
+  --cor-container: #fff;
+  --cor-texto: #333;
+  --cor-titulo: #2c3e50;
+  --cor-borda: #ccc;
+  --cor-borda-destaque: #3498db;
+  --cor-item-lista: #ecf0f1;
+  --cor-fundo-resumo: #ecf0f1;
+  --cor-fundo-detalhes: #f8f9fa;
+  --cor-link: #3498db;
+  --cor-primaria: #3498db;
+  --cor-primaria-hover: #2980b9;
+  --cor-sucesso: #27ae60;
+  --cor-sucesso-hover: #229954;
+  --cor-perigo: #e74c3c;
+  --cor-perigo-hover: #c0392b;
+  --cor-modal-fundo: rgba(0, 0, 0, 0.6);
+  --cor-chart-fundo: #f8f9fa;
+  --cor-chart-borda: #e0e0e0;
+  --cor-chart-texto: #666;
+  --cor-chart-grid: rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode {
+  --cor-fundo: #121212;
+  --cor-container: #1e1e1e;
+  --cor-texto: #e0e0e0;
+  --cor-titulo: #bb86fc;
+  --cor-borda: #444;
+  --cor-borda-destaque: #bb86fc;
+  --cor-item-lista: #2c2c2c;
+  --cor-fundo-resumo: #1e1e1e;
+  --cor-fundo-detalhes: #2c2c2c;
+  --cor-link: #3dacfc;
+  --cor-primaria: #03dac6;
+  --cor-primaria-hover: #01b8a5;
+  --cor-sucesso: #27ae60;
+  --cor-sucesso-hover: #229954;
+  --cor-perigo: #cf6679;
+  --cor-perigo-hover: #b04e5f;
+  --cor-modal-fundo: rgba(0, 0, 0, 0.8);
+  --cor-chart-fundo: #1e1e1e;
+  --cor-chart-borda: #444;
+  --cor-chart-texto: #e0e0e0;
+  --cor-chart-grid: rgba(255, 255, 255, 0.1);
+}
+
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--cor-fundo);    
+    color: var(--cor-texto);    
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: var(--cor-container);   
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: var(--cor-titulo);    
+    border-bottom: 2px solid var(--cor-borda-destaque);    
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"], select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+
+.search-container {
+    margin-bottom: 20px;
+}
+
+#campo-busca {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px; 
+    padding-top: 5px;
+    
+}
+
+button {
+    color: var(--cor-fundo);
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#btn-principal {
+    background-color: var(--cor-primaria);    
+    flex-grow: 1; /* Faz o botão principal crescer */
+}
+
+#btn-principal:hover {
+    background-color: var(--cor-primaria-hover);
+}
+
+/* NOVO: Estilo para o botão de cancelar */
+.btn-cancelar {
+    background-color: #95a5a6;
+    display: none; /* Começa escondido */
+}
+
+.btn-cancelar:hover {
+    background-color: #7f8c8d;
+}
+
+.btn-adicionar-estoque{
+    background-color: var(--cor-sucesso);
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul li {
+    background-color: #ecf0f1;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+ul li .botoes-item {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-item {
+    color: var(--cor-fundo);    
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-editar {
+    background-color: var(--cor-sucesso);
+
+}
+.btn-editar:hover {
+    background-color: var(--cor-sucesso-hover);
+}
+
+.btn-devolver {
+    background-color: var(--cor-perigo); /* Vermelho */
+}
+.btn-devolver:hover {
+    background-color: var(--cor-perigo-hover);
+}
+
+.summary-container {
+    display: flex;
+    justify-content: space-around;
+    background-color: var(--cor-fundo-resumo);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.summary-item h3 {
+    margin: 0 0 10px 0;
+    color: var(--cor-titulo);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.summary-item p {
+    margin: 0;
+    color: var(--cor-primaria);
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between; /* Alinha o título à esquerda e o botão à direita */
+    align-items: center;    /* Alinha verticalmente */
+    margin-bottom: 15px;      /* Adiciona um espaço antes do campo de busca */
+
+}
+
+.list-header h2 {
+    margin: 0; /* Remove a margem padrão do h2 */
+    border-bottom: none; /* Remove a borda que agora está no container pai */
+    padding-bottom: 0;
+}
+
+.main-sections {
+    display: block;
+    width: 100%;
+
+    
+}
+
+.main-sections > div {
+    margin-bottom: 20px; /* Adiciona um espaço vertical entre cada secção */
+}
+
+.btn-exportar {
+    background-color: var(--cor-sucesso); /* Uma cor verde diferente para destacar a ação */
+    color: var(--cor-fundo);
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+.btn-exportar:hover {
+    background-color: var(--cor-sucesso-hover);
+}
+
+.monitor-info {
+    color: var(--cor-chart-texto); /* Um cinza mais escuro para diferenciar do texto principal */
+    font-style: italic;
+    display: block; /* Garante que o <br> funcione bem */
+    margin-top: 5px; /* Adiciona um pequeno espaço */
+}
+
+/* --- Estilos para a Janela de Confirmação (Modal) --- */
+
+.modal-overlay {
+    position: fixed; /* Fica fixo na tela */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Fundo escurecido */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Garante que fique por cima de tudo */
+    
+    /* Começa escondido */
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay.visible {
+    /* Torna o modal visível */
+    visibility: visible;
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: var(--cor-fundo);
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-content p {
+    font-size: 18px;
+    color: var(--cor-texto);
+    margin: 0 0 25px 0;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px; /* Adiciona espaço acima dos botões */
+}
+
+.btn-modal {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    border: 1px solid var(--cor-borda);
+}
+
+.btn-modal.btn-confirmar {
+    background-color: var(--cor-perigo); /* Vermelho, ação perigosa */
+    color: var(--cor-container);
+    border: none;
+}
+
+.btn-modal:hover {
+    filter: brightness(0.95);
+}
+
+
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    /* Faz os cards de resumo ficarem um embaixo do outro */
+    .summary-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Ajusta o cabeçalho da lista */
+    .list-header {
+        flex-direction: column;
+        align-items: flex-start; /* Alinha tudo à esquerda */
+        gap: 10px;
+    }
+
+    /* Ajusta os itens da lista para telas pequenas */
+    ul li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+}
+
+/* style.css */
+
+/* ... (seus estilos existentes) ... */
+
+
+/* NOVOS ESTILOS PARA A SEÇÃO DE HISTÓRICO */
+.total-container {
+    margin-top: 40px;
+}
+
+.total-container details {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: var(--cor-fundo);
+}
+
+.furniture-container details {
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    background-color: var(--cor-fundo-detalhes);
+    margin-top: 40px;
+}
+
+.total-container summary {
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.1em;
+    cursor: pointer;
+    color: var(--cor-titulo);
+    outline: none; /* Remove o contorno ao clicar */
+}
+
+/* Estiliza a lista dentro da seção de histórico */
+.total-container ul {
+    padding: 0 20px 20px 20px;
+    max-height: 400px; /* Define uma altura máxima */
+    overflow-y: auto;  /* Adiciona uma barra de rolagem se a lista for muito grande */
+}
+.list-container {
+    margin-top: 40px;
+}
+
+.list-container details {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: var(--cor-fundo-detalhes);
+}
+
+.list-container summary {
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.1em;
+    cursor: pointer;
+    color: var(--cor-titulo);
+    outline: none; /* Remove o contorno ao clicar */
+}
+
+/* Estiliza a lista dentro da seção de histórico */
+.list-container ul {
+    padding: 0 20px 20px 20px;
+    max-height: 600px; /* Define uma altura máxima */
+    overflow-y: auto;  /* Adiciona uma barra de rolagem se a lista for muito grande */
+}
+
+#search-summary {
+    display: none; /* Começa escondido */
+    background-color: var(--cor-fundo); 
+    color: var(--cor-texto);
+    padding: 10px 15px;
+    margin-top: 15px;
+    border-radius: 4px;
+    border-left: 5px solid var(--cor-borda-destaque); /* Uma borda de destaque */
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+
+
+.history-container {
+    margin-top: 40px;
+}
+
+.history-container details {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: var(--cor-fundo-detalhes);
+    transition: background-color 0.2s;
+}
+
+.history-container details[open] {
+    background-color: var(--cor-fundo-detalhes);
+}
+
+.history-container summary {
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.1em;
+    cursor: pointer;
+    color: var(--cor-titulo);
+    outline: none; /* Remove o contorno ao clicar */
+    list-style-position: inside;
+}
+
+.history-container ul {
+    padding: 0 20px 20px 20px;
+    max-height: 400px; /* Define uma altura máxima */
+    overflow-y: auto;  /* Adiciona uma barra de rolagem se a lista for muito grande */
+}
+
+.history-container li.item-historico {
+    background-color: var(--cor-container);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border: 1px solid var(--cor-borda);
+}
+
+.history-container .data-historico {
+    font-size: 0.9em;
+    color: var(--cor-chart-texto);
+    background-color: var(--cor-fundo);
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+.history-search-container {
+    padding: 0 20px 15px 20px;
+}
+
+.patrimonio-info {
+    color: var(--cor-titulo);
+    font-weight: 500;
+    background-color: var(--cor-fundo);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.charts-container {
+    display: grid;
+    /* Cria duas colunas de tamanho igual */
+    grid-template-columns: 1fr 1fr;
+    gap: 30px; /* Espaço entre os gráficos */
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+.chart-item {
+    background-color: var(--cor-fundo);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+}
+
+.chart-item h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    border-bottom: none; /* Remove a borda que o estilo geral aplicava */
+}
+
+/* Ajuste para telas menores: os gráficos ficarão um embaixo do outro */
+@media (max-width: 992px) {
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem; /* Adapte conforme necessário */
+}
+
+.btn-dark-mode {
+    padding: 8px 12px;
+    font-size: 1.5rem;
+    background-color: transparent;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+    cursor: pointer;
+    border-radius: 8px;
+    line-height: 1;
+}
+
+/* --- Estilos para Gestão de Estoque --- */
+
+.stock-container details {
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    background-color: var(--cor-fundo-detalhes);
+    margin-top: 40px;
+}
+
+.stock-container summary {
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: var(--cor-titulo);
+}
+.furniture-container summary {
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: var(--cor-titulo);
+}
+
+.form-container-stock, .list-container-stock {
+    padding: 0 20px 20px 20px;
+}
+
+.list-container-stock h3, .form-container-stock h3 {
+    border-bottom: 1px solid var(--cor-borda);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#lista-estoque li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--cor-container);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border-left: 5px solid; /* A cor será definida pelo status */
+}
+
+/* --- Estilos para Status da Máquina --- */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: var(--cor-sucesso);
+    white-space: nowrap;
+}
+
+.status-disponivel {
+    background-color: #27ae60; /* Verde */
+}
+#lista-estoque li.status-disponivel {
+    border-left-color: #27ae60;
+}
+
+
+.status-em-uso {
+    background-color: #e74c3c; /* Vermelho */
+}
+#lista-estoque li.status-em-uso {
+    border-left-color: #e74c3c;
+}
+
+.status-em-manutencao {
+    background-color: #f39c12; /* Laranja */
+}
+#lista-estoque li.status-em-manutencao {
+    border-left-color: #f39c12;
+}
+
+.status-badge.status-em-uso {
+    color: var(--cor-texto); 
+}
+
+.btn-voltar, .btn-link-pagina {
+    display: inline-block;
+    padding: 8px 20px;
+    background-color: var(--cor-link);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+.btn-voltar:hover, .btn-link-pagina:hover {
+    background-color: var(--cor-primaria-hover);
+}
+
+.main-sections {
+display: block;
+width: 100%;
+margin-top: 20px; 
+margin-bottom: 20px;
+}
+
+.container-largo {
+    max-width: 1400px; 
+}
+
+/* Opcional: Para ecrãs muito grandes, podemos usar uma percentagem */
+@media (min-width: 1600px) {
+    .container-largo {
+        max-width: 90%;
+    }
+}
+
+button:disabled,
+.btn-item:disabled {
+    background-color: #bdc3c7; /* Um cinza mais claro */
+    border-color: #bdc3c7;
+    cursor: not-allowed; /* O cursor mostrará um ícone de "proibido" */
+    opacity: 0.7;
+}
+
+.summary-estoque , .summary-container, .summary-mobiliario{
+    border-top: 2px solid var(--cor-borda-destaque);
+    padding-top: 20px;
+}
+
+.summary-item .disponivel-titulo {
+    color: var(--cor-sucesso); /* Verde */
+}
+
+.summary-item .emuso-titulo {
+    color: var(--cor-perigo); /* Vermelho */
+}
+.list-container-stock ul {
+    max-height: 500px; 
+    overflow-y: auto;  
+    padding-right: 10px; 
+}
+.spec-link {
+    color: var(--cor-primaria);
+    text-decoration: underline;
+    font-weight: bold;
+    cursor: pointer;
+}
+.spec-link:hover {
+    color: var(--cor-primaria-hover);
+}
+
+/* Estilos para a lista de especificações dentro do modal */
+.spec-lista {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+    margin-top: 20px;
+}
+.spec-lista li {
+    padding: 10px;
+    border-bottom: 1px solid var(--cor-borda);
+}
+.spec-lista li:last-child {
+    border-bottom: none;
+}
+#form-editar-maquina .form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.btn-editar-estoque {
+    background-color: var(--cor-primaria); /* Azul, usando a sua variável de cor primária */
+}
+
+.btn-editar-estoque:hover {
+    background-color: var(--cor-primaria-hover); /* Efeito hover para um azul mais escuro */
+}
+
+.btn-migrar {
+    display: block;
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: var(--cor-primaria);
+    color: white;
+}
+.btn-migrar:hover {
+    background-color: var(--cor-primaria-hover);
+}
+
+/* --- ESTILOS PARA A PÁGINA DE LOGIN --- */
+
+/* Centraliza e limita a largura do container de login */
+.container-login {
+    max-width: 400px;
+    margin-top: 10vh; /* Adiciona uma margem no topo */
+}
+
+/* Garante que os campos do formulário tenham espaço */
+#form-login .form-group {
+    margin-bottom: 15px;
+}
+
+/* Estilo para o botão de "Entrar" */
+#btn-login {
+    width: 100%; /* Ocupa a largura total */
+    background-color: var(--cor-primaria);
+    color: white;
+    font-weight: bold;
+}
+
+#btn-login:hover {
+    background-color: var(--cor-primaria-hover);
+}
+
+
+/* --- ESTILO PARA O BOTÃO DE SAIR --- */
+
+#btn-logout {
+    background-color: var(--cor-perigo); /* Vermelho para indicar uma ação de "saída" */
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+#btn-logout:hover {
+    background-color: var(--cor-perigo-hover);
+}
+
+/* Estilos para os campos de input de e-mail e palavra-passe */
+ #email,
+ #password {
+     padding: 10px;
+     margin-bottom: 10px;
+     border: 1px solid #ccc; /* Borda cinza clara */
+     border-radius: 5px; /* Cantos arredondados */
+     font-size: 16px;
+     width: calc(100% - 22px); /* Ajusta a largura para incluir a borda e o padding */
+     box-sizing: border-box; /* Garante que padding e border não aumentem a largura total */
+ }
+
+ #email:focus,
+ #password:focus {
+     border-color: var(--cor-primaria); /* Cor primária ao receber foco */
+     outline: none; /* Remove a linha de foco padrão do navegador */
+     box-shadow: 0 0 5px rgba(var(--cor-primaria-rgb), 0.5); /* Adiciona uma sombra suave ao receber foco */
+ }
+
+/* --- ESTILOS PARA O BOTÃO DE VISUALIZAR PALAVRA-PASSE --- */
+
+/* Garante que o container da palavra-passe sirva de referência para o ícone */
+.password-container {
+    position: relative;
+}
+
+/* Estiliza e posiciona o ícone do olho DENTRO do container */
+.toggle-password {
+    position: absolute;
+    user-select: none;
+    font-size: 1.2rem;
+    color: #888;
+}
+
+.loading-indicator-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    font-size: 1.2em;
+    color: #888;
+    background-color: transparent !important; /* Remove o fundo cinza do li */
+    border: none !important; /* Remove a borda do li */
+    box-shadow: none !important; /* Remove a sombra do li */
+}
+
+.loading-indicator-item .fa-spinner {
+    margin-right: 15px;
+    font-size: 1.5em;
+}
+
+/* Agrupador para os botões do cabeçalho */
+.header-buttons {
+    display: flex;
+    gap: 10px; /* Espaço entre os botões */
+}
+
+/* Estilo para o novo botão de mudar palavra-passe */
+#btn-mudar-senha {
+    background-color: var(--cor-sucesso);
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+#btn-mudar-senha:hover {
+    background-color: var(--cor-sucesso-hover);
+}
+
+#info-utilizador {
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    color: var(--cor-texto);
+    font-size: 14px;
+    border-right: 1px solid var(--cor-borda); /* Adiciona um separador vertical */
+    margin-right: 10px; /* Afasta o separador do próximo botão */
+}
+
+#form-editar-mobiliario .form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+#form-associar-mobiliario .form-buttons button {
+    background-color: var(--cor-primaria); /* Cor azul padrão */
+    color: var(--cor-container); /* Cor do texto (branco) */
+    flex-grow: 1; /* Faz o botão ocupar todo o espaço disponível */
+}
+
+#form-associar-mobiliario .form-buttons button:hover {
+    background-color: var(--cor-primaria-hover); /* Efeito de escurecer ao passar o mouse */
+}
+.status-gas {
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: 10px; /* Adiciona espaço ao lado do status "Em Uso" */
+    color: white;
+    white-space: nowrap;
+}
+
+.status-gas.cadastrado-sim {
+    background-color: #27ae60; /* Verde */
+}
+
+.status-gas.cadastrado-nao {
+    background-color: #c0392b; /* Vermelho */
+}
+.monitor-container details {
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    background-color: var(--cor-fundo-detalhes);
+    margin-top: 40px;
+}
+
+.monitor-container summary {
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: var(--cor-titulo);
+}
+
+/* Garante que a lista de monitores se comporte como as outras */
+#lista-estoque-monitores li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--cor-container);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border-left: 5px solid;
+}
+
+.status-badge.status-disponivel {
+    color: var(--cor-container);
+}
+
+.status-badge.status-em-uso {
+    color: var(--cor-container); 
+}
+
+#lista-mobiliario li.status-em-uso {
+    background-color: var(--cor-perigo); /* Garante o fundo vermelho */
+    color: var(--cor-container);      /* Muda a cor principal do texto para branco */
+    border-left-color: #a12c21;       /* Uma borda um pouco mais escura para contraste */
+}
+
+/* Garante que todos os textos dentro do item (como 'Setor', 'Criado por', etc.) 
+  também fiquem brancos, sobrescrevendo outras regras.
+*/
+#lista-mobiliario li.status-em-uso small,
+#lista-mobiliario li.status-em-uso .patrimonio-info {
+    color: var(--cor-container);
+    opacity: 0.85; /* Deixa os textos secundários um pouco mais suaves */
+}
+#lista-estoque-monitores li.status-disponivel {
+    border-left-color: #27ae60; /* Verde */
+}
+
+/* Define a cor da borda para VERMELHO quando o monitor está em uso */
+#lista-estoque-monitores li.status-em-uso {
+    border-left-color: #e74c3c; /* Vermelho */
+}
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--cor-borda); /* Adiciona uma linha separadora */
+}
+
+/* Estilo para o texto "Página X" no meio */
+.pagination-controls span {
+    font-weight: bold;
+    font-size: 1em;
+    color: var(--cor-texto);
+}
+
+/* Estilo base para os botões de paginação */
+.pagination-controls button {
+    /* A classe .btn-item que já está no HTML aplica a maior parte do estilo base */
+    background-color: var(--cor-primaria);
+    color: white;
+    font-weight: bold;
+    min-width: 110px; /* Garante uma largura mínima para os botões */
+    transition: all 0.2s ease-in-out;
+}
+
+/* Efeito ao passar o rato por cima (quando o botão está ativo) */
+.pagination-controls button:hover:not(:disabled) {
+    background-color: var(--cor-primaria-hover);
+    transform: translateY(-2px); /* Efeito de elevação */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Estilo para os botões quando estão DESATIVADOS (o que você vê na imagem) */
+.pagination-controls button:disabled {
+    background-color: #e0e0e0; /* Um cinza mais suave */
+    color: #a0a0a0;
+    border-color: #e0e0e0;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* Garante que o botão de excluir no inventário seja vermelho e ativo */
+.btn-excluir-estoque:not(:disabled) {
+    background-color: var(--cor-perigo); /* Usa a variável de cor vermelha */
+}
+
+.btn-excluir-estoque:not(:disabled):hover {
+    background-color: var(--cor-perigo-hover); /* Efeito hover */
+}
