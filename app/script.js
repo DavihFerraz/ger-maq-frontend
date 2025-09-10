@@ -41,19 +41,27 @@ function checkAuth() {
 }
 
 async function carregarDados() {
-    exibirInfoUtilizador();
-
     try {
         const [itens, todosOsEmprestimos] = await Promise.all([
             getItens(),
-            getEmprestimos() // Esta função agora busca todos os empréstimos
+            getEmprestimos()
         ]);
         
         todoEstoque = itens;
         
-        // Separa os empréstimos ativos do histórico aqui no frontend
-        todasAssociacoes = todosOsEmprestimos.filter(e => !e.data_devolucao && e.categoria !== 'MOBILIARIO');
-        todasAssociacoesMobiliario = todosOsEmprestimos.filter(e => !e.data_devolucao && e.categoria === 'MOBILIARIO');
+        const emprestimosAtivos = todosOsEmprestimos.filter(e => !e.data_devolucao);
+        
+        // Versão mais segura: encontra o item primeiro, depois verifica a categoria
+        todasAssociacoes = emprestimosAtivos.filter(e => {
+            const item = todoEstoque.find(i => i.id == e.item_id);
+            return item && item.categoria && item.categoria.toUpperCase() === 'COMPUTADOR';
+        });
+        
+        todasAssociacoesMobiliario = emprestimosAtivos.filter(e => {
+            const item = todoEstoque.find(i => i.id == e.item_id);
+            return item && item.categoria && item.categoria.toUpperCase() === 'MOBILIARIO';
+        });
+        
         todoHistorico = todosOsEmprestimos.filter(e => e.data_devolucao);
 
         renderizarTudo();
