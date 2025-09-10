@@ -42,13 +42,12 @@ async function fetchAPI(endpoint, options = {}) {
 }
 
 // --- Funções de Autenticação ---
-export const apiLogin = (email, senha) => {
+export const apiLogin = (login, senha) => {
     return fetchAPI('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, senha }),
+        body: JSON.stringify({ login, senha }), // Envia um objeto com 'login' e 'senha'
     });
 };
-
 // --- Funções de Itens do Inventário ---
 export const getItens = () => {
     return fetchAPI('/itens');

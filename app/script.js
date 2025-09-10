@@ -40,6 +40,8 @@ function checkAuth() {
 }
 
 async function carregarDados() {
+    exibirInfoUtilizador();
+    
     try {
         const [itens, todosOsEmprestimos] = await Promise.all([
             getItens(),
@@ -472,6 +474,36 @@ function renderizarHistorico() {
     });
 }
 
+
+// Função para descodificar o token JWT e obter os dados do utilizador
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null;
+    }
+}
+
+// Função para exibir as informações do utilizador na página
+function exibirInfoUtilizador() {
+    const infoUtilizadorUI = document.getElementById('info-utilizador');
+    const token = localStorage.getItem('authToken');
+    
+    if (infoUtilizadorUI && token) {
+        const dadosUtilizador = parseJwt(token); // Descodifica o token
+        if (dadosUtilizador) {
+            const nome = dadosUtilizador.nome || 'Utilizador';
+            const depto = dadosUtilizador.departamento || 'N/D';
+            infoUtilizadorUI.innerHTML = `<span>Olá, <strong>${nome}</strong> (${depto})</span>`;
+        }
+    }
+}
 
 
 
