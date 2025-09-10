@@ -1,6 +1,6 @@
 // app/api.js
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://ger-maq-api.onrender.com/api'; 
 
 async function fetchAPI(endpoint, options = {}) {
     const token = localStorage.getItem('authToken');
