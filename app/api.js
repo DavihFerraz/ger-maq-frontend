@@ -1,6 +1,18 @@
 // app/api.js
 
-const API_BASE_URL = 'https://ger-maq-api.onrender.com/api'; 
+let API_BASE_URL;
+
+// Verifica se o hostname é 'localhost' ou '127.0.0.1'
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Se for, estamos em ambiente de DESENVOLVIMENTO
+    API_BASE_URL = 'http://localhost:3000/api';
+    console.log('A executar em ambiente de Desenvolvimento. A ligar à API local.');
+} else {
+    // Caso contrário, estamos em ambiente de PRODUÇÃO
+    API_BASE_URL = 'https://ger-maq-api.onrender.com/api'; // Use o seu URL da Render aqui
+    console.log('A executar em ambiente de Produção. A ligar à API online.');
+}
+
 
 async function fetchAPI(endpoint, options = {}) {
     const token = localStorage.getItem('authToken');
