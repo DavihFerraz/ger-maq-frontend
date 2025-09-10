@@ -10,7 +10,8 @@ import {
     deleteItem,
     getEmprestimos,
     createEmprestimo,
-    devolverEmprestimo
+    devolverEmprestimo,
+    apiChangePassword
 } from './api.js';
 
 // 2. ESTADO LOCAL DA APLICAÇÃO
@@ -41,7 +42,7 @@ function checkAuth() {
 
 async function carregarDados() {
     exibirInfoUtilizador();
-    
+
     try {
         const [itens, todosOsEmprestimos] = await Promise.all([
             getItens(),
@@ -553,6 +554,29 @@ function fecharModalEditarMobiliario() {
     document.getElementById('modal-mobiliario').classList.remove('visible');
 }
 
+function abrirModalSenha() {
+    const modal = document.getElementById('modal-senha');
+    if (modal) modal.classList.add('visible');
+}
+
+function fecharModalSenha() {
+    const modal = document.getElementById('modal-senha');
+    if (modal) modal.classList.remove('visible');
+}
+
+async function mudarSenha(event) {
+    event.preventDefault();
+    const senhaAtual = document.getElementById('senha-atual').value;
+    const novaSenha = document.getElementById('nova-senha').value;
+    try {
+        const response = await apiChangePassword(senhaAtual, novaSenha);
+        alert(response.message);
+        fecharModalSenha();
+    } catch (error) {
+        alert("Erro: " + error.message);
+    }
+}
+
 async function salvarAlteracoesMobiliario(event) {
     event.preventDefault();
     const form = event.target;
@@ -955,6 +979,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnCancelarEdicaoMonitor = document.getElementById('btn-editar-monitor-cancelar');
     if (btnCancelarEdicaoMonitor) btnCancelarEdicaoMonitor.addEventListener('click', fecharModalEditarMonitor);
+
+    const btnMudarSenha = document.getElementById('btn-mudar-senha');
+    if(btnMudarSenha) btnMudarSenha.addEventListener('click', abrirModalSenha);
+
+    const formMudarSenha = document.getElementById('form-mudar-senha');
+    if(formMudarSenha) formMudarSenha.addEventListener('submit', mudarSenha);
+
+    const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
+    if(btnSenhaCancelar) btnSenhaCancelar.addEventListener('click', fecharModalSenha);
 
 
     // --- GESTORES DE EVENTOS PARA BOTÕES ESTÁTICOS ---

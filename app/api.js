@@ -90,3 +90,10 @@ export const devolverEmprestimo = (emprestimoId) => {
         method: 'PUT',
     });
 };
+
+export const apiChangePassword = (senhaAtual, novaSenha) => {
+    return fetchAPI('/auth/change-password', {
+        method: 'PUT',
+        body: JSON.stringify({ senhaAtual, novaSenha }),
+    });
+};
