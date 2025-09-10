@@ -286,24 +286,6 @@
             <a href="lista.html" class="btn-link-pagina">Lista de Associações (Máquinas)</a>
             <a href="lista_mobiliario.html" class="btn-link-pagina">Lista de Associações (Mobiliário)</a>
             <a href="#" id="btn-exportar-inventario" class="btn-link-pagina">Exportar Inventário Completo</a>
-                <div class="total-container">
-            <details>
-                 <summary>Total por Modelo</summary>
-            <ul id="lista-totais"></ul>
-            </details>
-        </div>
-
-         <div class="history-container">
-            <details>
-                <summary>Ver Histórico de Devoluções</summary>
-                <div class="history-search-container">
-                    <input type="text" id="campo-busca-historico" placeholder="Buscar no histórico por pessoa ou máquina">
-                </div>
-
-                <ul id="lista-historico">
-                </ul>
-            </details>
-        </div>
 
 
         </div>
@@ -405,7 +387,7 @@
 
 <div id="modal-mobiliario" class="modal-overlay">
     <div class="modal-content">
-        <h3 id="modal-mobiliario-titulo">Editar Mobiliário</h3>
+        <h3>Editar Mobiliário</h3>
         <form id="form-editar-mobiliario">
             <input type="hidden" id="editar-mobiliario-id">
             <div class="form-group">
@@ -417,12 +399,12 @@
                 <input type="text" id="editar-mobiliario-patrimonio" required>
             </div>
             <div class="form-group">
-                <label for="editar-mobiliario-material">Setor:</label>
-                <input type="text" id="editar-mobiliario-material">
+                <label for="editar-mobiliario-setor">Setor:</label>
+                <input type="text" id="editar-mobiliario-setor">
             </div>
             <div class="form-group">
-                <label for="editar-mobiliario-cadastrado-outro-software">
-                    <input type="checkbox" id="editar-mobiliario-cadastrado-outro-software" style="width: auto;">
+                <label>
+                    <input type="checkbox" id="editar-mobiliario-cadastrado-gpm" style="width: auto;">
                     Já cadastrado no GPM?
                 </label>
             </div>
@@ -436,7 +418,7 @@
 
 <div id="modal-monitor" class="modal-overlay">
     <div class="modal-content">
-        <h3 id="modal-monitor-titulo">Editar Monitor</h3>
+        <h3>Editar Monitor</h3>
         <form id="form-editar-monitor">
             <input type="hidden" id="editar-monitor-id">
             <div class="form-group">
@@ -444,15 +426,15 @@
                 <input type="text" id="editar-monitor-modelo" required>
             </div>
             <div class="form-group">
-                <label for="editar-monitor-setor">Setor:</label>
-                <input type="text" id="editar-monitor-setor">
-            </div>
-            <div class="form-group">
                 <label for="editar-monitor-patrimonio">Património:</label>
                 <input type="text" id="editar-monitor-patrimonio" required>
             </div>
             <div class="form-group">
-                <label for="editar-monitor-cadastrado-gpm">
+                <label for="editar-monitor-setor">Setor:</label>
+                <input type="text" id="editar-monitor-setor">
+            </div>
+            <div class="form-group">
+                <label>
                     <input type="checkbox" id="editar-monitor-cadastrado-gpm" style="width: auto;">
                     Já cadastrado no GPM?
                 </label>
