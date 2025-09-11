@@ -41,17 +41,20 @@ function checkAuth() {
 }
 
 async function carregarDados() {
+    exibirInfoUtilizador();
     try {
         const [itens, todosOsEmprestimos] = await Promise.all([
             getItens(),
             getEmprestimos()
         ]);
-        
+
+        // DEBUG: Vamos ver exatamente o que a API de produção está a enviar
+        console.log("DADOS RECEBIDOS DA API DE PRODUÇÃO:", todosOsEmprestimos);
+
         todoEstoque = itens;
         
         const emprestimosAtivos = todosOsEmprestimos.filter(e => !e.data_devolucao);
         
-        // Versão mais segura: encontra o item primeiro, depois verifica a categoria
         todasAssociacoes = emprestimosAtivos.filter(e => {
             const item = todoEstoque.find(i => i.id == e.item_id);
             return item && item.categoria && item.categoria.toUpperCase() === 'COMPUTADOR';
@@ -95,25 +98,27 @@ function renderizarAssociacoes() {
     const listaUI = document.getElementById('lista-associacoes');
     if (!listaUI) return;
 
+    const campoBusca = document.getElementById('campo-busca');
+    const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
 
-    listaUI.innerHTML = ''; // Limpa a lista antes de renderizar
+    // Filtra a lista de associações com base no termo de busca
+    const associacoesFiltradas = todasAssociacoes.filter(assoc => {
+        const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
+        if (!itemAssociado) return false;
 
-    // Adiciona uma verificação para o caso de não haver associações
-    if (todasAssociacoes.length === 0) {
-        listaUI.innerHTML = '<li>Nenhuma máquina associada encontrada.</li>';
+        const textoCompleto = `${assoc.pessoa_depto} ${itemAssociado.modelo_tipo} ${itemAssociado.patrimonio}`.toLowerCase();
+        return textoCompleto.includes(termoBusca);
+    });
+
+    listaUI.innerHTML = '';
+    if (associacoesFiltradas.length === 0) {
+        listaUI.innerHTML = '<li>Nenhuma associação encontrada.</li>';
         return;
     }
 
-    todasAssociacoes.forEach(assoc => {
-        // Encontra o item correspondente no nosso estoque geral
+    associacoesFiltradas.forEach(assoc => {
         const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-
-        // Se, por algum motivo, o item não for encontrado no estoque, regista um aviso e pula para o próximo
-        if (!itemAssociado) {
-            console.warn(`Aviso: Não foi possível encontrar o item com ID ${assoc.item_id} no estoque para a associação ID ${assoc.id}.`);
-            return; 
-        }
-
+        
         const li = document.createElement('li');
         li.innerHTML = `
         <span>
@@ -330,16 +335,26 @@ function renderizarAssociacoesMobiliario() {
     const listaUI = document.getElementById('lista-associacoes-mobiliario');
     if (!listaUI) return;
 
+    const campoBusca = document.getElementById('campo-busca');
+    const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
+
+    const associacoesFiltradas = todasAssociacoesMobiliario.filter(assoc => {
+        const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
+        if (!itemAssociado) return false;
+
+        const textoCompleto = `${assoc.pessoa_depto} ${itemAssociado.modelo_tipo} ${itemAssociado.patrimonio}`.toLowerCase();
+        return textoCompleto.includes(termoBusca);
+    });
+
     listaUI.innerHTML = '';
-    if (todasAssociacoesMobiliario.length === 0) {
+    if (associacoesFiltradas.length === 0) {
         listaUI.innerHTML = '<li>Nenhuma associação de mobiliário encontrada.</li>';
         return;
     }
 
-    todasAssociacoesMobiliario.forEach(assoc => {
+    associacoesFiltradas.forEach(assoc => {
         const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-        if (!itemAssociado) return;
-
+        
         const li = document.createElement('li');
         li.innerHTML = `
         <span>
@@ -676,7 +691,74 @@ function fecharModalEspecificacoes() {
     if (modal) modal.classList.remove('visible');
 }
 
-// ... Outras funções de renderizar (renderizarMobiliario, renderizarAssociacoesMobiliario, etc.) devem ser adaptadas de forma similar ...
+function exportarParaCSV() {
+    if (todasAssociacoes.length === 0) {
+        Toastify({ text: "Não há dados para exportar." }).showToast();
+        return;
+    }
+
+    // Cabeçalho do ficheiro CSV
+    const cabecalho = ['Pessoa', 'Departamento', 'Maquina', 'Patrimonio', 'Data Emprestimo'];
+
+    // Mapeia os dados das associações para o formato de linha do CSV
+    const linhas = todasAssociacoes.map(assoc => {
+        const item = todoEstoque.find(i => i.id === assoc.item_id);
+        if (!item) return null; // Ignora se o item não for encontrado
+
+        const [nome, departamento = 'N/D'] = assoc.pessoa_depto.split(' - ');
+        const maquina = item.modelo_tipo;
+        const patrimonio = item.patrimonio || 'N/A';
+        const dataEmprestimo = new Date(assoc.data_emprestimo).toLocaleDateString('pt-BR');
+
+        return [nome.trim(), departamento.trim(), maquina, patrimonio, dataEmprestimo];
+    }).filter(linha => linha !== null); // Remove linhas nulas
+
+    // Cria o conteúdo do ficheiro CSV
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+        + cabecalho.join(";") + "\n" 
+        + linhas.map(e => e.join(";")).join("\n");
+
+    // Cria um link de download e simula um clique
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `relatorio_maquinas_associadas_${new Date().toLocaleDateString('pt-BR')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+function exportarMobiliarioCSV() {
+    if (todasAssociacoesMobiliario.length === 0) {
+        Toastify({ text: "Não há dados de mobiliário para exportar." }).showToast();
+        return;
+    }
+
+    const cabecalho = ['Pessoa', 'Departamento', 'Tipo', 'Patrimonio', 'Data Associação'];
+    const linhas = todasAssociacoesMobiliario.map(assoc => {
+        const item = todoEstoque.find(i => i.id === assoc.item_id);
+        if (!item) return null;
+
+        const [nome, departamento = 'N/D'] = assoc.pessoa_depto.split(' - ');
+        const dataAssociacao = new Date(assoc.data_emprestimo).toLocaleDateString('pt-BR');
+        
+        return [nome.trim(), departamento.trim(), item.modelo_tipo, item.patrimonio, dataAssociacao];
+    }).filter(Boolean);
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+        + cabecalho.join(";") + "\n" 
+        + linhas.map(e => e.join(";")).join("\n");
+        
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `relatorio_mobiliario_${new Date().toLocaleDateString('pt-BR')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 
 // =================================================================
 // 5. FUNÇÕES DE MANIPULAÇÃO DE DADOS (CRUD)
@@ -997,6 +1079,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
     if(btnSenhaCancelar) btnSenhaCancelar.addEventListener('click', fecharModalSenha);
 
+    const btnExportar = document.getElementById('btn-exportar');
+    if (btnExportar) {
+        btnExportar.addEventListener('click', exportarParaCSV);
+    }
+
 
     // --- GESTORES DE EVENTOS PARA BOTÕES ESTÁTICOS ---
     const btnLogout = document.getElementById('btn-logout');
@@ -1028,10 +1115,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const campoBuscaAssociacoes = document.getElementById('campo-busca');
     if (campoBuscaAssociacoes && window.location.pathname.includes('lista.html')) {
-        campoBuscaAssociacoes.addEventListener('input', renderizarAssociacoes);
-    }
+    campoBuscaAssociacoes.addEventListener('input', renderizarAssociacoes);
+}
     if (campoBuscaAssociacoes && window.location.pathname.includes('lista_mobiliario.html')) {
         campoBuscaAssociacoes.addEventListener('input', renderizarAssociacoesMobiliario);
+    }
+
+
+    if (campoBuscaAssociacoes && window.location.pathname.includes('lista_mobiliario.html')) {
+    campoBuscaAssociacoes.addEventListener('input', renderizarAssociacoesMobiliario);
+}
+
+    const btnExportarMobiliario = document.getElementById('btn-exportar-mobiliario');
+    if (btnExportarMobiliario) {
+        btnExportarMobiliario.addEventListener('click', exportarMobiliarioCSV);
     }
 
 
