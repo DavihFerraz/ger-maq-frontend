@@ -288,7 +288,6 @@ function renderizarEstoqueMonitores() {
     const listaUI = document.getElementById('lista-estoque-monitores');
     if (!listaUI) return;
 
-    // Filtra o estoque para obter apenas os itens da categoria 'MONITOR'
     const todoMonitores = todoEstoque.filter(item => item.categoria === 'MONITOR');
     const campoBusca = document.getElementById('campo-busca-estoque-monitor');
     const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
@@ -308,22 +307,41 @@ function renderizarEstoqueMonitores() {
 
     monitoresFiltrados.forEach(monitor => {
         const estaEmUso = monitor.status === 'Em Uso';
+        let utilizadorHtml = '';
+
+        if (estaEmUso) {
+            const associacao = todasAssociacoes.find(assoc => 
+                assoc.monitores_associados_ids && assoc.monitores_associados_ids.includes(monitor.id)
+            );
+            
+            if (associacao) {
+                const nomePessoa = associacao.pessoa_depto.split(' - ')[0];
+                utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
+            }
+        }
 
         const li = document.createElement('li');
-        const statusClass = monitor.status.toLowerCase().replace(' ', '-');
+        const statusClass = monitor.status ? monitor.status.toLowerCase().replace(' ', '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
 
         const botoesHTML = estaEmUso
             ? `<button class="btn-item btn-editar-estoque" data-id="${monitor.id}">Editar</button> <button class="btn-item" disabled>Excluir</button>`
             : `<button class="btn-item btn-editar-estoque" data-id="${monitor.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${monitor.id}">Excluir</button>`;
 
+        const statusGASCadastroHTML = monitor.cadastrado_gpm
+            ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>`
+            : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
+
         li.innerHTML = `
             <div class="info-item">
                 <span>
                     <strong>${monitor.modelo_tipo}</strong> (Património: ${monitor.patrimonio})
+                    <br><small>Setor: ${monitor.setor || 'N/P'}</small>
+                    ${utilizadorHtml}
                 </span>
                 <div class="status-badges-container">
                     <span class="status-badge status-${statusClass}">${monitor.status}</span>
+                    ${statusGASCadastroHTML}
                 </div>
             </div>
             <div class="botoes-item">${botoesHTML}</div>`;
@@ -816,22 +834,34 @@ async function salvarAssociacao(event) {
     event.preventDefault();
     const pessoa = document.getElementById('nome-pessoa').value.trim();
     const itemId = document.getElementById('id-maquina-emprestimo').value;
+    
+    // Recolhe os IDs de TODOS os monitores selecionados
+    const monitoresSelect = document.getElementById('id-monitores-emprestimo');
+    const monitoresIds = [...monitoresSelect.selectedOptions].map(option => parseInt(option.value));
 
     if (!pessoa || !itemId) {
         alert("Pessoa e Máquina são obrigatórios.");
         return;
     }
 
+    // Cria o objeto de dados para a API, incluindo os IDs dos monitores
+    const dadosEmprestimo = {
+        item_id: parseInt(itemId),
+        pessoa_depto: pessoa,
+        monitores_ids: monitoresIds // Envia o array de IDs
+    };
+
     try {
-        await createEmprestimo({ item_id: parseInt(itemId), pessoa_depto: pessoa });
+        await createEmprestimo(dadosEmprestimo);
         Toastify({ text: "Empréstimo registado com sucesso!", backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)" }).showToast();
         document.getElementById('form-maquina').reset();
-        carregarDados();
+        carregarDados(); // Recarrega tudo para atualizar as listas
     } catch (error) {
         console.error("Erro ao salvar associação:", error);
         Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
     }
 }
+
 
 async function salvarAssociacaoMobiliario(event) {
     event.preventDefault();
