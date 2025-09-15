@@ -411,7 +411,7 @@ function renderizarResumos() {
     // --- Resumo do Estoque de Máquinas (Computadores) ---
     if (totalInventarioUI) {
         const maquinasNoEstoque = todoEstoque.filter(item => item.categoria.toUpperCase() === 'COMPUTADOR');
-        const maquinasEmUso = maquinasNoEstoque.filter(item => item.status === 'Em uso').length;
+        const maquinasEmUso = maquinasNoEstoque.filter(item => item.status && item.status.toLowerCase() === 'em uso').length;
         
         totalInventarioUI.textContent = maquinasNoEstoque.length;
         totalEmUsoUI.textContent = maquinasEmUso;
@@ -421,7 +421,7 @@ function renderizarResumos() {
     // --- Resumo do Estoque de Mobiliário ---
     if (totalMobiliarioUI) {
         const mobiliarioNoEstoque = todoEstoque.filter(item => item.categoria.toUpperCase() === 'MOBILIARIO');
-        const mobiliarioEmUso = mobiliarioNoEstoque.filter(item => item.status === 'Em uso').length;
+        const mobiliarioEmUso = mobiliarioNoEstoque.filter(item => item.status && item.status.toLowerCase() === 'em uso').length;
 
         totalMobiliarioUI.textContent = mobiliarioNoEstoque.length;
         totalMobiliarioEmUsoUI.textContent = mobiliarioEmUso;
