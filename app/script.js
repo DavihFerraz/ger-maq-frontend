@@ -68,10 +68,14 @@ async function carregarDados() {
         todoHistorico = todosOsEmprestimos.filter(e => e.data_devolucao);
 
         renderizarTudo();
+        popularFiltroDepartamentos();
 
     } catch (error) {
         console.error("Erro ao carregar dados da API:", error);
     }
+
+   
+
 }
 // =================================================================
 // 4. FUNÇÕES DE RENDERIZAÇÃO
@@ -98,18 +102,35 @@ function renderizarAssociacoes() {
     const listaUI = document.getElementById('lista-associacoes');
     if (!listaUI) return;
 
+    // Obtém os valores dos filtros
     const campoBusca = document.getElementById('campo-busca');
     const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
+    
+    const filtroDeptoSelect = document.getElementById('filtro-departamento');
+    const filtroDepto = filtroDeptoSelect ? filtroDeptoSelect.value : '';
 
-    // Filtra a lista de associações com base no termo de busca
-    const associacoesFiltradas = todasAssociacoes.filter(assoc => {
-        const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-        if (!itemAssociado) return false;
+    let associacoesFiltradas = todasAssociacoes;
 
-        const textoCompleto = `${assoc.pessoa_depto} ${itemAssociado.modelo_tipo} ${itemAssociado.patrimonio}`.toLowerCase();
-        return textoCompleto.includes(termoBusca);
-    });
+    // 1. Aplica o filtro de departamento, se um for selecionado
+    if (filtroDepto) {
+        associacoesFiltradas = associacoesFiltradas.filter(assoc => {
+            const partes = assoc.pessoa_depto.split(' - ');
+            return partes.length > 1 && partes[1].trim() === filtroDepto;
+        });
+    }
 
+    // 2. Aplica o filtro de busca de texto sobre o resultado anterior
+    if (termoBusca) {
+        associacoesFiltradas = associacoesFiltradas.filter(assoc => {
+            const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
+            if (!itemAssociado) return false;
+
+            const textoCompleto = `${assoc.pessoa_depto} ${itemAssociado.modelo_tipo} ${itemAssociado.patrimonio}`.toLowerCase();
+            return textoCompleto.includes(termoBusca);
+        });
+    }
+
+    // 3. Renderiza o resultado final
     listaUI.innerHTML = '';
     if (associacoesFiltradas.length === 0) {
         listaUI.innerHTML = '<li>Nenhuma associação encontrada.</li>';
@@ -118,7 +139,8 @@ function renderizarAssociacoes() {
 
     associacoesFiltradas.forEach(assoc => {
         const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-        
+        if (!itemAssociado) return; // Segurança extra
+
         const li = document.createElement('li');
         li.innerHTML = `
         <span>
@@ -1056,7 +1078,30 @@ function popularDropdownMonitores() {
             monitoresSelect.appendChild(option);
         });
     }
-}
+};
+
+
+function popularFiltroDepartamentos() {
+    const filtroUI = document.getElementById('filtro-departamento');
+    if (!filtroUI) return;
+
+    // Extrai departamentos únicos das associações
+    const departamentos = [... new Set(todasAssociacoes.map(assoc => {
+        const partes = assoc.pessoa_depto.split(' - ');
+        return partes.length > 1 ? partes[1].trim().toUpperCase() : 'N/D';
+    }))].filter(Boolean).sort(); // Remove entradas vazias e ordena
+
+    // Limpa opções antigas
+    filtroUI.innerHTML = '<option value="">-- Todos os Departamentos --</option>';
+
+    // Adiciona cada departamento como uma opção no dropdown
+    departamentos.forEach(depto => {
+        const option = document.createElement('option');
+        option.value = depto;
+        option.textContent = depto;
+        filtroUI.appendChild(option);
+    });
+};
 
 
 // =================================================================
@@ -1159,6 +1204,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExportarMobiliario = document.getElementById('btn-exportar-mobiliario');
     if (btnExportarMobiliario) {
         btnExportarMobiliario.addEventListener('click', exportarMobiliarioCSV);
+    }
+
+
+    const filtroDepartamento = document.getElementById('filtro-departamento');
+    if (filtroDepartamento) {
+        filtroDepartamento.addEventListener('change', renderizarAssociacoes);
     }
 
 
