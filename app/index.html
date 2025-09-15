@@ -64,7 +64,9 @@
                   <form id="form-estoque">
                     <div class="form-group">
                         <label for="estoque-modelo">Modelo da Máquina:</label>
-                        <input type="text" id="estoque-modelo" placeholder="Ex: Dell Optiplex 3070" required>
+                        <select id="estoque-modelo" required>
+                            <option value="">-- Selecione um modelo --</option>
+                            </select>
                     </div>
                     <div class="form-group">
                         <label for="estoque-patrimonio">Património:</label>
@@ -185,6 +187,8 @@
     </details>
 </div>
 
+
+
 <div class="monitor-container">
     <details>
         <summary>Gestão de Estoque de Monitores</summary>
@@ -224,6 +228,26 @@
         </div>
     </details>
 </div>
+
+<div class="form-container-stock" >
+            <details>
+                <summary style="font-weight: bold; cursor: pointer;">Criar Modelos de Máquina</summary>
+                <form id="form-novo-modelo" style="margin-top: 15px;">
+                    <h4 id="form-title-stock">Adicionar Novo Modelo</h4>
+                    <div class="form-group">
+                        <label for="novo-modelo-nome">Nome do Modelo:</label>
+                        <input type="text" id="novo-modelo-nome" placeholder="Ex: Dell Optiplex 3080" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="novo-modelo-fabricante">Fabricante:</label>
+                        <input type="text" id="novo-modelo-fabricante" placeholder="Ex: Dell">
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-adicionar-estoque">Adicionar Modelo</button>
+                    </div>
+                </form>
+            </details>
+        </div>
         <div class="summary-container summary-estoque">
             <div class="summary-item">
                 <h3>Total no Inventário</h3>

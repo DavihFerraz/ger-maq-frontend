@@ -11,7 +11,9 @@ import {
     getEmprestimos,
     createEmprestimo,
     devolverEmprestimo,
-    apiChangePassword
+    apiChangePassword,
+    getModelos, 
+    createModelo
 } from './api.js';
 
 // 2. ESTADO LOCAL DA APLICAÇÃO
@@ -23,6 +25,7 @@ let todasAssociacoesMobiliario = [];
 let idEmEdicao = null;
 let graficoPizza = null;
 let graficoBarras = null;
+let todosModelos = [];
 
 // =================================================================
 // 3. LÓGICA DE AUTENTICAÇÃO E CARREGAMENTO DE DADOS
@@ -43,15 +46,17 @@ function checkAuth() {
 async function carregarDados() {
     exibirInfoUtilizador();
     try {
-        const [itens, todosOsEmprestimos] = await Promise.all([
+        const [itens, todosOsEmprestimos, modelos] = await Promise.all([
             getItens(),
-            getEmprestimos()
+            getEmprestimos(),
+            getModelos()
         ]);
 
         // DEBUG: Vamos ver exatamente o que a API de produção está a enviar
         console.log("DADOS RECEBIDOS DA API DE PRODUÇÃO:", todosOsEmprestimos);
 
         todoEstoque = itens;
+        todosModelos = modelos;
         
         const emprestimosAtivos = todosOsEmprestimos.filter(e => !e.data_devolucao);
         
@@ -70,6 +75,7 @@ async function carregarDados() {
         renderizarTudo();
         popularFiltroDepartamentos();
         popularFiltroDepartamentosMobiliario();
+        popularDropdownModelos();
 
     } catch (error) {
         console.error("Erro ao carregar dados da API:", error);
@@ -1094,6 +1100,39 @@ function popularDropdownMonitores() {
     }
 };
 
+// Função para preencher o dropdown de modelos
+function popularDropdownModelos() {
+    const modeloSelect = document.getElementById('estoque-modelo');
+    if (!modeloSelect) return;
+
+    modeloSelect.innerHTML = '<option value="">-- Selecione um modelo --</option>'; // Limpa opções antigas
+
+    todosModelos.forEach(modelo => {
+        const option = document.createElement('option');
+        option.value = modelo.nome_modelo; // O valor será o nome do modelo
+        option.textContent = `${modelo.nome_modelo} (${modelo.fabricante || 'N/A'})`;
+        modeloSelect.appendChild(option);
+    });
+}
+
+// Função para salvar um novo modelo
+async function salvarNovoModelo(event) {
+    event.preventDefault();
+    const form = event.target;
+    const nomeModelo = form.querySelector('#novo-modelo-nome').value.trim();
+    const fabricante = form.querySelector('#novo-modelo-fabricante').value.trim();
+
+    try {
+        await createModelo({ nome_modelo: nomeModelo, fabricante: fabricante });
+        Toastify({ text: "Novo modelo adicionado com sucesso!" }).showToast();
+        form.reset();
+        // Recarrega os dados para que o novo modelo apareça no dropdown
+        carregarDados();
+    } catch (error) {
+        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
+}
+
 
 function popularFiltroDepartamentos() {
     const filtroUI = document.getElementById('filtro-departamento');
@@ -1194,6 +1233,11 @@ document.addEventListener('DOMContentLoaded', () => {
         btnExportar.addEventListener('click', exportarParaCSV);
     }
 
+    const formNovoModelo = document.getElementById('form-novo-modelo');
+    if (formNovoModelo) {
+        formNovoModelo.addEventListener('submit', salvarNovoModelo);
+    }
+
 
     // --- GESTORES DE EVENTOS PARA BOTÕES ESTÁTICOS ---
     const btnLogout = document.getElementById('btn-logout');
@@ -1250,6 +1294,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const filtroDepartamentoMobiliario = document.getElementById('filtro-departamento');
     if (filtroDepartamentoMobiliario && window.location.pathname.includes('lista_mobiliario.html')) {
         filtroDepartamentoMobiliario.addEventListener('change', renderizarAssociacoesMobiliario);
+    }
+
+    const modeloSelect = document.getElementById('estoque-modelo');
+    if (modeloSelect) {
+        modeloSelect.addEventListener('change', (event) => {
+            const nomeModeloSelecionado = event.target.value;
+            const modelo = todosModelos.find(m => m.nome_modelo === nomeModeloSelecionado);
+
+            if (modelo) {
+                // Preenche os campos do formulário com as especificações do modelo
+                document.getElementById('estoque-processador').value = modelo.espec_processador || '';
+                document.getElementById('estoque-ram').value = modelo.espec_ram || '';
+                document.getElementById('estoque-armazenamento').value = modelo.espec_armazenamento || '';
+            }
+        });
     }
 
 

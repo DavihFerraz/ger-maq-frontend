@@ -109,3 +109,14 @@ export const apiChangePassword = (senhaAtual, novaSenha) => {
         body: JSON.stringify({ senhaAtual, novaSenha }),
     });
 };
+
+export const getModelos = () => {
+    return fetchAPI('/modelos');
+};
+
+export const createModelo = (modeloData) => {
+    return fetchAPI('/modelos', {
+        method: 'POST',
+        body: JSON.stringify(modeloData),
+    });
+};
