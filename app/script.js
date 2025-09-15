@@ -173,14 +173,22 @@ function renderizarEstoque() {
     const termoBusca = campoBuscaEstoque ? campoBuscaEstoque.value.toLowerCase() : '';
 
     let estoqueParaRenderizar = todoMaquinas.filter(maquina => {
-        const modelo = maquina.modelo_tipo ? maquina.modelo_tipo.toLowerCase() : '';
-        const patrimonio = maquina.patrimonio ? maquina.patrimonio.toLowerCase() : '';
-        return modelo.includes(termoBusca) || patrimonio.includes(termoBusca);
+        const modelo = (maquina.modelo_tipo || '').toLowerCase();
+        const patrimonio = (maquina.patrimonio || '').toLowerCase();
+        
+        // Encontra a associação para obter o nome do utilizador para a pesquisa
+        const associacao = todasAssociacoes.find(emp => emp.item_id === maquina.id);
+        const nomeUtilizador = (associacao ? associacao.pessoa_depto : '').toLowerCase();
+
+        // Retorna verdadeiro se o termo de busca estiver em qualquer um dos campos
+        return modelo.includes(termoBusca) || 
+               patrimonio.includes(termoBusca) || 
+               nomeUtilizador.includes(termoBusca);
     });
 
     // Ordena a lista por status e depois por modelo
     estoqueParaRenderizar.sort((a, b) => {
-        if (a.status < b.status) return 1;
+        if (a.status < b.status) return 1; // Coloca 'Em Uso' antes de 'Disponível'
         if (a.status > b.status) return -1;
         return a.modelo_tipo.localeCompare(b.modelo_tipo);
     });
@@ -193,7 +201,8 @@ function renderizarEstoque() {
 
     estoqueParaRenderizar.forEach(maquina => {
         const statusAtual = maquina.status;
-        const estaEmUso = statusAtual.toLowerCase() === 'em uso';
+        const estaEmUso = statusAtual && statusAtual.toLowerCase() === 'em uso';
+
         let utilizadorHtml = '';
         if (estaEmUso) {
             const associacaoDaMaquina = todasAssociacoes.find(emp => emp.item_id === maquina.id);
@@ -207,19 +216,15 @@ function renderizarEstoque() {
         const statusClass = statusAtual ? statusAtual.toLowerCase().replace(' ', '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
 
-        // --- LÓGICA DE BOTÕES CORRIGIDA E FINAL ---
+        // Lógica explícita para criar o HTML dos botões
         let botoesHTML = '';
-        // Constrói a string dos botões de forma explícita para evitar erros
         if (estaEmUso) {
-            // Se estiver em uso, o botão "Excluir" fica desativado
             botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button>
                           <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}" disabled title="Devolva a máquina antes de excluir.">Excluir</button>`;
         } else {
-            // Se estiver disponível, o botão "Excluir" está ativo e não tem classes extra
             botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button>
                           <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}">Excluir</button>`;
         }
-        // --- FIM DA CORREÇÃO ---
         
         const statusGASCadastroHTML = maquina.cadastrado_gpm
             ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>`
@@ -229,7 +234,8 @@ function renderizarEstoque() {
             <div class="info-item">
                 <span>
                     <strong>${maquina.modelo_tipo}</strong> (Património: ${maquina.patrimonio})
-                    <br><small>Setor: ${maquina.setor || 'N/P'}</small> ${maquina.observacoes ? `<br><small>${maquina.observacoes}</small>` : ''}
+                    <br><small>Setor: ${maquina.setor || 'N/P'}</small> ${maquina.espec_ram || ''} ${maquina.espec_armazenamento || ''}
+                    ${maquina.observacoes ? `<br><small>${maquina.observacoes}</small>` : ''}
                     ${utilizadorHtml}
                 </span>
                 <div class="status-badges-container">
