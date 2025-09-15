@@ -69,6 +69,7 @@ async function carregarDados() {
 
         renderizarTudo();
         popularFiltroDepartamentos();
+        popularFiltroDepartamentosMobiliario();
 
     } catch (error) {
         console.error("Erro ao carregar dados da API:", error);
@@ -375,16 +376,29 @@ function renderizarAssociacoesMobiliario() {
     const listaUI = document.getElementById('lista-associacoes-mobiliario');
     if (!listaUI) return;
 
+    const filtroDeptoSelect = document.getElementById('filtro-departamento');
+    const filtroDepto = filtroDeptoSelect ? filtroDeptoSelect.value : '';
+
+    let associacoesFiltradas = todasAssociacoesMobiliario;
+
+    if (filtroDepto) {
+        associacoesFiltradas = associacoesFiltradas.filter(assoc => {
+            const partes = assoc.pessoa_depto.split(' - ');
+            return partes.length > 1 && partes[1].trim() === filtroDepto;
+        });
+    }
+
+    // A lógica de busca por texto continua a funcionar em conjunto com o filtro
     const campoBusca = document.getElementById('campo-busca');
     const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
-
-    const associacoesFiltradas = todasAssociacoesMobiliario.filter(assoc => {
-        const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-        if (!itemAssociado) return false;
-
-        const textoCompleto = `${assoc.pessoa_depto} ${itemAssociado.modelo_tipo} ${itemAssociado.patrimonio}`.toLowerCase();
-        return textoCompleto.includes(termoBusca);
-    });
+    if (termoBusca) {
+         associacoesFiltradas = associacoesFiltradas.filter(assoc => {
+            const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
+            if (!itemAssociado) return false;
+            const textoCompleto = `${assoc.pessoa_depto} ${itemAssociado.modelo_tipo} ${itemAssociado.patrimonio}`.toLowerCase();
+            return textoCompleto.includes(termoBusca);
+        });
+    }
 
     listaUI.innerHTML = '';
     if (associacoesFiltradas.length === 0) {
@@ -394,7 +408,7 @@ function renderizarAssociacoesMobiliario() {
 
     associacoesFiltradas.forEach(assoc => {
         const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-        
+        if (!itemAssociado) return;
         const li = document.createElement('li');
         li.innerHTML = `
         <span>
@@ -1104,6 +1118,27 @@ function popularFiltroDepartamentos() {
 };
 
 
+function popularFiltroDepartamentosMobiliario() {
+    const filtroUI = document.getElementById('filtro-departamento');
+    // A função só executa se o filtro estiver na página atual
+    if (!filtroUI || !window.location.pathname.includes('lista_mobiliario.html')) return;
+
+    const departamentos = [...new Set(todasAssociacoesMobiliario.map(assoc => {
+        const partes = assoc.pessoa_depto.split(' - ');
+        return partes.length > 1 ? partes[1].trim() : null;
+    }))].filter(Boolean).sort();
+
+    filtroUI.innerHTML = '<option value="">-- Todos os Departamentos --</option>';
+
+    departamentos.forEach(depto => {
+        const option = document.createElement('option');
+        option.value = depto;
+        option.textContent = depto;
+        filtroUI.appendChild(option);
+    });
+}
+
+
 // =================================================================
 // 7. CÓDIGO EXECUTADO QUANDO A PÁGINA CARREGA
 // =================================================================
@@ -1210,6 +1245,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const filtroDepartamento = document.getElementById('filtro-departamento');
     if (filtroDepartamento) {
         filtroDepartamento.addEventListener('change', renderizarAssociacoes);
+    }
+
+    const filtroDepartamentoMobiliario = document.getElementById('filtro-departamento');
+    if (filtroDepartamentoMobiliario && window.location.pathname.includes('lista_mobiliario.html')) {
+        filtroDepartamentoMobiliario.addEventListener('change', renderizarAssociacoesMobiliario);
     }
 
 
