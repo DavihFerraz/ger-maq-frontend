@@ -153,7 +153,7 @@ function renderizarAssociacoes() {
         <span>
             <strong>${assoc.pessoa_depto}</strong> está com: 
             <a href="#" class="spec-link" data-id="${itemAssociado.id}">${itemAssociado.modelo_tipo}</a>
-            <br><small class="patrimonio-info">Património: ${itemAssociado.patrimonio}</small>
+            <br><small class="patrimonio-info">Património: ${formatarPatrimonio(itemAssociado.patrimonio)}</small>
         </span>
         <div class="botoes-item">
             <button class="btn-item btn-devolver" data-id="${assoc.id}">Devolver</button>
@@ -167,7 +167,6 @@ function renderizarEstoque() {
     const listaEstoqueUI = document.getElementById('lista-estoque');
     if (!listaEstoqueUI) return;
 
-    // Filtra para obter apenas os computadores do inventário
     const todoMaquinas = todoEstoque.filter(item => item.categoria === 'COMPUTADOR');
     const campoBuscaEstoque = document.getElementById('campo-busca-estoque');
     const termoBusca = campoBuscaEstoque ? campoBuscaEstoque.value.toLowerCase() : '';
@@ -175,20 +174,13 @@ function renderizarEstoque() {
     let estoqueParaRenderizar = todoMaquinas.filter(maquina => {
         const modelo = (maquina.modelo_tipo || '').toLowerCase();
         const patrimonio = (maquina.patrimonio || '').toLowerCase();
-        
-        // Encontra a associação para obter o nome do utilizador para a pesquisa
         const associacao = todasAssociacoes.find(emp => emp.item_id === maquina.id);
         const nomeUtilizador = (associacao ? associacao.pessoa_depto : '').toLowerCase();
-
-        // Retorna verdadeiro se o termo de busca estiver em qualquer um dos campos
-        return modelo.includes(termoBusca) || 
-               patrimonio.includes(termoBusca) || 
-               nomeUtilizador.includes(termoBusca);
+        return modelo.includes(termoBusca) || patrimonio.includes(termoBusca) || nomeUtilizador.includes(termoBusca);
     });
 
-    // Ordena a lista por status e depois por modelo
     estoqueParaRenderizar.sort((a, b) => {
-        if (a.status < b.status) return 1; // Coloca 'Em Uso' antes de 'Disponível'
+        if (a.status < b.status) return 1;
         if (a.status > b.status) return -1;
         return a.modelo_tipo.localeCompare(b.modelo_tipo);
     });
@@ -202,8 +194,8 @@ function renderizarEstoque() {
     estoqueParaRenderizar.forEach(maquina => {
         const statusAtual = maquina.status;
         const estaEmUso = statusAtual && statusAtual.toLowerCase() === 'em uso';
-
         let utilizadorHtml = '';
+
         if (estaEmUso) {
             const associacaoDaMaquina = todasAssociacoes.find(emp => emp.item_id === maquina.id);
             if (associacaoDaMaquina) {
@@ -216,25 +208,23 @@ function renderizarEstoque() {
         const statusClass = statusAtual ? statusAtual.toLowerCase().replace(' ', '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
 
-        // Lógica explícita para criar o HTML dos botões
         let botoesHTML = '';
         if (estaEmUso) {
-            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button>
-                          <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}" disabled title="Devolva a máquina antes de excluir.">Excluir</button>`;
+            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}" disabled title="Devolva a máquina antes de excluir.">Excluir</button>`;
         } else {
-            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button>
-                          <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}">Excluir</button>`;
+            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}">Excluir</button>`;
         }
         
-        const statusGASCadastroHTML = maquina.cadastrado_gpm
-            ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>`
-            : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
+        const statusGASCadastroHTML = maquina.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
         
         li.innerHTML = `
             <div class="info-item">
                 <span>
-                    <strong>${maquina.modelo_tipo}</strong> (Património: ${maquina.patrimonio})
-                    <br><small>Setor: ${maquina.setor || 'N/P'}</small>
+                    <strong>${maquina.modelo_tipo}</strong> (Património: ${formatarPatrimonio(maquina.patrimonio)})
+                    <br><small>Setor: ${maquina.setor || 'N/A'}</small>
+                    <br><small>Classe: ${maquina.classe || 'N/A'}</small>
+                    <br><small>Estado: ${maquina.estado_conservacao || 'N/A'}</small>
+                    ${maquina.espec_ram || ''} ${maquina.espec_armazenamento || ''}
                     ${maquina.observacoes ? `<br><small>${maquina.observacoes}</small>` : ''}
                     ${utilizadorHtml}
                 </span>
@@ -253,18 +243,21 @@ function renderizarMobiliario() {
     const listaMobiliarioUI = document.getElementById('lista-mobiliario');
     if (!listaMobiliarioUI) return;
 
-    // Filtra o estoque para pegar apenas a categoria 'MOBILIARIO'
+    // Filtra para pegar apenas a categoria 'MOBILIARIO'
     const todoMobiliario = todoEstoque.filter(item => item.categoria === 'MOBILIARIO');
     const campoBuscaMobiliario = document.getElementById('campo-busca-mobiliario');
     const termoBusca = campoBuscaMobiliario ? campoBuscaMobiliario.value.toLowerCase() : '';
 
+    // Filtro de busca atualizado para incluir o nome do utilizador
     let mobiliarioParaRenderizar = todoMobiliario.filter(item => {
-        const tipo = item.modelo_tipo ? item.modelo_tipo.toLowerCase() : '';
-        const patrimonio = item.patrimonio ? item.patrimonio.toLowerCase() : '';
-        return tipo.includes(termoBusca) || patrimonio.includes(termoBusca);
+        const tipo = (item.modelo_tipo || '').toLowerCase();
+        const patrimonio = (item.patrimonio || '').toLowerCase();
+        const associacao = todasAssociacoesMobiliario.find(emp => emp.item_id === item.id);
+        const nomeUtilizador = (associacao ? associacao.pessoa_depto : '').toLowerCase();
+        return tipo.includes(termoBusca) || patrimonio.includes(termoBusca) || nomeUtilizador.includes(termoBusca);
     });
 
-    // Ordena por status ('Em Uso' vem primeiro) e depois por tipo
+    // Ordenação por status e depois por tipo
     mobiliarioParaRenderizar.sort((a, b) => {
         if (a.status < b.status) return 1;
         if (a.status > b.status) return -1;
@@ -279,9 +272,10 @@ function renderizarMobiliario() {
 
     mobiliarioParaRenderizar.forEach(item => {
         const statusAtual = item.status;
-        const estaEmUso = statusAtual === 'Em Uso';
-
+        // Verificação de status consistente (case-insensitive)
+        const estaEmUso = statusAtual && statusAtual.toLowerCase() === 'em uso';
         let utilizadorHtml = '';
+
         if (estaEmUso) {
             const associacao = todasAssociacoesMobiliario.find(emp => emp.item_id === item.id);
             if (associacao) {
@@ -291,26 +285,33 @@ function renderizarMobiliario() {
         }
 
         const li = document.createElement('li');
-        const statusClass = statusAtual.toLowerCase().replace(' ', '-');
+        // Lógica de classe de status mais segura
+        const statusClass = statusAtual ? statusAtual.toLowerCase().replace(' ', '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
 
-        const botoesHTML = estaEmUso
-            ? `<button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button> <button class="btn-item" disabled>Excluir</button>`
-            : `<button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>`;
-
-        const statusGASCadastroHTML = item.cadastrado_gpm
-            ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>`
-            : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
-
+        let botoesHTML = '';
+        // Lógica de botões idêntica à de estoque
+        if (estaEmUso) {
+            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${item.id}" disabled title="Devolva o item antes de excluir.">Excluir</button>`;
+        } else {
+            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>`;
+        }
+        
+        const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
+        
+        // Estrutura HTML do item para incluir os mesmos campos
         li.innerHTML = `
             <div class="info-item">
                 <span>
-                    <strong>${item.modelo_tipo}</strong> (Património: ${item.patrimonio})
-                    <br><small>Setor: ${item.setor || 'N/P'}</small>
+                    <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
+                    <br><small>Setor: ${item.setor || 'N/A'}</small>
+                    <br><small>Classe: ${item.classe || 'N/A'}</small>
+                    <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
+                    ${item.observacoes ? `<br><small>${item.observacoes}</small>` : ''}
                     ${utilizadorHtml}
                 </span>
                 <div class="status-badges-container">
-                    <span class="status-badge status-${statusClass}">${statusAtual}</span>
+                    <span class="status-badge status-${statusClass}">${statusAtual || 'Desconhecido'}</span>
                     ${statusGASCadastroHTML}
                 </div>
             </div>
@@ -1182,7 +1183,21 @@ function popularFiltroDepartamentosMobiliario() {
         filtroUI.appendChild(option);
     });
 }
+/**
+ * Formata um número de património (ex: 100001272541) para o formato com pontos (ex: 100.001.272.541).
+ * @param {string} numero O número de património a ser formatado.
+ * @returns {string} O número formatado ou o original se não for válido.
+ */
+function formatarPatrimonio(numero) {
+    if (!numero || typeof numero !== 'string') {
+        return numero; // Retorna o valor original se for nulo ou não for uma string
+    }
+    // Remove quaisquer caracteres que não sejam dígitos para limpar o número
+    const numeroLimpo = numero.replace(/\D/g, '');
 
+    // Aplica a formatação com pontos
+    return numeroLimpo.replace(/(\d{3})(?=\d)/g, '$1.');
+}
 
 // =================================================================
 // 7. CÓDIGO EXECUTADO QUANDO A PÁGINA CARREGA
