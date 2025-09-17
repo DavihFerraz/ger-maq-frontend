@@ -234,7 +234,7 @@ function renderizarEstoque() {
             <div class="info-item">
                 <span>
                     <strong>${maquina.modelo_tipo}</strong> (Património: ${maquina.patrimonio})
-                    <br><small>Setor: ${maquina.setor || 'N/P'}</small> ${maquina.espec_ram || ''} ${maquina.espec_armazenamento || ''}
+                    <br><small>Setor: ${maquina.setor || 'N/P'}</small>
                     ${maquina.observacoes ? `<br><small>${maquina.observacoes}</small>` : ''}
                     ${utilizadorHtml}
                 </span>
