@@ -129,3 +129,7 @@ export const createModelo = (modeloData) => {
         body: JSON.stringify(modeloData),
     });
 };
+
+export const getDashboardData = () => {
+    return fetchAPI('/dashboard');
+}

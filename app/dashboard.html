@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gerenciador de Ativos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+
+    <div class="container container-largo">
+        <div class="header-container">
+            <h1>Dashboard</h1>
+            <div class="header-buttons">
+                <div id="info-utilizador"></div>
+                <button id="btn-logout">Sair</button>
+            </div>
+        </div>
+
+        <div class="summary-container" id="kpi-container">
+            <div class="summary-item">
+                <h3>Total de Ativos</h3>
+                <p id="kpi-total">0</p>
+            </div>
+            <div class="summary-item">
+                <h3 class="disponivel-titulo">Disponíveis</h3>
+                <p id="kpi-disponivel">0</p>
+            </div>
+            <div class="summary-item">
+                <h3 class="emuso-titulo">Em Uso</h3>
+                <p id="kpi-em-uso">0</p>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-item">
+                <h2>Empréstimos por Departamento</h2>
+                <canvas id="grafico-departamentos"></canvas>
+            </div>
+            <div class="chart-item">
+                <h2>Atividade Recente</h2>
+                <ul id="lista-atividade-recente">
+                    <li>A carregar...</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="main-sections">
+            <a href="index.html" class="btn-link-pagina">Ir para a Gestão de Inventário</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dashboard.js" type="module"></script>
+</body>
+</html>

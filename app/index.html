@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GAS Ativos</title>
+    <title>Gestão de Inventário - GAS Ativos</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
 
     <div class="container">
+        <a href="dashboard.html" class="btn-voltar">‹ Voltar ao Dashboard</a>
+
         <div class="header-container">
-            <h1>Gerenciador de Ativos</h1>
+            <h1>Gestão de Inventário</h1>
             <div class="header-buttons">
                 <div id="info-utilizador"></div>
-                    <button id="btn-mudar-senha">Mudar Palavra-passe</button>
-                    <button id="btn-logout">Sair</button>
-                </div>
-           <!--
-            <button id="btn-toggle-dark-mode" class="btn-dark-mode" title="Alternar tema">🌙</button>
-            --> 
+                <button id="btn-mudar-senha">Mudar Palavra-passe</button>
+                <button id="btn-logout">Sair</button>
+            </div>
         </div>
 
         <div class="form-container">
@@ -33,21 +30,15 @@
                     <input type="text" id="nome-pessoa" placeholder="Ex: João da Silva - DTI" required>
                 </div>
                 <div class="form-group">
-                    <div class="form-group">
-                        <label for="id-maquina-emprestimo">Máquina Disponível:</label>
-                        <select id="id-maquina-emprestimo" required>
-                            <option value="" disabled selected>-- Selecione uma máquina disponível --</option>
-                        </select>
-                    </div>
-                </div>
-
-                 <div class="form-group">
-                    <label for="id-monitores-emprestimo">Associar Monitores (segure Ctrl/Cmd para selecionar vários):</label>
-                    <select id="id-monitores-emprestimo" multiple style="height: 120px;">
+                    <label for="id-maquina-emprestimo">Máquina Disponível:</label>
+                    <select id="id-maquina-emprestimo" required>
+                        <option value="" disabled selected>-- Selecione uma máquina disponível --</option>
                     </select>
                 </div>
-
-
+                 <div class="form-group">
+                    <label for="id-monitores-emprestimo">Associar Monitores (segure Ctrl/Cmd para selecionar vários):</label>
+                    <select id="id-monitores-emprestimo" multiple style="height: 120px;"></select>
+                </div>
                 <div class="form-buttons">
                     <button type="submit" id="btn-principal">Adicionar Associação</button>
                     <button type="button" id="btn-cancelar" class="btn-cancelar">Cancelar Edição</button>
@@ -58,7 +49,6 @@
         <div class="stock-container">
             <details open>
                 <summary>Gestão de Estoque de Máquinas</summary>
-
                 <div class="form-container-stock">
                   <h3 id="form-title-stock">Adicionar Nova Máquina ao Estoque</h3>
                   <form id="form-estoque">
@@ -66,13 +56,12 @@
                         <label for="estoque-modelo">Modelo da Máquina:</label>
                         <select id="estoque-modelo" required>
                             <option value="">-- Selecione um modelo --</option>
-                            </select>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="estoque-patrimonio">Património:</label>
                         <input type="text" id="estoque-patrimonio" placeholder="Ex: 100.001.272.541" required>
                     </div>
-
                     <div class="form-group">
                         <label for="estoque-processador">Processador:</label>
                         <input type="text" id="estoque-processador" placeholder="Ex: i5-12500">
@@ -93,7 +82,6 @@
                         <label for="estoque-observacoes">Observações (Outras Specs):</label>
                         <input type="text" id="estoque-observacoes" placeholder="Ex: Placa de Vídeo, SO, etc.">
                     </div>
-
                     <div class="form-group">
                         <label for="maquina-cadastrado-gpm">
                             <input type="checkbox" id="maquina-cadastrado-gpm" style="width: auto;">
@@ -105,131 +93,112 @@
                     </div>
                 </form>
                 </div>
-
                 <div class="list-container-stock">
                     <h3>Máquinas no Inventário</h3>
-                    <!--<button id="btn-migrar-dados" class="btn-migrar">Adicionar Máquinas Antigas ao Inventário</button>-->
-                    
                     <div class="search-container">
                         <input type="text" id="campo-busca-estoque" placeholder="Buscar por modelo ou património...">
                     </div>
-                    <ul id="lista-estoque">
-                    </ul>
+                    <ul id="lista-estoque"></ul>
                 </div>
             </details>
-
         </div>
-
-        
 
         <div class="furniture-container">
-    <details>
-        <summary>Gestão de Mobiliário</summary>
-
-
-        
-    <div class="form-container">
-        <h3 id="form-title-furniture">Associar Mobiliário</h3>
-        <form id="form-associar-mobiliario">
-            <div class="form-group">
-                <label for="nome-pessoa-mobiliario">Nome da Pessoa e Departamento:</label>
-                <input type="text" id="nome-pessoa-mobiliario" placeholder="Ex: Maria Eduarda - GAS" required>
-            </div>
-            <div class="form-group">
-                <label for="id-mobiliario-emprestimo">Mobiliário Disponível:</label>
-                <select id="id-mobiliario-emprestimo" required>
-                    <option value="" disabled selected>-- Selecione um item disponível --</option>
-                </select>
-            </div>
-            <div class="form-buttons">
-                <button type="submit">Adicionar Associação</button>
-            </div>
-        </form>
-    </di
-
-        <div class="form-container-stock">
-            <h3>Adicionar Novo Mobiliário ao Inventário</h3>
-            <form id="form-mobiliario">
-                <div class="form-group">
-                    <label for="mobiliario-tipo">Tipo:</label>
-                    <input type="text" id="mobiliario-tipo" placeholder="Ex: Cadeira Giratória" required list="sugestoes-mobiliario">
-                     <datalist id="sugestoes-mobiliario">
-                        </datalist>
+            <details>
+                <summary>Gestão de Mobiliário</summary>
+                <div class="form-container">
+                    <h3 id="form-title-furniture">Associar Mobiliário</h3>
+                    <form id="form-associar-mobiliario">
+                        <div class="form-group">
+                            <label for="nome-pessoa-mobiliario">Nome da Pessoa e Departamento:</label>
+                            <input type="text" id="nome-pessoa-mobiliario" placeholder="Ex: Maria Eduarda - GAS" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="id-mobiliario-emprestimo">Mobiliário Disponível:</label>
+                            <select id="id-mobiliario-emprestimo" required>
+                                <option value="" disabled selected>-- Selecione um item disponível --</option>
+                            </select>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit">Adicionar Associação</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="mobiliario-patrimonio">Património:</label>
-                    <input type="text" id="mobiliario-patrimonio" placeholder="Ex: MOB-00123" required>
+                <div class="form-container-stock">
+                    <h3>Adicionar Novo Mobiliário ao Inventário</h3>
+                    <form id="form-mobiliario">
+                        <div class="form-group">
+                            <label for="mobiliario-tipo">Tipo:</label>
+                            <input type="text" id="mobiliario-tipo" placeholder="Ex: Cadeira Giratória" required list="sugestoes-mobiliario">
+                            <datalist id="sugestoes-mobiliario"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label for="mobiliario-patrimonio">Património:</label>
+                            <input type="text" id="mobiliario-patrimonio" placeholder="Ex: MOB-00123" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mobiliario-material">Setor:</label>
+                            <input type="text" id="mobiliario-material" placeholder="Ex: GAS">
+                        </div>
+                        <div class="form-group">
+                            <label for="mobiliario-cadastrado-outro-software">
+                                <input type="checkbox" id="mobiliario-cadastrado-outro-software" style="width: auto;">
+                                Já cadastrado no GPM?
+                            </label>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" id="btn-adicionar-estoque" class="btn-adicionar-estoque">Adicionar Mobiliário</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="mobiliario-material">Setor:</label>
-                    <input type="text" id="mobiliario-material" placeholder="Ex: GAS">
+                <div class="list-container-stock">
+                    <h3>Mobiliário no Inventário</h3>
+                    <div class="search-container">
+                        <input type="text" id="campo-busca-mobiliario" placeholder="Buscar por tipo ou património...">
+                    </div>
+                    <ul id="lista-mobiliario"></ul>
                 </div>
-                <div class="form-group">
-                    <label for="mobiliario-cadastrado-outro-software">
-                        <input type="checkbox" id="mobiliario-cadastrado-outro-software" style="width: auto;">
-                        Já cadastrado no GPM?
-                    </label>
-                </div>
-                <div class="form-buttons">
-                    <button type="submit"  id="btn-adicionar-estoque" class="btn-adicionar-estoque">Adicionar Mobiliário</button>
-                </div>
-            </form>
+            </details>
         </div>
 
-        <div class="list-container-stock">
-            <h3>Mobiliário no Inventário</h3>
-            <div class="search-container">
-                <input type="text" id="campo-busca-mobiliario" placeholder="Buscar por tipo ou património...">
-            </div>
-            <ul id="lista-mobiliario">
-                </ul>
-        </div>
-    </details>
-</div>
-
-
-
-<div class="monitor-container">
-    <details>
-        <summary>Gestão de Estoque de Monitores</summary>
-
-        <div class="form-container-stock">
-          <h3 id="form-title-stock-monitor">Adicionar Novo Monitor ao Estoque</h3>
-          <form id="form-estoque-monitor">
-            <div class="form-group">
-                <label for="monitor-estoque-modelo">Modelo do Monitor:</label>
-                <input type="text" id="monitor-estoque-modelo" placeholder="Ex: Dell U2419H" required>
-            </div>
-            <div class="form-group">
-                <label for="monitor-estoque-setor">Setor:</label>
-                <input type="text" id="monitor-estoque-setor" placeholder="Ex: GAS">
-            </div>
-            <div class="form-group">
-                <label for="monitor-estoque-patrimonio">Património:</label>
-                <input type="text" id="monitor-estoque-patrimonio" placeholder="Ex: 100.001.272.550" required>
-            </div>
-            <div class="form-group">
-                <label for="monitor-cadastrado-gpm">
-                    <input type="checkbox" id="monitor-cadastrado-gpm" style="width: auto;">
-                    Já cadastrado no GPM?
-                </label>
-            </div>
-            <div class="form-buttons">
-                <button type="submit" class="btn-adicionar-estoque">Adicionar Monitor ao Estoque</button>
-            </div>
-        </form>
+        <div class="monitor-container">
+            <details>
+                <summary>Gestão de Estoque de Monitores</summary>
+                <div class="form-container-stock">
+                  <h3 id="form-title-stock-monitor">Adicionar Novo Monitor ao Estoque</h3>
+                  <form id="form-estoque-monitor">
+                    <div class="form-group">
+                        <label for="monitor-estoque-modelo">Modelo do Monitor:</label>
+                        <input type="text" id="monitor-estoque-modelo" placeholder="Ex: Dell U2419H" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="monitor-estoque-setor">Setor:</label>
+                        <input type="text" id="monitor-estoque-setor" placeholder="Ex: GAS">
+                    </div>
+                    <div class="form-group">
+                        <label for="monitor-estoque-patrimonio">Património:</label>
+                        <input type="text" id="monitor-estoque-patrimonio" placeholder="Ex: 100.001.272.550" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="monitor-cadastrado-gpm">
+                            <input type="checkbox" id="monitor-cadastrado-gpm" style="width: auto;">
+                            Já cadastrado no GPM?
+                        </label>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-adicionar-estoque">Adicionar Monitor ao Estoque</button>
+                    </div>
+                </form>
+                </div>
+                <div class="list-container-stock">
+                    <h3>Monitores no Inventário</h3>
+                    <input type="text" id="campo-busca-estoque-monitor" placeholder="Buscar por modelo ou património...">
+                    <ul id="lista-estoque-monitores"></ul>
+                </div>
+            </details>
         </div>
 
-        <div class="list-container-stock">
-            <h3>Monitores no Inventário</h3>
-            <input type="text" id="campo-busca-estoque-monitor" placeholder="Buscar por modelo ou património...">
-            <ul id="lista-estoque-monitores">
-                </ul>
-        </div>
-    </details>
-</div>
-
-<div class="form-container-stock" >
+        <div class="form-container-stock" >
             <details>
                 <summary style="font-weight: bold; cursor: pointer;">Criar Modelos de Máquina</summary>
                 <form id="form-novo-modelo" style="margin-top: 15px;">
@@ -248,70 +217,11 @@
                 </form>
             </details>
         </div>
-        <div class="summary-container summary-estoque">
-            <div class="summary-item">
-                <h3>Total no Inventário</h3>
-                <p id="total-inventario">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponíveis</h3>
-                <p id="total-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="total-em-uso">0</p>
-            </div>
-        </div>
-
-        <div class="summary-container summary-mobiliario" id="resumo-mobiliario">
-            <div class="summary-item">
-                <h3>Total de Mobiliário</h3>
-                <p id="total-mobiliario">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponível</h3>
-                <p id="total-mobiliario-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="total-mobiliario-em-uso">0</p>
-            </div>
-        </div>
-
-        <div class="summary-container">
-            <div class="summary-item">
-                <h3>Total de Máquinas</h3>
-                <p id="total-geral-maquinas">0</p>
-            </div>
-            <div class="summary-item">
-                <h3>Total de Pessoas</h3>
-                <p id="total-pessoas">0</p>
-            </div>
-        </div>
-
-        <div class="charts-container">
-            <div class="chart-item">
-                <h2>Máquinas por Modelo</h2>
-                <canvas id="grafico-pizza-modelos"></canvas>
-        </div>
-        <div class="chart-item">
-            <h2>Empréstimos por Departamento</h2>
-            <canvas id="grafico-barras-departamentos"></canvas>
-        </div>
-
+        
         <div class="main-sections">
-
-       <div class="main-sections">
             <a href="lista.html" class="btn-link-pagina">Lista de Associações (Máquinas)</a>
             <a href="lista_mobiliario.html" class="btn-link-pagina">Lista de Associações (Mobiliário)</a>
-            <!-- a href="#" id="btn-exportar-inventario" class="btn-link-pagina">Exportar Inventário Completo</a>
-            -->
-
         </div>
-    </div>
-        </div>
-
-    
     </div>
 
     <div id="modal-confirmacao" class="modal-overlay">
@@ -468,14 +378,8 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-
-    
- <script src="script.js" type="module"></script>   
- <script src="api.js" type="module"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
+    <script src="script.js" type="module"></script>   
+    <script src="api.js" type="module"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
