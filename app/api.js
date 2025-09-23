@@ -24,33 +24,42 @@ async function fetchAPI(endpoint, options = {}) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
-    
-    // CORREÇÃO: Lida com respostas sem conteúdo
-    if (response.status === 204) {
-        return;
-    }
-    
-    // CORREÇÃO: Tenta ler a resposta em JSON apenas se o status não for 404/500
-    // Isso evita o erro de parsing se a resposta for HTML ou texto
-    const isJsonResponse = response.headers.get('content-type')?.includes('application/json');
-    let data;
-    try {
-        data = isJsonResponse ? await response.json() : await response.text();
-    } catch {
-        data = "Resposta do servidor não pôde ser lida.";
-    }
+    try { // Adicionamos um bloco try...catch em volta do fetch
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers,
+        });
+        
+        if (response.status === 204) {
+            return;
+        }
+        
+        const isJsonResponse = response.headers.get('content-type')?.includes('application/json');
+        const data = isJsonResponse ? await response.json() : await response.text();
 
-    if (!response.ok) {
-        // Agora o erro pode ser um objeto JSON ou apenas uma string
-        const message = isJsonResponse ? data.message : data;
-        throw new Error(message || 'Ocorreu um erro na API.');
-    }
+        if (!response.ok) {
+            // Se a resposta for um erro de autorização, redirecionamos
+            if (response.status === 401 || response.status === 400) {
+                 const errorMessage = (isJsonResponse ? data.message : data) || '';
+                 if (errorMessage.toLowerCase().includes('token')) {
+                    console.log("Token inválido ou expirado. A redirecionar para o login.");
+                    localStorage.removeItem('authToken'); // Limpa o token antigo
+                    window.location.href = 'login.html'; // Redireciona
+                    // Lança um erro para parar a execução do código que fez a chamada
+                    throw new Error('Sessão expirada.'); 
+                 }
+            }
+            const message = isJsonResponse ? data.message : data;
+            throw new Error(message || 'Ocorreu um erro na API.');
+        }
 
-    return data;
+        return data;
+
+    } catch (error) {
+        // Se houver um erro de rede ou o erro que lançámos, re-lançamo-lo
+        // para que a função que chamou a API saiba que algo falhou.
+        throw error;
+    }
 }
 
 // --- Funções de Autenticação ---
