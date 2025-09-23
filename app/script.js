@@ -13,7 +13,8 @@ import {
     devolverEmprestimo,
     apiChangePassword,
     getModelos, 
-    createModelo
+    createModelo,
+    getItemHistory
 } from './api.js';
 
 // 2. ESTADO LOCAL DA APLICAÇÃO
@@ -208,12 +209,12 @@ function renderizarEstoque() {
         const statusClass = statusAtual ? statusAtual.toLowerCase().replace(' ', '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
 
-        let botoesHTML = '';
-        if (estaEmUso) {
-            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}" disabled title="Devolva a máquina antes de excluir.">Excluir</button>`;
-        } else {
-            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}">Excluir</button>`;
-        }
+        // CORRIGIDO: O bloco if/else foi substituído por esta única definição
+        const botoesHTML = `
+            <button class="btn-item btn-historico" data-id="${maquina.id}">Histórico</button>
+            <button class="btn-item btn-editar-estoque" data-id="${maquina.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${maquina.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
+        `;
         
         const statusGASCadastroHTML = maquina.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
         
@@ -289,14 +290,11 @@ function renderizarMobiliario() {
         const statusClass = statusAtual ? statusAtual.toLowerCase().replace(' ', '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
 
-        let botoesHTML = '';
-        // Lógica de botões idêntica à de estoque
-        if (estaEmUso) {
-            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${item.id}" disabled title="Devolva o item antes de excluir.">Excluir</button>`;
-        } else {
-            botoesHTML = `<button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>`;
-        }
-        
+        let botoesHTML = `
+            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
+            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
+        `;
         const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
         
         // Estrutura HTML do item para incluir os mesmos campos
@@ -360,9 +358,12 @@ function renderizarEstoqueMonitores() {
         const statusClass = monitor.status ? monitor.status.toLowerCase().replace(' ', '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
 
-        const botoesHTML = estaEmUso
-            ? `<button class="btn-item btn-editar-estoque" data-id="${monitor.id}">Editar</button> <button class="btn-item" disabled>Excluir</button>`
-            : `<button class="btn-item btn-editar-estoque" data-id="${monitor.id}">Editar</button> <button class="btn-item btn-excluir-estoque" data-id="${monitor.id}">Excluir</button>`;
+        // CORRIGIDO: Usamos 'let' em vez de 'const' e já incluímos o botão de histórico e a lógica correta.
+        let botoesHTML = `
+            <button class="btn-item btn-historico" data-id="${monitor.id}">Histórico</button>
+            <button class="btn-item btn-editar-estoque" data-id="${monitor.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${monitor.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
+        `;
 
         const statusGASCadastroHTML = monitor.cadastrado_gpm
             ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>`
@@ -827,6 +828,47 @@ function exportarMobiliarioCSV() {
 }
 
 
+async function abrirModalHistorico(itemId) {
+    const modal = document.getElementById('modal-historico');
+    const listaUI = document.getElementById('historico-lista');
+    const tituloUI = document.getElementById('historico-titulo');
+    if (!modal || !listaUI || !tituloUI) return;
+
+    const item = todoEstoque.find(i => i.id === itemId);
+    tituloUI.textContent = `Histórico de: ${item.modelo_tipo} (${item.patrimonio})`;
+    listaUI.innerHTML = '<li>A carregar...</li>';
+    modal.classList.add('visible');
+
+    try {
+        const historico = await getItemHistory(itemId);
+        listaUI.innerHTML = '';
+        if (historico.length === 0) {
+            listaUI.innerHTML = '<li>Este item não possui histórico de empréstimos.</li>';
+            return;
+        }
+
+        historico.forEach(reg => {
+            const li = document.createElement('li');
+            const dataEmprestimo = new Date(reg.data_emprestimo).toLocaleDateString('pt-BR');
+            const dataDevolucao = reg.data_devolucao ? new Date(reg.data_devolucao).toLocaleDateString('pt-BR') : 'Em uso';
+            
+            li.innerHTML = `
+                <strong>Utilizador:</strong> ${reg.pessoa_depto} <br>
+                <small>Emprestado em: ${dataEmprestimo} | Devolvido em: ${dataDevolucao}</small>
+            `;
+            listaUI.appendChild(li);
+        });
+    } catch (error) {
+        listaUI.innerHTML = '<li>Ocorreu um erro ao carregar o histórico.</li>';
+        console.error("Erro ao buscar histórico:", error);
+    }
+}
+
+function fecharModalHistorico() {
+    const modal = document.getElementById('modal-historico');
+    if (modal) modal.classList.remove('visible');
+}
+
 // =================================================================
 // 5. FUNÇÕES DE MANIPULAÇÃO DE DADOS (CRUD)
 // =================================================================
@@ -1259,6 +1301,11 @@ document.addEventListener('DOMContentLoaded', () => {
         formNovoModelo.addEventListener('submit', salvarNovoModelo);
     }
 
+    const btnFecharHistorico = document.getElementById('btn-historico-fechar');
+    if (btnFecharHistorico) {
+        btnFecharHistorico.addEventListener('click', fecharModalHistorico);
+    }
+
 
     // --- GESTORES DE EVENTOS PARA BOTÕES ESTÁTICOS ---
     const btnLogout = document.getElementById('btn-logout');
@@ -1340,7 +1387,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = target.dataset.id;
     if (!id) return;
 
-    if (target.classList.contains('btn-editar-estoque')) {
+    if (target.classList.contains('btn-historico')) {
+    abrirModalHistorico(parseInt(id));
+
+    }else if (target.classList.contains('btn-editar-estoque')) {
         const itemParaEditar = todoEstoque.find(i => i.id == id);
         if (itemParaEditar) {
             // Verifica a categoria do item e chama a função do modal correto

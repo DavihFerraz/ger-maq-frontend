@@ -1009,3 +1009,12 @@ button:disabled,
 .btn-excluir-estoque:not(:disabled):hover {
     background-color: var(--cor-perigo-hover); /* Efeito hover */
 }
+
+.btn-historico {
+    background-color: #9b59b6; /* Um tom de roxo informativo */
+    color: white;
+}
+
+.btn-historico:hover {
+    background-color: #8e44ad; /* Um tom um pouco mais escuro ao passar o rato */
+}

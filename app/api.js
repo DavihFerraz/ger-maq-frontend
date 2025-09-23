@@ -132,4 +132,8 @@ export const createModelo = (modeloData) => {
 
 export const getDashboardData = () => {
     return fetchAPI('/dashboard');
-}
+};
+
+export const getItemHistory = (itemId) => {
+    return fetchAPI(`/itens/${itemId}/historico`);
+};
