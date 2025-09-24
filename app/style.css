@@ -893,6 +893,12 @@ button:disabled,
     background-color: var(--cor-fundo-detalhes);
     margin-top: 40px;
 }
+.others-container details {
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    background-color: var(--cor-fundo-detalhes);
+    margin-top: 40px;
+}
 
 .form-container-stock summary {
     padding: 15px;
@@ -909,6 +915,13 @@ button:disabled,
 }
 
 .monitor-container summary {
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: var(--cor-titulo);
+}
+.others-container summary {
     padding: 15px;
     font-weight: bold;
     font-size: 1.2em;

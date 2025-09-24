@@ -103,6 +103,7 @@ function renderizarTudo() {
     popularDropdownMaquinas();
     popularDropdownMobiliario();
     popularDropdownMonitores();
+    renderizarOutrosAtivos();
 }
 
 
@@ -380,6 +381,49 @@ function renderizarEstoqueMonitores() {
                     <span class="status-badge status-${statusClass}">${monitor.status}</span>
                     ${statusGASCadastroHTML}
                 </div>
+            </div>
+            <div class="botoes-item">${botoesHTML}</div>`;
+        listaUI.appendChild(li);
+    });
+}
+
+function renderizarOutrosAtivos() {
+    const listaUI = document.getElementById('lista-outros-ativos');
+    if (!listaUI) return;
+
+    const todoOutros = todoEstoque.filter(item => item.categoria === 'OUTROS');
+    const campoBusca = document.getElementById('campo-busca-outros');
+    const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
+
+    const filtrados = todoOutros.filter(item => {
+        return (item.modelo_tipo || '').toLowerCase().includes(termoBusca) ||
+               (item.patrimonio || '').toLowerCase().includes(termoBusca);
+    });
+
+    listaUI.innerHTML = '';
+    if (filtrados.length === 0) {
+        listaUI.innerHTML = '<li>Nenhum item "Outro" encontrado.</li>';
+        return;
+    }
+
+    filtrados.sort((a, b) => (a.modelo_tipo || '').localeCompare(b.modelo_tipo || ''));
+
+    filtrados.forEach(item => {
+        const estaEmUso = item.status === 'Em Uso';
+        const li = document.createElement('li');
+        const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'desconhecido';
+        li.classList.add(`status-${statusClass}`);
+
+        const botoesHTML = `
+            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
+            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
+        `;
+        
+        li.innerHTML = `
+            <div class="info-item">
+                <span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})</span>
+                <span class="status-badge status-${statusClass}">${item.status}</span>
             </div>
             <div class="botoes-item">${botoesHTML}</div>`;
         listaUI.appendChild(li);
@@ -734,6 +778,47 @@ async function salvarAlteracoesMonitor(event) {
     }
 }
 
+function abrirModalEditarOutros(itemId) {
+    const item = todoEstoque.find(i => i.id === itemId);
+    if (!item) return;
+
+    document.getElementById('editar-outros-id').value = item.id;
+    document.getElementById('editar-outros-modelo').value = item.modelo_tipo;
+    document.getElementById('editar-outros-patrimonio').value = item.patrimonio;
+    document.getElementById('editar-outros-setor').value = item.setor;
+    document.getElementById('editar-outros-cadastrado-gpm').checked = item.cadastrado_gpm;
+
+    document.getElementById('modal-outros').classList.add('visible');
+}
+
+function fecharModalEditarOutros() {
+    document.getElementById('modal-outros').classList.remove('visible');
+}
+
+async function salvarAlteracoesOutros(event) {
+    event.preventDefault();
+    const form = event.target;
+    const itemId = form.querySelector('#editar-outros-id').value;
+
+    const dadosAtualizados = {
+        modelo_tipo: form.querySelector('#editar-outros-modelo').value.trim(),
+        patrimonio: form.querySelector('#editar-outros-patrimonio').value.trim(),
+        setor: form.querySelector('#editar-outros-setor').value.trim(),
+        cadastrado_gpm: form.querySelector('#editar-outros-cadastrado-gpm').checked,
+        categoria: 'OUTROS'
+    };
+
+    try {
+        await updateItem(itemId, dadosAtualizados);
+        Toastify({ text: "Item atualizado com sucesso!" }).showToast();
+        fecharModalEditarOutros();
+        carregarDados();
+    } catch (error) {
+        console.error("Erro ao atualizar item:", error);
+        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
+}
+
 function abrirModalEspecificacoes(itemId) {
     const item = todoEstoque.find(i => i.id === itemId);
     if (!item) return;
@@ -1040,6 +1125,29 @@ async function salvarMonitorEstoque(event) {
     }
 }
 
+async function salvarOutroAtivo(event) {
+    event.preventDefault();
+    const form = event.target;
+
+    const dados = {
+        modelo_tipo: form.querySelector('#outros-modelo').value.trim(),
+        patrimonio: form.querySelector('#outros-patrimonio').value.trim(),
+        setor: form.querySelector('#outros-setor').value.trim(),
+        cadastrado_gpm: form.querySelector('#outros-cadastrado-gpm').checked,
+        categoria: 'OUTROS' // Define a categoria correta
+    };
+
+    try {
+        await createItem(dados);
+        Toastify({ text: "Item adicionado com sucesso!", backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)" }).showToast();
+        form.reset();
+        carregarDados(); // Recarrega tudo para atualizar as listas
+    } catch(error) {
+        console.error("Erro ao adicionar item:", error);
+        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
+}
+
 async function devolverMaquina(emprestimoId) {
     try {
         await devolverEmprestimo(emprestimoId);
@@ -1291,6 +1399,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
     if(btnSenhaCancelar) btnSenhaCancelar.addEventListener('click', fecharModalSenha);
 
+    const formOutrosAtivos = document.getElementById('form-outros-ativos');
+    if (formOutrosAtivos) formOutrosAtivos.addEventListener('submit', salvarOutroAtivo);
+
+    const campoBuscaOutros = document.getElementById('campo-busca-outros');
+    if(campoBuscaOutros) campoBuscaOutros.addEventListener('input', renderizarOutrosAtivos);
+
+    const formEditarOutros = document.getElementById('form-editar-outros');
+    if (formEditarOutros) formEditarOutros.addEventListener('submit', salvarAlteracoesOutros);
+
+    const btnCancelarEdicaoOutros = document.getElementById('btn-editar-outros-cancelar');
+    if (btnCancelarEdicaoOutros) btnCancelarEdicaoOutros.addEventListener('click', fecharModalEditarOutros);
+
     const btnExportar = document.getElementById('btn-exportar');
     if (btnExportar) {
         btnExportar.addEventListener('click', exportarParaCSV);
@@ -1400,8 +1520,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 abrirModalEditarMobiliario(parseInt(id));
             } else if (itemParaEditar.categoria.toUpperCase() === 'MONITOR') {
               abrirModalEditarMonitor(parseInt(id)); 
-            }
+            }else if (itemParaEditar.categoria.toUpperCase() === 'OUTROS') { // <-- ADICIONE ESTA CONDIÇÃO
+                abrirModalEditarOutros(parseInt(id));
         }
+    }
     } else if (target.classList.contains('spec-link')) {
         event.preventDefault();
         abrirModalEspecificacoes(parseInt(id));

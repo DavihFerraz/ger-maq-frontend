@@ -198,6 +198,46 @@
             </details>
         </div>
 
+        <div class="others-container">
+            <details>
+                <summary>Gestão de Outros Ativos</summary>
+
+                <div class="form-container-stock">
+                    <h3>Adicionar Novo Item à Categoria "Outros"</h3>
+                    <form id="form-outros-ativos">
+                        <div class="form-group">
+                            <label for="outros-modelo">Nome/Descrição do Ativo:</label>
+                            <input type="text" id="outros-modelo" placeholder="Ex: Switch 8 Portas, Roteador Wi-Fi" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="outros-patrimonio">Património:</label>
+                            <input type="text" id="outros-patrimonio" placeholder="Ex: RED-001" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="outros-setor">Setor:</label>
+                            <input type="text" id="outros-setor" placeholder="Ex: DTI">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="outros-cadastrado-gpm" style="width: auto;">
+                                Já cadastrado no GPM?
+                            </label>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn-adicionar-estoque">Adicionar Item</button>
+                        </div>
+                    </form>
+                </div>
+
+        <div class="list-container-stock">
+            <h3>Itens "Outros" no Inventário</h3>
+            <input type="text" id="campo-busca-outros" placeholder="Buscar por nome ou património...">
+            <ul id="lista-outros-ativos">
+                </ul>
+        </div>
+    </details>
+</div>
+
         <div class="form-container-stock" >
             <details>
                 <summary style="font-weight: bold; cursor: pointer;">Criar Modelos de Máquina</summary>
@@ -385,6 +425,37 @@
         <div class="modal-buttons">
             <button id="btn-historico-fechar" class="btn-modal">Fechar</button>
         </div>
+    </div>
+</div>
+
+<div id="modal-outros" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Editar Item</h3>
+        <form id="form-editar-outros">
+            <input type="hidden" id="editar-outros-id">
+            <div class="form-group">
+                <label for="editar-outros-modelo">Nome/Descrição:</label>
+                <input type="text" id="editar-outros-modelo" required>
+            </div>
+            <div class="form-group">
+                <label for="editar-outros-patrimonio">Património:</label>
+                <input type="text" id="editar-outros-patrimonio" required>
+            </div>
+            <div class="form-group">
+                <label for="editar-outros-setor">Setor:</label>
+                <input type="text" id="editar-outros-setor">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="editar-outros-cadastrado-gpm" style="width: auto;">
+                    Já cadastrado no GPM?
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-modal" id="btn-editar-outros-cancelar">Cancelar</button>
+                <button type="submit" class="btn-modal btn-confirmar">Salvar Alterações</button>
+            </div>
+        </form>
     </div>
 </div>
 
