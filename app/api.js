@@ -9,7 +9,7 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
     console.log('A executar em ambiente de Desenvolvimento. A ligar à API local.');
 } else {
     // Caso contrário, estamos em ambiente de PRODUÇÃO
-    API_BASE_URL = 'https://ger-maq-api.onrender.com/api'; // Use o seu URL da Render aqui
+    API_BASE_URL = 'http://10.42.1.199:3000/api'; // Use o seu URL da Render aqui
     console.log('A executar em ambiente de Produção. A ligar à API online.');
 }
 
