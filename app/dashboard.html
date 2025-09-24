@@ -14,22 +14,38 @@
             <h1>Dashboard</h1>
             <div class="header-buttons">
                 <div id="info-utilizador"></div>
+                <button id="btn-exportar-dashboard" class="btn-exportar">Exportar Relatório</button>
                 <button id="btn-logout">Sair</button>
             </div>
         </div>
 
-        <div class="summary-container" id="kpi-container">
+        <div class="summary-container">
             <div class="summary-item">
-                <h3>Total de Ativos</h3>
-                <p id="kpi-total">0</p>
+                <h3>Total de Máquinas</h3>
+                <p id="resumo-maquinas-total">0</p>
             </div>
             <div class="summary-item">
                 <h3 class="disponivel-titulo">Disponíveis</h3>
-                <p id="kpi-disponivel">0</p>
+                <p id="resumo-maquinas-disponivel">0</p>
             </div>
             <div class="summary-item">
                 <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="kpi-em-uso">0</p>
+                <p id="resumo-maquinas-em-uso">0</p>
+            </div>
+        </div>
+
+        <div class="summary-container" style="margin-top: 15px;">
+            <div class="summary-item">
+                <h3>Total de Mobiliário</h3>
+                <p id="resumo-mobiliario-total">0</p>
+            </div>
+            <div class="summary-item">
+                <h3 class="disponivel-titulo">Disponível</h3>
+                <p id="resumo-mobiliario-disponivel">0</p>
+            </div>
+            <div class="summary-item">
+                <h3 class="emuso-titulo">Em Uso</h3>
+                <p id="resumo-mobiliario-em-uso">0</p>
             </div>
         </div>
 
@@ -40,9 +56,23 @@
             </div>
             <div class="chart-item">
                 <h2>Atividade Recente</h2>
-                <ul id="lista-atividade-recente">
+                <ul id="lista-atividade-recente" class="spec-lista">
                     <li>A carregar...</li>
                 </ul>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-item" style="grid-column: 1 / -1;">
+                <h2>Ativos por Setor</h2>
+
+                <div class="filter-container" style="margin-bottom: 15px; text-align: center;">
+                    <label for="filtro-migrar">
+                        <input type="checkbox" id="filtro-migrar" checked>
+                        Disponíveis
+                    </label>
+                </div>
+                <canvas id="grafico-setores"></canvas>
             </div>
         </div>
 
