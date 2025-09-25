@@ -1031,3 +1031,40 @@ button:disabled,
 .btn-historico:hover {
     background-color: #8e44ad; /* Um tom um pouco mais escuro ao passar o rato */
 }
+
+.autocomplete-container {
+    position: relative;
+}
+
+/* A lista de resultados em si */
+.autocomplete-resultados {
+    position: absolute;
+    border: 1px solid var(--cor-borda);
+    border-top: none;
+    z-index: 99; /* Garante que a lista fique por cima de outros elementos */
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--cor-container);
+    max-height: 200px; /* Limita a altura da lista */
+    overflow-y: auto; /* Adiciona uma barra de rolagem se houver muitos resultados */
+    display: none; /* Começa escondida por defeito */
+}
+
+/* Cada item individual na lista de resultados */
+.autocomplete-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+/* Efeito ao passar o rato por cima de um item */
+.autocomplete-item:hover {
+    background-color: var(--cor-primaria-hover);
+    color: white;
+}
+
+/* Remove a borda do último item */
+.autocomplete-item:last-child {
+    border-bottom: none;
+}

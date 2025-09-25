@@ -100,8 +100,6 @@ function renderizarTudo() {
     renderizarResumos();
     renderizarGraficos();
     renderizarHistorico();
-    popularDropdownMaquinas();
-    popularDropdownMobiliario();
     popularDropdownMonitores();
     renderizarOutrosAtivos();
 }
@@ -1186,52 +1184,39 @@ async function excluirMaquinaEstoque(itemId) {
     }
 }
 
-// ... Funções de Salvar Alterações (Modais) devem ser adaptadas similarmente ...
+
+function mostrarResultados(resultados, resultadosDiv, inputBusca, inputId) {
+    resultadosDiv.innerHTML = '';
+    if (resultados.length === 0) {
+        resultadosDiv.style.display = 'none';
+        return;
+    }
+
+    resultados.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('autocomplete-item');
+        itemDiv.textContent = `${item.modelo_tipo} (Património: ${item.patrimonio})`;
+        
+        // Ação de clique num resultado
+        itemDiv.addEventListener('click', () => {
+            inputBusca.value = item.modelo_tipo; // Preenche o campo de busca com o nome
+            inputId.value = item.id; // Guarda o ID no campo escondido
+            resultadosDiv.style.display = 'none'; // Esconde a lista de resultados
+        });
+        
+        resultadosDiv.appendChild(itemDiv);
+    });
+
+    resultadosDiv.style.display = 'block';
+}
+
 
 
 // =================================================================
 // 6. FUNÇÕES AUXILIARES E EVENT LISTENERS
 // =================================================================
 
-function popularDropdownMaquinas() {
-    const maquinaSelect = document.getElementById('id-maquina-emprestimo');
-    if (!maquinaSelect) return;
 
-    maquinaSelect.innerHTML = '<option value="" disabled selected>-- Selecione uma máquina disponível --</option>';
-
-    const maquinasDisponiveis = todoEstoque.filter(item =>
-        item.categoria === 'COMPUTADOR' && item.status === 'Disponível'
-    );
-
-    maquinasDisponiveis.sort((a, b) => a.modelo_tipo.localeCompare(b.modelo_tipo));
-
-    maquinasDisponiveis.forEach(maquina => {
-        const option = document.createElement('option');
-        option.value = maquina.id;
-        option.textContent = `${maquina.modelo_tipo} (Património: ${maquina.patrimonio})`;
-        maquinaSelect.appendChild(option);
-    });
-}
-
-function popularDropdownMobiliario() {
-    const mobiliarioSelect = document.getElementById('id-mobiliario-emprestimo');
-    if (!mobiliarioSelect) return;
-
-    mobiliarioSelect.innerHTML = '<option value="" disabled selected>-- Selecione um item disponível --</option>';
-
-    const mobiliarioDisponivel = todoEstoque.filter(item =>
-        item.categoria === 'MOBILIARIO' && item.status === 'Disponível'
-    );
-    
-    mobiliarioDisponivel.sort((a, b) => a.modelo_tipo.localeCompare(b.modelo_tipo));
-
-    mobiliarioDisponivel.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item.id;
-        option.textContent = `${item.modelo_tipo} (Património: ${item.patrimonio})`;
-        mobiliarioSelect.appendChild(option);
-    });
-}
 
 function popularDropdownMonitores() {
     const monitoresSelect = document.getElementById('id-monitores-emprestimo');
@@ -1425,6 +1410,72 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnFecharHistorico) {
         btnFecharHistorico.addEventListener('click', fecharModalHistorico);
     }
+
+    const buscaMaquinaInput = document.getElementById('busca-maquina');
+    const maquinaResultadosDiv = document.getElementById('maquina-resultados');
+    const maquinaIdInput = document.getElementById('id-maquina-emprestimo');
+
+    if (buscaMaquinaInput) {
+    // Mostra os resultados quando o utilizador digita
+    buscaMaquinaInput.addEventListener('input', () => {
+        const termoBusca = buscaMaquinaInput.value.toLowerCase();
+        maquinaIdInput.value = ''; // Limpa o ID se o utilizador alterar o texto
+
+        if (termoBusca.length < 2) {
+            maquinaResultadosDiv.style.display = 'none';
+            return;
+        }
+
+        const maquinasDisponiveis = todoEstoque.filter(item =>
+            item.categoria === 'COMPUTADOR' && item.status === 'Disponível'
+        );
+
+        const resultados = maquinasDisponiveis.filter(maquina =>
+            maquina.modelo_tipo.toLowerCase().includes(termoBusca) ||
+            maquina.patrimonio.toLowerCase().includes(termoBusca)
+        );
+
+        mostrarResultados(resultados, maquinaResultadosDiv, buscaMaquinaInput, maquinaIdInput);
+    });
+
+    // Esconde a lista de resultados se o utilizador clicar fora
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.autocomplete-container')) {
+            maquinaResultadosDiv.style.display = 'none';
+        }
+    });
+}
+
+
+    const buscaMobiliarioInput = document.getElementById('busca-mobiliario');
+    const mobiliarioResultadosDiv = document.getElementById('mobiliario-resultados');
+    const mobiliarioIdInput = document.getElementById('id-mobiliario-emprestimo');
+
+    if (buscaMobiliarioInput) {
+    buscaMobiliarioInput.addEventListener('input', () => {
+        const termoBusca = buscaMobiliarioInput.value.toLowerCase();
+        mobiliarioIdInput.value = ''; // Limpa o ID se o texto mudar
+
+        if (termoBusca.length < 2) {
+            mobiliarioResultadosDiv.style.display = 'none';
+            return;
+        }
+
+        const mobiliarioDisponivel = todoEstoque.filter(item =>
+            item.categoria === 'MOBILIARIO' && item.status === 'Disponível'
+        );
+
+        const resultados = mobiliarioDisponivel.filter(item =>
+            item.modelo_tipo.toLowerCase().includes(termoBusca) ||
+            item.patrimonio.toLowerCase().includes(termoBusca)
+        );
+
+        // Reutilizamos a mesma função para mostrar os resultados!
+        mostrarResultados(resultados, mobiliarioResultadosDiv, buscaMobiliarioInput, mobiliarioIdInput);
+    });
+
+    // Este listener de clique para esconder os resultados já existe e funcionará para ambos os campos
+}
 
 
     // --- GESTORES DE EVENTOS PARA BOTÕES ESTÁTICOS ---
