@@ -224,7 +224,6 @@ function renderizarEstoque() {
                     <br><small>Setor: ${maquina.setor || 'N/A'}</small>
                     <br><small>Classe: ${maquina.classe || 'N/A'}</small>
                     <br><small>Estado: ${maquina.estado_conservacao || 'N/A'}</small>
-                    ${maquina.espec_ram || ''} ${maquina.espec_armazenamento || ''}
                     ${maquina.observacoes ? `<br><small>${maquina.observacoes}</small>` : ''}
                     ${utilizadorHtml}
                 </span>
@@ -966,6 +965,9 @@ async function salvarMaquinaEstoque(event) {
         espec_ram: form.querySelector('#estoque-ram').value.trim(),
         espec_armazenamento: form.querySelector('#estoque-armazenamento').value.trim(),
         setor: form.querySelector('#estoque-setor').value.trim(),
+        // ADICIONADOS:
+        estado_conservacao: form.querySelector('#estoque-estado').value.trim(),
+        // FIM DOS ADICIONADOS
         observacoes: form.querySelector('#estoque-observacoes').value.trim(),
         cadastrado_gpm: form.querySelector('#maquina-cadastrado-gpm').checked,
         categoria: 'COMPUTADOR'
@@ -989,6 +991,9 @@ async function salvarMobiliario(event) {
         modelo_tipo: form.querySelector('#mobiliario-tipo').value.trim(),
         patrimonio: form.querySelector('#mobiliario-patrimonio').value.trim(),
         setor: form.querySelector('#mobiliario-material').value.trim(),
+        // ADICIONADOS:
+        estado_conservacao: form.querySelector('#mobiliario-estado').value.trim(),
+        // FIM DOS ADICIONADOS
         categoria: 'MOBILIARIO',
         cadastrado_gpm: form.querySelector('#mobiliario-cadastrado-outro-software').checked
     };
@@ -1092,37 +1097,30 @@ async function salvarAlteracoesMaquina(event) {
 }
 
 async function salvarMonitorEstoque(event) {
-    event.preventDefault(); // Impede o recarregamento da página
+    event.preventDefault();
     const form = event.target;
 
     const dados = {
         modelo_tipo: form.querySelector('#monitor-estoque-modelo').value.trim(),
         setor: form.querySelector('#monitor-estoque-setor').value.trim(),
         patrimonio: form.querySelector('#monitor-estoque-patrimonio').value.trim(),
+        // ADICIONADOS:
+        estado_conservacao: form.querySelector('#monitor-estoque-estado').value.trim(),
+        // FIM DOS ADICIONADOS
         cadastrado_gpm: form.querySelector('#monitor-cadastrado-gpm').checked,
-        categoria: 'MONITOR' // Define a categoria correta para o item
+        categoria: 'MONITOR'
     };
 
     try {
-        // Usa a mesma função da API para criar qualquer item de inventário
         await createItem(dados); 
-        
-        Toastify({ 
-            text: "Monitor adicionado ao inventário com sucesso!", 
-            backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)" 
-        }).showToast();
-        
+        Toastify({ text: "Monitor adicionado ao inventário com sucesso!", backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)" }).showToast();
         form.reset();
-        
-        // Recarrega todos os dados para atualizar as listas na página
         carregarDados();
-
     } catch(error) {
         console.error("Erro ao adicionar monitor:", error);
         Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
     }
 }
-
 async function salvarOutroAtivo(event) {
     event.preventDefault();
     const form = event.target;
@@ -1131,15 +1129,18 @@ async function salvarOutroAtivo(event) {
         modelo_tipo: form.querySelector('#outros-modelo').value.trim(),
         patrimonio: form.querySelector('#outros-patrimonio').value.trim(),
         setor: form.querySelector('#outros-setor').value.trim(),
+        // ADICIONADOS:
+        estado_conservacao: form.querySelector('#outros-estado').value.trim(),
+        // FIM DOS ADICIONADOS
         cadastrado_gpm: form.querySelector('#outros-cadastrado-gpm').checked,
-        categoria: 'OUTROS' // Define a categoria correta
+        categoria: 'OUTROS'
     };
 
     try {
         await createItem(dados);
         Toastify({ text: "Item adicionado com sucesso!", backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)" }).showToast();
         form.reset();
-        carregarDados(); // Recarrega tudo para atualizar as listas
+        carregarDados();
     } catch(error) {
         console.error("Erro ao adicionar item:", error);
         Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();

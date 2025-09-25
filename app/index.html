@@ -81,6 +81,14 @@
                         <input type="text" id="estoque-setor" placeholder="Ex: DTI">
                     </div>
                     <div class="form-group">
+                        <label for="estoque-estado">Estado de Conservação:</label>
+                        <select id="estoque-estado" required>
+                            <option value="Novo">Novo</option>
+                            <option value="Regular" selected>Regular</option>
+                            <option value="Inservível">Inservível</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="estoque-observacoes">Observações (Outras Specs):</label>
                         <input type="text" id="estoque-observacoes" placeholder="Ex: Placa de Vídeo, SO, etc.">
                     </div>
@@ -144,6 +152,15 @@
                             <label for="mobiliario-material">Setor:</label>
                             <input type="text" id="mobiliario-material" placeholder="Ex: GAS">
                         </div>
+                       
+                        <div class="form-group">
+                            <label for="mobiliario-estado">Estado de Conservação:</label>
+                            <select id="mobiliario-estado" required>
+                                <option value="Novo">Novo</option>
+                                <option value="Regular" selected>Regular</option>
+                                <option value="Inservível">Inservível</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label for="mobiliario-cadastrado-outro-software">
                                 <input type="checkbox" id="mobiliario-cadastrado-outro-software" style="width: auto;">
@@ -178,6 +195,15 @@
                     <div class="form-group">
                         <label for="monitor-estoque-setor">Setor:</label>
                         <input type="text" id="monitor-estoque-setor" placeholder="Ex: GAS">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monitor-estoque-estado">Estado de Conservação:</label>
+                        <select id="monitor-estoque-estado" required>
+                            <option value="Novo">Novo</option>
+                            <option value="Regular" selected>Regular</option>
+                            <option value="Inservível">Inservível</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="monitor-estoque-patrimonio">Património:</label>
@@ -220,6 +246,14 @@
                         <div class="form-group">
                             <label for="outros-setor">Setor:</label>
                             <input type="text" id="outros-setor" placeholder="Ex: DTI">
+                        </div>
+                        <div class="form-group">
+                            <label for="outros-estado">Estado de Conservação:</label>
+                            <select id="outros-estado" required>
+                                <option value="Novo">Novo</option>
+                                <option value="Regular" selected>Regular</option>
+                                <option value="Inservível">Inservível</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>
