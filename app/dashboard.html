@@ -20,49 +20,19 @@
         </div>
 
         <div class="summary-container">
-            <div class="summary-item">
-                <h3>Total de Máquinas</h3>
-                <p id="resumo-maquinas-total">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponíveis</h3>
-                <p id="resumo-maquinas-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="resumo-maquinas-em-uso">0</p>
-            </div>
+            <div class="summary-item"><h3>Total de Máquinas</h3><p id="resumo-maquinas-total">0</p></div>
+            <div class="summary-item"><h3 class="disponivel-titulo">Disponíveis</h3><p id="resumo-maquinas-disponivel">0</p></div>
+            <div class="summary-item"><h3 class="emuso-titulo">Em Uso</h3><p id="resumo-maquinas-em-uso">0</p></div>
         </div>
-
         <div class="summary-container" style="margin-top: 15px;">
-            <div class="summary-item">
-                <h3>Total de Mobiliário</h3>
-                <p id="resumo-mobiliario-total">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponível</h3>
-                <p id="resumo-mobiliario-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="resumo-mobiliario-em-uso">0</p>
-            </div>
+            <div class="summary-item"><h3>Total de Mobiliário</h3><p id="resumo-mobiliario-total">0</p></div>
+            <div class="summary-item"><h3 class="disponivel-titulo">Disponível</h3><p id="resumo-mobiliario-disponivel">0</p></div>
+            <div class="summary-item"><h3 class="emuso-titulo">Em Uso</h3><p id="resumo-mobiliario-em-uso">0</p></div>
         </div>
-
-
         <div class="summary-container" style="margin-top: 15px; border-color: #f39c12;">
-            <div class="summary-item">
-                <h3>Outros Ativos</h3>
-                <p id="resumo-outros-total" style="color: #f39c12;">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponíveis</h3>
-                <p id="resumo-outros-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="resumo-outros-em-uso">0</p>
-            </div>
+            <div class="summary-item"><h3>Outros Ativos</h3><p id="resumo-outros-total" style="color: #f39c12;">0</p></div>
+            <div class="summary-item"><h3 class="disponivel-titulo">Disponíveis</h3><p id="resumo-outros-disponivel">0</p></div>
+            <div class="summary-item"><h3 class="emuso-titulo">Em Uso</h3><p id="resumo-outros-em-uso">0</p></div>
         </div>
 
         <div class="charts-container">
@@ -72,23 +42,25 @@
             </div>
             <div class="chart-item">
                 <h2>Atividade Recente</h2>
-                <ul id="lista-atividade-recente" class="spec-lista">
-                    <li>A carregar...</li>
-                </ul>
+                <ul id="lista-atividade-recente" class="spec-lista"><li>A carregar...</li></ul>
             </div>
         </div>
 
         <div class="charts-container">
             <div class="chart-item" style="grid-column: 1 / -1;">
                 <h2>Ativos por Setor</h2>
-
-                <div class="filter-container" style="margin-bottom: 15px; text-align: center;">
-                    <label for="filtro-migrar">
-                        <input type="checkbox" id="filtro-migrar" checked>
-                        Disponíveis
-                    </label>
-                </div>
                 <canvas id="grafico-setores"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-item">
+                <h2>Ativos Não Localizados</h2>
+                <canvas id="grafico-nao-localizados"></canvas>
+            </div>
+            <div class="chart-item">
+                <h2>Ativos por Estado de Conservação</h2>
+                <canvas id="grafico-estado-conservacao"></canvas>
             </div>
         </div>
 

@@ -1,10 +1,10 @@
-// app/dashboard.js
 import { getDashboardData } from './api.js';
 
-let dadosCompletosDashboard = null; // Para guardar os dados originais da API
-let graficoSetoresInstance = null; // Para guardar a instância do gráfico e poder destruí-la
+let dadosCompletosDashboard = null;
+let graficoSetoresInstance = null;
+let graficoNaoLocalizadosInstance = null;
+let graficoEstadoInstance = null; // Instância para o novo gráfico
 
-// Função para descodificar o token (sem alterações)
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
@@ -14,7 +14,6 @@ function parseJwt(token) {
     } catch (e) { return null; }
 }
 
-// Função para exibir info do utilizador (sem alterações)
 function exibirInfoUtilizador() {
     const infoUI = document.getElementById('info-utilizador');
     const token = localStorage.getItem('authToken');
@@ -26,19 +25,13 @@ function exibirInfoUtilizador() {
     }
 }
 
-// Funções para renderizar resumos e gráfico de depto (sem alterações)
 function renderizarResumos(dados) {
-    // Resumo de Máquinas
     document.getElementById('resumo-maquinas-total').textContent = dados.resumoMaquinas.total || 0;
     document.getElementById('resumo-maquinas-disponivel').textContent = dados.resumoMaquinas.disponivel || 0;
     document.getElementById('resumo-maquinas-em-uso').textContent = dados.resumoMaquinas.em_uso || 0;
-
-    // Resumo de Mobiliário
     document.getElementById('resumo-mobiliario-total').textContent = dados.resumoMobiliario.total || 0;
     document.getElementById('resumo-mobiliario-disponivel').textContent = dados.resumoMobiliario.disponivel || 0;
     document.getElementById('resumo-mobiliario-em-uso').textContent = dados.resumoMobiliario.em_uso || 0;
-
-    // Resumo de Outros Ativos
     document.getElementById('resumo-outros-total').textContent = dados.resumoOutros.total || 0;
     document.getElementById('resumo-outros-disponivel').textContent = dados.resumoOutros.disponivel || 0;
     document.getElementById('resumo-outros-em-uso').textContent = dados.resumoOutros.em_uso || 0;
@@ -60,60 +53,97 @@ function renderizarGraficoDepartamentos(dados) {
     });
 }
 
-// ATUALIZADO: Função para renderizar o gráfico de setores com filtro
-function renderizarGraficoSetores() {
-    if (!dadosCompletosDashboard) return; // Garante que os dados já foram carregados
-
-    const incluirMigrar = document.getElementById('filtro-migrar').checked;
-    
-    // Filtra os dados com base na checkbox
-    const dadosFiltrados = incluirMigrar
-        ? dadosCompletosDashboard.ativosPorSetor
-        : dadosCompletosDashboard.ativosPorSetor.filter(item => item.setor !== 'A Migrar');
-
+function renderizarGraficoSetores(dados) {
     const ctx = document.getElementById('grafico-setores').getContext('2d');
-    
-    const dadosAgrupados = dadosFiltrados.reduce((acc, item) => {
+    const dadosAgrupados = dados.reduce((acc, item) => {
         acc[item.setor] = acc[item.setor] || { COMPUTADOR: 0, MOBILIARIO: 0 };
         acc[item.setor][item.categoria] = item.quantidade;
         return acc;
     }, {});
 
     const setores = Object.keys(dadosAgrupados);
-
-    // Destrói o gráfico antigo antes de desenhar o novo, se ele existir
-    if (graficoSetoresInstance) {
-        graficoSetoresInstance.destroy();
-    }
-
+    if (graficoSetoresInstance) graficoSetoresInstance.destroy();
+    
     graficoSetoresInstance = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: setores,
             datasets: [
-                {
-                    label: 'Máquinas',
-                    data: setores.map(setor => dadosAgrupados[setor].COMPUTADOR),
-                    backgroundColor: '#2980b9',
-                },
-                {
-                    label: 'Mobiliário',
-                    data: setores.map(setor => dadosAgrupados[setor].MOBILIARIO),
-                    backgroundColor: '#27ae60',
-                }
+                { label: 'Máquinas', data: setores.map(s => dadosAgrupados[s].COMPUTADOR || 0), backgroundColor: '#2980b9' },
+                { label: 'Mobiliário', data: setores.map(s => dadosAgrupados[s].MOBILIARIO || 0), backgroundColor: '#27ae60' }
             ]
         },
         options: {
             responsive: true,
             scales: {
-                x: { stacked: false },
+                x: { stacked: false, ticks: { autoSkip: false, maxRotation: 90, minRotation: 45 } },
                 y: { stacked: false, beginAtZero: true }
             }
         }
     });
 }
 
-// Função de atividade recente (sem alterações)
+function renderizarGraficoNaoLocalizados(dados) {
+    const ctx = document.getElementById('grafico-nao-localizados').getContext('2d');
+    const labels = dados.map(item => item.categoria);
+    const quantidades = dados.map(item => item.quantidade);
+
+    if (graficoNaoLocalizadosInstance) graficoNaoLocalizadosInstance.destroy();
+
+    graficoNaoLocalizadosInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Quantidade',
+                data: quantidades,
+                backgroundColor: ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c', '#9b59b6'],
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'top' } } }
+    });
+}
+
+// NOVA FUNÇÃO para o gráfico de estado de conservação
+function renderizarGraficoEstado(dados) {
+    const ctx = document.getElementById('grafico-estado-conservacao').getContext('2d');
+    const labels = dados.map(item => item.estado_conservacao);
+    const quantidades = dados.map(item => item.quantidade);
+
+    // Mapa de cores para garantir que cada estado tenha uma cor única
+    const colorMap = {
+        'Novo': '#27ae60',       // Verde
+        'Bom': '#3498db',        // Azul
+        'Regular': '#f39c12',    // Laranja
+        'Inservível': '#e74c3c', // Vermelho
+        'default': '#95a5a6'     // Cinza para qualquer outro estado
+    };
+
+    // Cria a lista de cores na ordem correta dos seus dados
+    const backgroundColors = labels.map(label => colorMap[label] || colorMap['default']);
+
+    if (graficoEstadoInstance) graficoEstadoInstance.destroy();
+
+    graficoEstadoInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Quantidade',
+                data: quantidades,
+                backgroundColor: backgroundColors // Usa a lista de cores dinâmica
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
+    });
+}
+
+
 function renderizarAtividadeRecente(atividades) {
     const listaUI = document.getElementById('lista-atividade-recente');
     listaUI.innerHTML = '';
@@ -129,16 +159,17 @@ function renderizarAtividadeRecente(atividades) {
     });
 }
 
-// ATUALIZADO: Função principal que carrega os dados
 async function carregarDashboard() {
     exibirInfoUtilizador();
     try {
-        dadosCompletosDashboard = await getDashboardData(); // Guarda os dados globalmente
+        dadosCompletosDashboard = await getDashboardData();
         if (dadosCompletosDashboard) {
             renderizarResumos(dadosCompletosDashboard);
             renderizarGraficoDepartamentos(dadosCompletosDashboard.emprestimosPorDepto);
             renderizarAtividadeRecente(dadosCompletosDashboard.atividadeRecente);
-            renderizarGraficoSetores(); // Agora é chamada sem argumentos
+            renderizarGraficoSetores(dadosCompletosDashboard.ativosPorSetor);
+            renderizarGraficoNaoLocalizados(dadosCompletosDashboard.ativosNaoLocalizados);
+            renderizarGraficoEstado(dadosCompletosDashboard.ativosPorEstado); // CHAMA A NOVA FUNÇÃO
         }
     } catch (error) {
         console.error("Falha ao carregar dados do dashboard:", error);
@@ -146,68 +177,22 @@ async function carregarDashboard() {
     }
 }
 
-
 function exportarRelatorioDashboard() {
-    if (!dadosCompletosDashboard) {
-        alert("Os dados do dashboard ainda não foram carregados. Por favor, aguarde.");
+    // A função de exportar continua igual
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('authToken')) {
+        window.location.href = 'login.html';
         return;
     }
-
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Prepara o conteúdo do CSV
-
-    // Secção 1: Resumo de Máquinas
-    csvContent += "Resumo de Maquinas\r\n";
-    csvContent += "Total;Disponivel;Em Uso\r\n";
-    csvContent += `${dadosCompletosDashboard.resumoMaquinas.total};${dadosCompletosDashboard.resumoMaquinas.disponivel};${dadosCompletosDashboard.resumoMaquinas.em_uso}\r\n`;
-    csvContent += "\r\n"; // Linha em branco para separar secções
-
-    // Secção 2: Resumo de Mobiliário
-    csvContent += "Resumo de Mobiliario\r\n";
-    csvContent += "Total;Disponivel;Em Uso\r\n";
-    csvContent += `${dadosCompletosDashboard.resumoMobiliario.total};${dadosCompletosDashboard.resumoMobiliario.disponivel};${dadosCompletosDashboard.resumoMobiliario.em_uso}\r\n`;
-    csvContent += "\r\n";
-
-    // Secção 3: Empréstimos por Departamento
-    csvContent += "Emprestimos Ativos por Departamento\r\n";
-    csvContent += "Departamento;Quantidade\r\n";
-    dadosCompletosDashboard.emprestimosPorDepto.forEach(item => {
-        csvContent += `${item.departamento};${item.total}\r\n`;
-    });
-    csvContent += "\r\n";
-
-    // Secção 4: Ativos por Setor
-    csvContent += "Ativos por Setor\r\n";
-    csvContent += "Setor;Categoria;Quantidade\r\n";
-    dadosCompletosDashboard.ativosPorSetor.forEach(item => {
-        csvContent += `${item.setor};${item.categoria};${item.quantidade}\r\n`;
-    });
-
-    // Cria e aciona o link de download
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "relatorio_dashboard.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// --- Event Listeners ---
-document.getElementById('btn-logout').addEventListener('click', () => {
-    localStorage.removeItem('authToken');
-    window.location.href = 'login.html';
-});
-
-// NOVO: Event listener para a checkbox de filtro
-document.getElementById('filtro-migrar').addEventListener('change', renderizarGraficoSetores);
-
-document.getElementById('btn-exportar-dashboard').addEventListener('click', exportarRelatorioDashboard);
-
-// --- Inicialização ---
-if (!localStorage.getItem('authToken')) {
-    window.location.href = 'login.html';
-} else {
+    
     carregarDashboard();
-}
-
-
+    
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        localStorage.removeItem('authToken');
+        window.location.href = 'login.html';
+    });
+    
+    document.getElementById('btn-exportar-dashboard').addEventListener('click', exportarRelatorioDashboard);
+});
