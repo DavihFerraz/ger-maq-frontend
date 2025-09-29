@@ -43,12 +43,22 @@ function exibirInfoUtilizador() {
 }
 
 function renderizarResumos(dados) {
-    document.getElementById('resumo-maquinas-total').textContent = dados.resumoMaquinas.total || 0;
-    document.getElementById('resumo-maquinas-disponivel').textContent = dados.resumoMaquinas.disponivel || 0;
-    document.getElementById('resumo-maquinas-em-uso').textContent = dados.resumoMaquinas.em_uso || 0;
+    // Resumo de Computadores
+    document.getElementById('resumo-computadores-total').textContent = dados.resumoComputadores.total || 0;
+    document.getElementById('resumo-computadores-disponivel').textContent = dados.resumoComputadores.disponivel || 0;
+    document.getElementById('resumo-computadores-em-uso').textContent = dados.resumoComputadores.em_uso || 0;
+
+    // Resumo de Monitores
+    document.getElementById('resumo-monitores-total').textContent = dados.resumoMonitores.total || 0;
+    document.getElementById('resumo-monitores-disponivel').textContent = dados.resumoMonitores.disponivel || 0;
+    document.getElementById('resumo-monitores-em-uso').textContent = dados.resumoMonitores.em_uso || 0;
+
+    // Resumo de Mobiliário
     document.getElementById('resumo-mobiliario-total').textContent = dados.resumoMobiliario.total || 0;
     document.getElementById('resumo-mobiliario-disponivel').textContent = dados.resumoMobiliario.disponivel || 0;
     document.getElementById('resumo-mobiliario-em-uso').textContent = dados.resumoMobiliario.em_uso || 0;
+
+    // Resumo de Outros Ativos
     document.getElementById('resumo-outros-total').textContent = dados.resumoOutros.total || 0;
     document.getElementById('resumo-outros-disponivel').textContent = dados.resumoOutros.disponivel || 0;
     document.getElementById('resumo-outros-em-uso').textContent = dados.resumoOutros.em_uso || 0;
