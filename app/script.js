@@ -629,15 +629,29 @@ function exibirInfoUtilizador() {
     const token = localStorage.getItem('authToken');
     
     if (infoUtilizadorUI && token) {
-        const dadosUtilizador = parseJwt(token); // Descodifica o token
+        const dadosUtilizador = parseJwt(token);
         if (dadosUtilizador) {
             const nome = dadosUtilizador.nome || 'Utilizador';
             const depto = dadosUtilizador.departamento || 'N/D';
-            infoUtilizadorUI.innerHTML = `<span><i class="fas fa-user-circle"></i> Olá, <strong>${nome}</strong> (${depto})</span>`;
+
+            // Mapa de cores por departamento
+            const deptoColors = {
+                'TI': { icon: '#3498db', bg: '#eaf4fc', text: '#2980b9' },
+                'GAS': { icon: '#27ae60', bg: '#e9f7ef', text: '#229954' },
+                'default': { icon: '#8e8e8e', bg: '#f0f0f0', text: '#5e5e5e' }
+            };
+
+            const colors = deptoColors[depto.toUpperCase()] || deptoColors['default'];
+
+            infoUtilizadorUI.innerHTML = `
+                <span>
+                    <i class="fas fa-user-circle" style="color: ${colors.icon};"></i> Olá, 
+                    <strong style="background-color: ${colors.bg}; color: ${colors.text};">${nome}</strong>
+                    (${depto})
+                </span>`;
         }
     }
 }
-
 
 
 

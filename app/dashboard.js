@@ -20,7 +20,24 @@ function exibirInfoUtilizador() {
     if (infoUI && token) {
         const dados = parseJwt(token);
         if (dados) {
-            infoUI.innerHTML = `<span><i class="fas fa-user-circle"></i> Olá, <strong>${dados.nome}</strong> (${dados.departamento})</span>`;
+            const nome = dados.nome || 'Utilizador';
+            const depto = dados.departamento || 'N/D';
+
+            // Mapa de cores por departamento
+            const deptoColors = {
+                'TI': { icon: '#3498db', bg: '#eaf4fc', text: '#2980b9' },
+                'GAS': { icon: '#27ae60', bg: '#e9f7ef', text: '#229954' },
+                'default': { icon: '#8e8e8e', bg: '#f0f0f0', text: '#5e5e5e' }
+            };
+
+            const colors = deptoColors[depto.toUpperCase()] || deptoColors['default'];
+
+            infoUI.innerHTML = `
+                <span>
+                    <i class="fas fa-user-circle" style="color: ${colors.icon};"></i> Olá, 
+                    <strong style="background-color: ${colors.bg}; color: ${colors.text};">${nome}</strong>
+                    (${depto})
+                </span>`;
         }
     }
 }

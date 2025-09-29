@@ -861,19 +861,18 @@ button:disabled,
     margin-right: 10px; /* Afasta o separador do próximo botão */
 }
 #info-utilizador strong {
-  background-color: #e0eafc; /* Um azul claro de fundo */
-  color: #3f51b5;         /* Um azul mais escuro para o texto */
+  /* As cores serão aplicadas via JavaScript */
   padding: 4px 10px;
-  border-radius: 16px;     /* Bordas arredondadas */
+  border-radius: 16px;
   font-weight: 500;
   margin-left: 5px;
 }
 #info-utilizador .fa-user-circle {
   margin-right: 8px;
   font-size: 1.2em;
-  color: var(--cor-primaria);
-  vertical-align: middle; /* Alinha o ícone verticalmente com o texto */
+  vertical-align: middle;
 }
+
 
 #form-editar-mobiliario .form-group {
     margin-bottom: 15px;
