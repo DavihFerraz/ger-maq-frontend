@@ -633,7 +633,7 @@ function exibirInfoUtilizador() {
         if (dadosUtilizador) {
             const nome = dadosUtilizador.nome || 'Utilizador';
             const depto = dadosUtilizador.departamento || 'N/D';
-            infoUtilizadorUI.innerHTML = `<span>Olá, <strong>${nome}</strong> (${depto})</span>`;
+            infoUtilizadorUI.innerHTML = `<span><i class="fas fa-user-circle"></i> Olá, <strong>${nome}</strong> (${depto})</span>`;
         }
     }
 }

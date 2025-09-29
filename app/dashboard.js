@@ -3,7 +3,7 @@ import { getDashboardData } from './api.js';
 let dadosCompletosDashboard = null;
 let graficoSetoresInstance = null;
 let graficoNaoLocalizadosInstance = null;
-let graficoEstadoInstance = null; // Instância para o novo gráfico
+let graficoEstadoInstance = null;
 
 function parseJwt(token) {
     try {
@@ -20,7 +20,7 @@ function exibirInfoUtilizador() {
     if (infoUI && token) {
         const dados = parseJwt(token);
         if (dados) {
-            infoUI.innerHTML = `<span>Olá, <strong>${dados.nome}</strong> (${dados.departamento})</span>`;
+            infoUI.innerHTML = `<span><i class="fas fa-user-circle"></i> Olá, <strong>${dados.nome}</strong> (${dados.departamento})</span>`;
         }
     }
 }
@@ -104,22 +104,18 @@ function renderizarGraficoNaoLocalizados(dados) {
     });
 }
 
-// NOVA FUNÇÃO para o gráfico de estado de conservação
 function renderizarGraficoEstado(dados) {
     const ctx = document.getElementById('grafico-estado-conservacao').getContext('2d');
     const labels = dados.map(item => item.estado_conservacao);
     const quantidades = dados.map(item => item.quantidade);
-
-    // Mapa de cores para garantir que cada estado tenha uma cor única
+    
     const colorMap = {
-        'Novo': '#27ae60',       // Verde
-        'Bom': '#3498db',        // Azul
-        'Regular': '#f39c12',    // Laranja
-        'Inservível': '#e74c3c', // Vermelho
-        'default': '#95a5a6'     // Cinza para qualquer outro estado
+        'Novo': '#27ae60',
+        'Bom': '#3498db',
+        'Regular': '#f39c12',
+        'Inservível': '#e74c3c',
+        'default': '#95a5a6'
     };
-
-    // Cria a lista de cores na ordem correta dos seus dados
     const backgroundColors = labels.map(label => colorMap[label] || colorMap['default']);
 
     if (graficoEstadoInstance) graficoEstadoInstance.destroy();
@@ -131,7 +127,7 @@ function renderizarGraficoEstado(dados) {
             datasets: [{
                 label: 'Quantidade',
                 data: quantidades,
-                backgroundColor: backgroundColors // Usa a lista de cores dinâmica
+                backgroundColor: backgroundColors
             }]
         },
         options: {
@@ -142,7 +138,6 @@ function renderizarGraficoEstado(dados) {
         }
     });
 }
-
 
 function renderizarAtividadeRecente(atividades) {
     const listaUI = document.getElementById('lista-atividade-recente');
@@ -169,7 +164,7 @@ async function carregarDashboard() {
             renderizarAtividadeRecente(dadosCompletosDashboard.atividadeRecente);
             renderizarGraficoSetores(dadosCompletosDashboard.ativosPorSetor);
             renderizarGraficoNaoLocalizados(dadosCompletosDashboard.ativosNaoLocalizados);
-            renderizarGraficoEstado(dadosCompletosDashboard.ativosPorEstado); // CHAMA A NOVA FUNÇÃO
+            renderizarGraficoEstado(dadosCompletosDashboard.ativosPorEstado);
         }
     } catch (error) {
         console.error("Falha ao carregar dados do dashboard:", error);
@@ -177,9 +172,44 @@ async function carregarDashboard() {
     }
 }
 
-function exportarRelatorioDashboard() {
-    // A função de exportar continua igual
+// **NOVA FUNÇÃO PARA EXPORTAR**
+async function exportarRelatorioDashboard() {
+    const btn = document.getElementById('btn-exportar-dashboard');
+    btn.textContent = 'A gerar...';
+    btn.disabled = true;
+
+    try {
+        const token = localStorage.getItem('authToken');
+        // A URL base já é definida no seu ficheiro api.js
+        const response = await fetch('http://localhost:3000/api/dashboard/export', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Falha ao gerar o relatório no servidor.');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Relatorio_Dashboard.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Erro ao exportar relatório:', error);
+        alert('Não foi possível descarregar o relatório. Tente novamente.');
+    } finally {
+        btn.textContent = 'Exportar Relatório';
+        btn.disabled = false;
+    }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('authToken')) {
