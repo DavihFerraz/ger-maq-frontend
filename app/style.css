@@ -1086,3 +1086,40 @@ button:disabled,
 .autocomplete-item:last-child {
     border-bottom: none;
 }
+
+/* O container que irá guardar as etiquetas dos monitores selecionados */
+#monitores-selecionados-container {
+    display: flex;
+    flex-wrap: wrap; /* Permite que as etiquetas quebrem para a linha de baixo */
+    gap: 8px; /* Espaço entre as etiquetas */
+    margin-top: 10px; /* Espaço acima do container */
+}
+
+/* A etiqueta individual de cada monitor */
+.monitor-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--cor-primaria); /* Usa a sua cor primária */
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px; /* Bordas arredondadas */
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+/* O botão 'x' para remover a etiqueta */
+.remove-monitor {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 0;
+    line-height: 1;
+}
+
+.remove-monitor:hover {
+    opacity: 0.8;
+}

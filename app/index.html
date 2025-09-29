@@ -40,8 +40,12 @@
                     <input type="hidden" id="id-maquina-emprestimo">
                 </div>
                  <div class="form-group">
-                    <label for="id-monitores-emprestimo">Associar Monitores (segure Ctrl/Cmd para selecionar vários):</label>
-                    <select id="id-monitores-emprestimo" multiple style="height: 120px;"></select>
+                    <label for="busca-monitor">Associar Monitores:</label>
+                    <div class="autocomplete-container">
+                        <input type="text" id="busca-monitor" placeholder="Digite o modelo ou património do monitor...">
+                        <div id="monitor-resultados" class="autocomplete-resultados"></div>
+                    </div>
+                    <div id="monitores-selecionados-container"></div>
                 </div>
                 <div class="form-buttons">
                     <button type="submit" id="btn-principal">Adicionar Associação</button>
@@ -54,56 +58,65 @@
             <details open>
                 <summary>Gestão de Estoque de Máquinas</summary>
                 <div class="form-container-stock">
-                  <h3 id="form-title-stock">Adicionar Nova Máquina ao Estoque</h3>
-                  <form id="form-estoque">
-                    <div class="form-group">
-                        <label for="estoque-modelo">Modelo da Máquina:</label>
-                        <select id="estoque-modelo" required>
-                            <option value="">-- Selecione um modelo --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="estoque-patrimonio">Património:</label>
-                        <input type="text" id="estoque-patrimonio" placeholder="Ex: 100.001.272.541" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="estoque-processador">Processador:</label>
-                        <input type="text" id="estoque-processador" placeholder="Ex: i5-12500">
-                    </div>
-                    <div class="form-group">
-                        <label for="estoque-ram">Memória RAM:</label>
-                        <input type="text" id="estoque-ram" placeholder="Ex: 16 GB">
-                    </div>
-                    <div class="form-group">
-                        <label for="estoque-armazenamento">Armazenamento:</label>
-                        <input type="text" id="estoque-armazenamento" placeholder="Ex: SSD 512 GB">
-                    </div>
-                    <div class="form-group">
-                        <label for="estoque-setor">Setor:</label>
-                        <input type="text" id="estoque-setor" placeholder="Ex: DTI">
-                    </div>
-                    <div class="form-group">
-                        <label for="estoque-estado">Estado de Conservação:</label>
-                        <select id="estoque-estado" required>
-                            <option value="Novo">Novo</option>
-                            <option value="Regular" selected>Regular</option>
-                            <option value="Inservível">Inservível</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="estoque-observacoes">Observações (Outras Specs):</label>
-                        <input type="text" id="estoque-observacoes" placeholder="Ex: Placa de Vídeo, SO, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label for="maquina-cadastrado-gpm">
-                            <input type="checkbox" id="maquina-cadastrado-gpm" style="width: auto;">
-                            Já cadastrado no GPM?
-                        </label>
-                    </div>
-                    <div class="form-buttons">
-                        <button type="submit" id="btn-adicionar-estoque" class="btn-adicionar-estoque">Adicionar ao Estoque</button>
-                    </div>
-                </form>
+                    <h3 id="form-title-stock">Adicionar Novo Ativo ao Estoque</h3>
+                    <form id="form-estoque">
+                        <div class="form-group">
+                            <label for="estoque-categoria">Categoria do Ativo:</label>
+                            <select id="estoque-categoria" required>
+                                <option value="COMPUTADOR" selected>Computador</option>
+                                <option value="MONITOR">Monitor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="estoque-modelo">Modelo:</label>
+                            <input type="text" id="estoque-modelo" placeholder="Ex: Dell Optiplex 3080 ou Dell U2419H" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="estoque-patrimonio">Património:</label>
+                            <input type="text" id="estoque-patrimonio" placeholder="Ex: 100.001.272.541" required>
+                        </div>
+                        
+                        <div id="campos-especificos-computador">
+                            <div class="form-group">
+                                <label for="estoque-processador">Processador:</label>
+                                <input type="text" id="estoque-processador" placeholder="Ex: i5-12500">
+                            </div>
+                            <div class="form-group">
+                                <label for="estoque-ram">Memória RAM:</label>
+                                <input type="text" id="estoque-ram" placeholder="Ex: 16 GB">
+                            </div>
+                            <div class="form-group">
+                                <label for="estoque-armazenamento">Armazenamento:</label>
+                                <input type="text" id="estoque-armazenamento" placeholder="Ex: SSD 512 GB">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estoque-setor">Setor:</label>
+                            <input type="text" id="estoque-setor" placeholder="Ex: DTI">
+                        </div>
+                        <div class="form-group">
+                            <label for="estoque-estado">Estado de Conservação:</label>
+                            <select id="estoque-estado" required>
+                                <option value="Novo">Novo</option>
+                                <option value="Regular" selected>Regular</option>
+                                <option value="Inservível">Inservível</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="estoque-observacoes">Observações:</label>
+                            <input type="text" id="estoque-observacoes" placeholder="Ex: Placa de Vídeo, SO, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label for="maquina-cadastrado-gpm">
+                                <input type="checkbox" id="maquina-cadastrado-gpm" style="width: auto;">
+                                Já cadastrado no GPM?
+                            </label>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" id="btn-adicionar-estoque" class="btn-adicionar-estoque">Adicionar ao Estoque</button>
+                        </div>
+                    </form>
                 </div>
                 <div class="list-container-stock">
                     <h3>Máquinas no Inventário</h3>
@@ -184,52 +197,6 @@
             </details>
         </div>
 
-        <div class="monitor-container">
-            <details>
-                <summary>Gestão de Estoque de Monitores</summary>
-                <div class="form-container-stock">
-                  <h3 id="form-title-stock-monitor">Adicionar Novo Monitor ao Estoque</h3>
-                  <form id="form-estoque-monitor">
-                    <div class="form-group">
-                        <label for="monitor-estoque-modelo">Modelo do Monitor:</label>
-                        <input type="text" id="monitor-estoque-modelo" placeholder="Ex: Dell U2419H" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="monitor-estoque-setor">Setor:</label>
-                        <input type="text" id="monitor-estoque-setor" placeholder="Ex: GAS">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="monitor-estoque-estado">Estado de Conservação:</label>
-                        <select id="monitor-estoque-estado" required>
-                            <option value="Novo">Novo</option>
-                            <option value="Regular" selected>Regular</option>
-                            <option value="Inservível">Inservível</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="monitor-estoque-patrimonio">Património:</label>
-                        <input type="text" id="monitor-estoque-patrimonio" placeholder="Ex: 100.001.272.550" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="monitor-cadastrado-gpm">
-                            <input type="checkbox" id="monitor-cadastrado-gpm" style="width: auto;">
-                            Já cadastrado no GPM?
-                        </label>
-                    </div>
-                    <div class="form-buttons">
-                        <button type="submit" class="btn-adicionar-estoque">Adicionar Monitor ao Estoque</button>
-                    </div>
-                </form>
-                </div>
-                <div class="list-container-stock">
-                    <h3>Monitores no Inventário</h3>
-                    <input type="text" id="campo-busca-estoque-monitor" placeholder="Buscar por modelo ou património...">
-                    <ul id="lista-estoque-monitores"></ul>
-                </div>
-            </details>
-        </div>
-
         <div class="others-container">
             <details>
                 <summary>Gestão de Outros Ativos</summary>
@@ -278,25 +245,6 @@
     </details>
 </div>
 
-        <div class="form-container-stock" >
-            <details>
-                <summary style="font-weight: bold; cursor: pointer;">Criar Modelos de Máquina</summary>
-                <form id="form-novo-modelo" style="margin-top: 15px;">
-                    <h4 id="form-title-stock">Adicionar Novo Modelo</h4>
-                    <div class="form-group">
-                        <label for="novo-modelo-nome">Nome do Modelo:</label>
-                        <input type="text" id="novo-modelo-nome" placeholder="Ex: Dell Optiplex 3080" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="novo-modelo-fabricante">Fabricante:</label>
-                        <input type="text" id="novo-modelo-fabricante" placeholder="Ex: Dell">
-                    </div>
-                    <div class="form-buttons">
-                        <button type="submit" class="btn-adicionar-estoque">Adicionar Modelo</button>
-                    </div>
-                </form>
-            </details>
-        </div>
         
         <div class="main-sections">
             <a href="lista.html" class="btn-link-pagina">Lista de Associações (Máquinas)</a>
