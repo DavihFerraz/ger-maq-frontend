@@ -5,80 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Gerenciador de Ativos</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="container container-largo">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>AMEP ATIVOS</h2>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="dashboard.html" class="active"><i class="fas fa-chart-pie"></i> <span class="nav-text">Dashboard</span></a></li>
+            <li><a href="index.html"><i class="fas fa-tasks"></i> <span class="nav-text">Inventário</span></a></li>
+            <li class="has-submenu">
+            <a href="#"><i class="fas fa-clipboard-list"></i> <span class="nav-text">Associações</span> <i class="fas fa-chevron-down submenu-arrow"></i></a>
+            <ul class="submenu">
+                <li><a href="lista.html"><span class="nav-text">Máquinas</span></a></li>
+                <li><a href="lista_mobiliario.html"><span class="nav-text">Mobiliário</span></a></li>
+            </ul>
+        </li>
+        </ul>
+        <ul class="sidebar-actions">
+            <li><a href="#" id="btn-exportar-dashboard-sidebar"><i class="fas fa-file-excel"></i> <span class="nav-text">Exportar Relatório</span></a></li>
+            <li><a href="#" id="btn-mudar-senha-sidebar"><i class="fas fa-key"></i> <span class="nav-text">Mudar Senha</span></a></li>
+            <li><a href="#" id="btn-logout-sidebar"><i class="fas fa-sign-out-alt"></i> <span class="nav-text">Sair</span></a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
         <div class="header-container">
-            <h1>Dashboard</h1>
-            <div class="header-buttons">
-                <div id="info-utilizador"></div>
-                <button id="btn-exportar-dashboard" class="btn-exportar">Exportar Relatório</button>
-                <button id="btn-logout">Sair</button>
+            <div style="display: flex; align-items: center;">
+                <button id="sidebar-toggle" class="sidebar-toggle-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Dashboard</h1>
             </div>
+            <div id="info-utilizador"></div>
         </div>
 
         <div class="summary-container">
-            <div class="summary-item">
-                <h3>Total de Computadores</h3>
-                <p id="resumo-computadores-total">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponíveis</h3>
-                <p id="resumo-computadores-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="resumo-computadores-em-uso">0</p>
-            </div>
+            <div class="summary-item"><h3>Total de Computadores</h3><p id="resumo-computadores-total">0</p></div>
+            <div class="summary-item"><h3 class="disponivel-titulo">Disponíveis</h3><p id="resumo-computadores-disponivel">0</p></div>
+            <div class="summary-item"><h3 class="emuso-titulo">Em Uso</h3><p id="resumo-computadores-em-uso">0</p></div>
         </div>
-
         <div class="summary-container" style="margin-top: 15px;">
-            <div class="summary-item">
-                <h3>Total de Monitores</h3>
-                <p id="resumo-monitores-total">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponíveis</h3>
-                <p id="resumo-monitores-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="resumo-monitores-em-uso">0</p>
-            </div>
+            <div class="summary-item"><h3>Total de Monitores</h3><p id="resumo-monitores-total">0</p></div>
+            <div class="summary-item"><h3 class="disponivel-titulo">Disponíveis</h3><p id="resumo-monitores-disponivel">0</p></div>
+            <div class="summary-item"><h3 class="emuso-titulo">Em Uso</h3><p id="resumo-monitores-em-uso">0</p></div>
         </div>
-
         <div class="summary-container" style="margin-top: 15px;">
-            <div class="summary-item">
-                <h3>Total de Mobiliário</h3>
-                <p id="resumo-mobiliario-total">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponível</h3>
-                <p id="resumo-mobiliario-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="resumo-mobiliario-em-uso">0</p>
-            </div>
+            <div class="summary-item"><h3>Total de Mobiliário</h3><p id="resumo-mobiliario-total">0</p></div>
+            <div class="summary-item"><h3 class="disponivel-titulo">Disponível</h3><p id="resumo-mobiliario-disponivel">0</p></div>
+            <div class="summary-item"><h3 class="emuso-titulo">Em Uso</h3><p id="resumo-mobiliario-em-uso">0</p></div>
         </div>
-
         <div class="summary-container" style="margin-top: 15px; border-color: #f39c12;">
-            <div class="summary-item">
-                <h3>Outros Ativos</h3>
-                <p id="resumo-outros-total" style="color: #f39c12;">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="disponivel-titulo">Disponíveis</h3>
-                <p id="resumo-outros-disponivel">0</p>
-            </div>
-            <div class="summary-item">
-                <h3 class="emuso-titulo">Em Uso</h3>
-                <p id="resumo-outros-em-uso">0</p>
-            </div>
+            <div class="summary-item"><h3>Outros Ativos</h3><p id="resumo-outros-total" style="color: #f39c12;">0</p></div>
+            <div class="summary-item"><h3 class="disponivel-titulo">Disponíveis</h3><p id="resumo-outros-disponivel">0</p></div>
+            <div class="summary-item"><h3 class="emuso-titulo">Em Uso</h3><p id="resumo-outros-em-uso">0</p></div>
         </div>
 
         <div class="charts-container">
@@ -107,10 +91,7 @@
                 <canvas id="grafico-estado-conservacao"></canvas>
             </div>
         </div>
-        <div class="main-sections">
-            <a href="index.html" class="btn-link-pagina">Ir para a Gestão de Inventário</a>
-        </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="dashboard.js" type="module"></script>

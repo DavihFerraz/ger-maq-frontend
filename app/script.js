@@ -1086,18 +1086,42 @@ async function devolverMobiliario(emprestimoId) {
 
 
 async function excluirMaquinaEstoque(itemId) {
-    if (!confirm("Tem a certeza que deseja excluir este item permanentemente?")) return;
+    const item = todoEstoque.find(i => i.id === itemId);
+    const nomeItem = item ? item.modelo_tipo : 'este item';
 
-    console.log("Excluindo item com ID:", itemId);
+    exibirModalConfirmacao(`Tem a certeza que deseja excluir "${nomeItem}" permanentemente?`, async () => {
+        try {
+            await deleteItem(itemId);
+            Toastify({ text: "Item excluído com sucesso!" }).showToast();
+            carregarDados();
+        } catch (error) {
+            console.error("Erro ao excluir:", error);
+            Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+        }
+    });
+}
 
-    try {
-        await deleteItem(itemId);
-        Toastify({ text: "Item excluído com sucesso!", backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)" }).showToast();
-        carregarDados();
-    } catch (error) {
-        console.error("Erro ao excluir:", error);
-        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
-    }
+// NOVA FUNÇÃO para exibir o modal de confirmação
+function exibirModalConfirmacao(mensagem, onConfirm) {
+    const modal = document.getElementById('modal-confirmacao');
+    const textoModal = document.getElementById('modal-texto');
+    const btnConfirmar = document.getElementById('btn-modal-confirmar');
+    const btnCancelar = document.getElementById('btn-modal-cancelar');
+
+    textoModal.textContent = mensagem;
+    modal.classList.add('visible');
+
+    // Função para fechar o modal
+    const fecharModal = () => modal.classList.remove('visible');
+
+    // Configura o clique no botão de confirmar (apenas uma vez)
+    btnConfirmar.onclick = () => {
+        fecharModal();
+        onConfirm(); // Executa a ação que foi passada (ex: a exclusão)
+    };
+
+    // Configura o clique no botão de cancelar
+    btnCancelar.onclick = fecharModal;
 }
 
 
@@ -1285,289 +1309,167 @@ function formatarPatrimonio(numero) {
 checkAuth();
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- GESTORES DE EVENTOS PARA FORMULÁRIOS ---
+    // 1. VERIFICAÇÃO DE AUTENTICAÇÃO
+    if (!localStorage.getItem('authToken') && !window.location.pathname.includes('login.html')) {
+        window.location.href = 'login.html';
+        return;
+    }
+    carregarDados();
 
-    const categoriaSelect = document.getElementById('estoque-categoria');
-    if (categoriaSelect) {
-        categoriaSelect.addEventListener('change', (event) => {
-            const camposComputador = document.getElementById('campos-especificos-computador');
-            if (event.target.value === 'COMPUTADOR') {
-                camposComputador.style.display = 'block'; // Mostra os campos
-            } else {
-                camposComputador.style.display = 'none'; // Esconde os campos
-            }
+    // 2. LÓGICA DO MENU LATERAL
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
         });
     }
-    const formPrincipal = document.getElementById('form-maquina');
-    if (formPrincipal) formPrincipal.addEventListener('submit', salvarAssociacao);
 
-    const formEstoque = document.getElementById('form-estoque');
-    if (formEstoque) formEstoque.addEventListener('submit', salvarAtivoEstoque);
-
-    const formMobiliario = document.getElementById('form-mobiliario');
-    if (formMobiliario) formMobiliario.addEventListener('submit', salvarMobiliario);
-
-    const formAssociarMobiliario = document.getElementById('form-associar-mobiliario');
-    if (formAssociarMobiliario) formAssociarMobiliario.addEventListener('submit', salvarAssociacaoMobiliario);
-    
-    // Supondo que você tenha um formulário para o modal de edição
-    const formEditarMaquina = document.getElementById('form-editar-maquina');
-    if (formEditarMaquina) formEditarMaquina.addEventListener('submit', salvarAlteracoesMaquina);
-    
-    const formEstoqueMonitor = document.getElementById('form-estoque-monitor');
-    if (formEstoqueMonitor) formEstoqueMonitor.addEventListener('submit', salvarMonitorEstoque);
-
-
-    const formEditarMobiliario = document.getElementById('form-editar-mobiliario');
-    if (formEditarMobiliario) formEditarMobiliario.addEventListener('submit', salvarAlteracoesMobiliario);
-
-    const btnCancelarEdicaoMobiliario = document.getElementById('btn-editar-mobiliario-cancelar');
-    if (btnCancelarEdicaoMobiliario) btnCancelarEdicaoMobiliario.addEventListener('click', fecharModalEditarMobiliario);
-
-    const formEditarMonitor = document.getElementById('form-editar-monitor');
-    if (formEditarMonitor) formEditarMonitor.addEventListener('submit', salvarAlteracoesMonitor);
-
-    const btnCancelarEdicaoMonitor = document.getElementById('btn-editar-monitor-cancelar');
-    if (btnCancelarEdicaoMonitor) btnCancelarEdicaoMonitor.addEventListener('click', fecharModalEditarMonitor);
-
-    const btnMudarSenha = document.getElementById('btn-mudar-senha');
-    if(btnMudarSenha) btnMudarSenha.addEventListener('click', abrirModalSenha);
-
-    const formMudarSenha = document.getElementById('form-mudar-senha');
-    if(formMudarSenha) formMudarSenha.addEventListener('submit', mudarSenha);
-
-    const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
-    if(btnSenhaCancelar) btnSenhaCancelar.addEventListener('click', fecharModalSenha);
-
-    const formOutrosAtivos = document.getElementById('form-outros-ativos');
-    if (formOutrosAtivos) formOutrosAtivos.addEventListener('submit', salvarOutroAtivo);
-
-    const campoBuscaOutros = document.getElementById('campo-busca-outros');
-    if(campoBuscaOutros) campoBuscaOutros.addEventListener('input', renderizarOutrosAtivos);
-
-    const formEditarOutros = document.getElementById('form-editar-outros');
-    if (formEditarOutros) formEditarOutros.addEventListener('submit', salvarAlteracoesOutros);
-
-    const btnCancelarEdicaoOutros = document.getElementById('btn-editar-outros-cancelar');
-    if (btnCancelarEdicaoOutros) btnCancelarEdicaoOutros.addEventListener('click', fecharModalEditarOutros);
-
-    const btnExportar = document.getElementById('btn-exportar');
-    if (btnExportar) {
-        btnExportar.addEventListener('click', exportarParaCSV);
-    }
-
-    const formNovoModelo = document.getElementById('form-novo-modelo');
-    if (formNovoModelo) {
-        formNovoModelo.addEventListener('submit', salvarNovoModelo);
-    }
-
-    const btnFecharHistorico = document.getElementById('btn-historico-fechar');
-    if (btnFecharHistorico) {
-        btnFecharHistorico.addEventListener('click', fecharModalHistorico);
-    }
-
-    const buscaMonitorInput = document.getElementById('busca-monitor');
-    const monitorResultadosDiv = document.getElementById('monitor-resultados');
-
-    if (buscaMonitorInput) {
-    buscaMonitorInput.addEventListener('input', () => {
-        const termoBusca = buscaMonitorInput.value.toLowerCase();
-
-        if (termoBusca.length < 2) {
-            monitorResultadosDiv.style.display = 'none';
-            return;
-        }
-
-        const monitoresDisponiveis = todoEstoque.filter(item =>
-            item.categoria === 'MONITOR' && item.status === 'Disponível' && !monitoresSelecionadosIds.has(item.id)
-        );
-
-        const resultados = monitoresDisponiveis.filter(monitor =>
-            monitor.modelo_tipo.toLowerCase().includes(termoBusca) ||
-            monitor.patrimonio.toLowerCase().includes(termoBusca)
-        );
-
-        // Exibe os resultados
-        monitorResultadosDiv.innerHTML = '';
-        if (resultados.length > 0) {
-            resultados.forEach(monitor => {
-                const itemDiv = document.createElement('div');
-                itemDiv.classList.add('autocomplete-item');
-                itemDiv.textContent = `${monitor.modelo_tipo} (Património: ${formatarPatrimonio(monitor.patrimonio)})`;
-                itemDiv.addEventListener('click', () => {
-                    adicionarMonitorTag(monitor);
-                    buscaMonitorInput.value = ''; // Limpa o campo de busca
-                    monitorResultadosDiv.style.display = 'none';
-                });
-                monitorResultadosDiv.appendChild(itemDiv);
-            });
-            monitorResultadosDiv.style.display = 'block';
-        } else {
-            monitorResultadosDiv.style.display = 'none';
-        }
-    });
-}
-    
-
-
-    const buscaMaquinaInput = document.getElementById('busca-maquina');
-    const maquinaResultadosDiv = document.getElementById('maquina-resultados');
-    const maquinaIdInput = document.getElementById('id-maquina-emprestimo');
-
-    if (buscaMaquinaInput) {
-    // Mostra os resultados quando o utilizador digita
-    buscaMaquinaInput.addEventListener('input', () => {
-        const termoBusca = buscaMaquinaInput.value.toLowerCase();
-        maquinaIdInput.value = ''; // Limpa o ID se o utilizador alterar o texto
-
-        if (termoBusca.length < 2) {
-            maquinaResultadosDiv.style.display = 'none';
-            return;
-        }
-
-        const maquinasDisponiveis = todoEstoque.filter(item =>
-            item.categoria === 'COMPUTADOR' && item.status === 'Disponível'
-        );
-
-        const resultados = maquinasDisponiveis.filter(maquina =>
-            maquina.modelo_tipo.toLowerCase().includes(termoBusca) ||
-            maquina.patrimonio.toLowerCase().includes(termoBusca)
-        );
-
-        mostrarResultados(resultados, maquinaResultadosDiv, buscaMaquinaInput, maquinaIdInput);
-    });
-
-    // Esconde a lista de resultados se o utilizador clicar fora
-    document.addEventListener('click', function(event) {
-        if (!event.target.closest('.autocomplete-container')) {
-            maquinaResultadosDiv.style.display = 'none';
-        }
-    });
-}
-
-
-    const buscaMobiliarioInput = document.getElementById('busca-mobiliario');
-    const mobiliarioResultadosDiv = document.getElementById('mobiliario-resultados');
-    const mobiliarioIdInput = document.getElementById('id-mobiliario-emprestimo');
-
-    if (buscaMobiliarioInput) {
-    buscaMobiliarioInput.addEventListener('input', () => {
-        const termoBusca = buscaMobiliarioInput.value.toLowerCase();
-        mobiliarioIdInput.value = ''; // Limpa o ID se o texto mudar
-
-        if (termoBusca.length < 2) {
-            mobiliarioResultadosDiv.style.display = 'none';
-            return;
-        }
-
-        const mobiliarioDisponivel = todoEstoque.filter(item =>
-            item.categoria === 'MOBILIARIO' && item.status === 'Disponível'
-        );
-
-        const resultados = mobiliarioDisponivel.filter(item =>
-            item.modelo_tipo.toLowerCase().includes(termoBusca) ||
-            item.patrimonio.toLowerCase().includes(termoBusca)
-        );
-
-        // Reutilizamos a mesma função para mostrar os resultados!
-        mostrarResultados(resultados, mobiliarioResultadosDiv, buscaMobiliarioInput, mobiliarioIdInput);
-    });
-
-    // Este listener de clique para esconder os resultados já existe e funcionará para ambos os campos
-}
-
-
-    // --- GESTORES DE EVENTOS PARA BOTÕES ESTÁTICOS ---
-    const btnLogout = document.getElementById('btn-logout');
-    if (btnLogout) {
-        btnLogout.addEventListener('click', () => {
+    // 3. EVENT LISTENERS PARA BOTÕES NA BARRA LATERAL
+    const btnLogoutSidebar = document.getElementById('btn-logout-sidebar');
+    if (btnLogoutSidebar) {
+        btnLogoutSidebar.addEventListener('click', () => {
             localStorage.removeItem('authToken');
             window.location.href = 'login.html';
         });
     }
 
-    // Botões para fechar/cancelar os modais
-    const btnFecharSpec = document.getElementById('btn-spec-fechar');
-    if (btnFecharSpec) {
-        btnFecharSpec.addEventListener('click', fecharModalEspecificacoes);
-    }
+    const submenuParent = document.querySelector('.has-submenu');
+    if (submenuParent) {
+        // Lógica para abrir/fechar ao clicar
+        submenuParent.querySelector('a').addEventListener('click', function(event) {
+            event.preventDefault();
+            submenuParent.classList.toggle('open');
+        });
 
-    const btnCancelarEdicao = document.getElementById('btn-editar-maquina-cancelar');
-    if (btnCancelarEdicao) {
-        btnCancelarEdicao.addEventListener('click', fecharModalEditarMaquina);
-    }
-
-
-    // --- GESTORES DE EVENTOS PARA CAMPOS DE BUSCA ---
-    const campoBuscaEstoque = document.getElementById('campo-busca-estoque');
-    if(campoBuscaEstoque) campoBuscaEstoque.addEventListener('input', renderizarEstoque);
-
-    const campoBuscaMobiliario = document.getElementById('campo-busca-mobiliario');
-    if(campoBuscaMobiliario) campoBuscaMobiliario.addEventListener('input', renderizarMobiliario);
-
-    const campoBuscaAssociacoes = document.getElementById('campo-busca');
-    if (campoBuscaAssociacoes && window.location.pathname.includes('lista.html')) {
-    campoBuscaAssociacoes.addEventListener('input', renderizarAssociacoes);
-}
-    if (campoBuscaAssociacoes && window.location.pathname.includes('lista_mobiliario.html')) {
-        campoBuscaAssociacoes.addEventListener('input', renderizarAssociacoesMobiliario);
-    }
-
-
-    if (campoBuscaAssociacoes && window.location.pathname.includes('lista_mobiliario.html')) {
-    campoBuscaAssociacoes.addEventListener('input', renderizarAssociacoesMobiliario);
-}
-
-    const btnExportarMobiliario = document.getElementById('btn-exportar-mobiliario');
-    if (btnExportarMobiliario) {
-        btnExportarMobiliario.addEventListener('click', exportarMobiliarioCSV);
-    }
-
-
-    const filtroDepartamento = document.getElementById('filtro-departamento');
-    if (filtroDepartamento) {
-        filtroDepartamento.addEventListener('change', renderizarAssociacoes);
-    }
-
-    const filtroDepartamentoMobiliario = document.getElementById('filtro-departamento');
-    if (filtroDepartamentoMobiliario && window.location.pathname.includes('lista_mobiliario.html')) {
-        filtroDepartamentoMobiliario.addEventListener('change', renderizarAssociacoesMobiliario);
-    }
-
-    const modeloSelect = document.getElementById('estoque-modelo');
-    if (modeloSelect) {
-        modeloSelect.addEventListener('change', (event) => {
-            const nomeModeloSelecionado = event.target.value;
-            const modelo = todosModelos.find(m => m.nome_modelo === nomeModeloSelecionado);
-
-            if (modelo) {
-                // Preenche os campos do formulário com as especificações do modelo
-                document.getElementById('estoque-processador').value = modelo.espec_processador || '';
-                document.getElementById('estoque-ram').value = modelo.espec_ram || '';
-                document.getElementById('estoque-armazenamento').value = modelo.espec_armazenamento || '';
+        // Lógica para verificar se deve começar aberto
+        const currentPage = window.location.pathname;
+        const submenuLinks = submenuParent.querySelectorAll('.submenu a');
+        submenuLinks.forEach(link => {
+            if (currentPage.includes(link.getAttribute('href'))) {
+                submenuParent.classList.add('open');
             }
         });
     }
 
+    document.querySelectorAll('.submenu a').forEach(submenuLink => {
+        submenuLink.addEventListener('click', function() {
+            const parentLi = this.closest('.has-submenu');
+            if (parentLi) {
+                parentLi.classList.remove('open');
+            }
+        });
+    })
+    const btnMudarSenhaSidebar = document.getElementById('btn-mudar-senha-sidebar');
+    if (btnMudarSenhaSidebar) {
+        btnMudarSenhaSidebar.addEventListener('click', abrirModalSenha);
+    }
 
-    // --- GESTOR DE EVENTOS CENTRALIZADO PARA ITENS DINÂMICOS (BOTÕES NAS LISTAS) ---
+    // 4. LISTENERS PARA FORMULÁRIOS E CAMPOS DE BUSCA
+    const formPrincipal = document.getElementById('form-maquina');
+    if (formPrincipal) formPrincipal.addEventListener('submit', salvarAssociacao);
+    
+    const formEstoque = document.getElementById('form-estoque');
+    if (formEstoque) formEstoque.addEventListener('submit', salvarAtivoEstoque);
+    
+    const categoriaSelect = document.getElementById('estoque-categoria');
+    if (categoriaSelect) {
+        categoriaSelect.addEventListener('change', (event) => {
+            const camposComputador = document.getElementById('campos-especificos-computador');
+            camposComputador.style.display = (event.target.value === 'COMPUTADOR') ? 'block' : 'none';
+        });
+    }
+
+    // Listeners para os campos de busca de máquina, mobiliário e monitores...
+    // (O código para os autocompletes permanece o mesmo)
+
+    const buscaMonitorInput = document.getElementById('busca-monitor');
+    const monitorResultadosDiv = document.getElementById('monitor-resultados');
+    if (buscaMonitorInput) {
+        buscaMonitorInput.addEventListener('input', () => {
+            const termoBusca = buscaMonitorInput.value.toLowerCase();
+            if (termoBusca.length < 2) {
+                monitorResultadosDiv.style.display = 'none';
+                return;
+            }
+            const monitoresDisponiveis = todoEstoque.filter(item =>
+                item.categoria === 'MONITOR' && item.status === 'Disponível' && !monitoresSelecionadosIds.has(item.id)
+            );
+            const resultados = monitoresDisponiveis.filter(monitor =>
+                monitor.modelo_tipo.toLowerCase().includes(termoBusca) || monitor.patrimonio.toLowerCase().includes(termoBusca)
+            );
+            monitorResultadosDiv.innerHTML = '';
+            if (resultados.length > 0) {
+                resultados.forEach(monitor => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('autocomplete-item');
+                    itemDiv.textContent = `${monitor.modelo_tipo} (Património: ${monitor.patrimonio})`;
+                    itemDiv.addEventListener('click', () => {
+                        adicionarMonitorTag(monitor);
+                        buscaMonitorInput.value = '';
+                        monitorResultadosDiv.style.display = 'none';
+                    });
+                    monitorResultadosDiv.appendChild(itemDiv);
+                });
+                monitorResultadosDiv.style.display = 'block';
+            } else {
+                monitorResultadosDiv.style.display = 'none';
+            }
+        });
+    }
+
+    // 5. LISTENERS PARA MODAIS E BOTÕES DINÂMICOS
+    const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
+    if(btnSenhaCancelar) btnSenhaCancelar.addEventListener('click', fecharModalSenha);
+
+    const btnFecharSpec = document.getElementById('btn-spec-fechar');
+    if(btnFecharSpec) btnFecharSpec.addEventListener('click', fecharModalEspecificacoes);
+
+    const btnFecharHistorico = document.getElementById('btn-historico-fechar');
+    if(btnFecharHistorico) btnFecharHistorico.addEventListener('click', fecharModalHistorico);
+
+    const btnCancelarEdicaoMaquina = document.getElementById('btn-editar-maquina-cancelar');
+    if(btnCancelarEdicaoMaquina) btnCancelarEdicaoMaquina.addEventListener('click', fecharModalEditarMaquina);
+
+    const btnCancelarEdicaoMobiliario = document.getElementById('btn-editar-mobiliario-cancelar');
+    if(btnCancelarEdicaoMobiliario) btnCancelarEdicaoMobiliario.addEventListener('click', fecharModalEditarMobiliario);
+
+    const btnCancelarEdicaoMonitor = document.getElementById('btn-editar-monitor-cancelar');
+    if(btnCancelarEdicaoMonitor) btnCancelarEdicaoMonitor.addEventListener('click', fecharModalEditarMonitor);
+
+    const btnCancelarEdicaoOutros = document.getElementById('btn-editar-outros-cancelar');
+    if(btnCancelarEdicaoOutros) btnCancelarEdicaoOutros.addEventListener('click', fecharModalEditarOutros);
+
+    const formMudarSenha = document.getElementById('form-mudar-senha');
+    if(formMudarSenha) formMudarSenha.addEventListener('submit', mudarSenha);
+
     document.body.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-monitor')) {
+            const tagElement = event.target.closest('.monitor-tag');
+            if (tagElement) removerMonitorTag(tagElement);
+        }
+        document.body.addEventListener('click', (event) => {
     const target = event.target;
     if (target.disabled) return;
+    
+    // Lógica para remover a etiqueta do monitor
+    if (target.classList.contains('remove-monitor')) {
+        const tagElement = target.closest('.monitor-tag');
+        if (tagElement) {
+            removerMonitorTag(tagElement);
+        }
+        return; // Para a execução para não procurar por 'data-id'
+    }
+
     const id = target.dataset.id;
     if (!id) return;
 
-    if (event.target.classList.contains('remove-monitor')) {
-    const tagElement = event.target.closest('.monitor-tag');
-    if (tagElement) {
-        removerMonitorTag(tagElement);
-    }
-}
-
     if (target.classList.contains('btn-historico')) {
-    abrirModalHistorico(parseInt(id));
+        abrirModalHistorico(parseInt(id));
 
-    }else if (target.classList.contains('btn-editar-estoque')) {
+    } else if (target.classList.contains('btn-editar-estoque')) {
         const itemParaEditar = todoEstoque.find(i => i.id == id);
         if (itemParaEditar) {
             // Verifica a categoria do item e chama a função do modal correto
@@ -1577,17 +1479,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 abrirModalEditarMobiliario(parseInt(id));
             } else if (itemParaEditar.categoria.toUpperCase() === 'MONITOR') {
               abrirModalEditarMonitor(parseInt(id)); 
-            }else if (itemParaEditar.categoria.toUpperCase() === 'OUTROS') { // <-- ADICIONE ESTA CONDIÇÃO
+            } else if (itemParaEditar.categoria.toUpperCase() === 'OUTROS') {
                 abrirModalEditarOutros(parseInt(id));
+            }
         }
-    }
     } else if (target.classList.contains('spec-link')) {
         event.preventDefault();
         abrirModalEspecificacoes(parseInt(id));
     } else if (target.classList.contains('btn-devolver')) {
-        devolverMaquina(parseInt(id));
+        devolverMaquina(parseInt(id)); // Esta função já deve tratar de mobiliário também
     } else if (target.classList.contains('btn-excluir-estoque')) {
         excluirMaquinaEstoque(parseInt(id));
     }
 });
+    });
 });

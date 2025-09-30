@@ -5,23 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Inventário - GAS Ativos</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
 
-    <div class="container">
-        <a href="dashboard.html" class="btn-voltar">‹ Voltar ao Dashboard</a>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>AMEP ATIVOS</h2>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> <span class="nav-text">Dashboard</span></a></li>
+            <li><a href="index.html" class="active"><i class="fas fa-tasks"></i> <span class="nav-text">Inventário</span></a></li>
+            <li class="has-submenu">
+            <a href="#"><i class="fas fa-clipboard-list"></i> <span class="nav-text">Associações</span> <i class="fas fa-chevron-down submenu-arrow"></i></a>
+            <ul class="submenu">
+                <li><a href="lista.html"><span class="nav-text">Máquinas</span></a></li>
+                <li><a href="lista_mobiliario.html"><span class="nav-text">Mobiliário</span></a></li>
+            </ul>
+        </li>
+        </ul>
+        <ul class="sidebar-actions">
+             <li><a href="#" id="btn-mudar-senha-sidebar"><i class="fas fa-key"></i> <span class="nav-text">Mudar Senha</span></a></li>
+             <li><a href="#" id="btn-logout-sidebar"><i class="fas fa-sign-out-alt"></i> <span class="nav-text">Sair</span></a></li>
+        </ul>
+    </aside>
 
+    <main class="main-content">
         <div class="header-container">
-            <h1>Gestão de Inventário</h1>
-            <div class="header-buttons">
-                <div id="info-utilizador"></div>
-                <button id="btn-mudar-senha">Mudar Palavra-passe</button>
-                <button id="btn-logout">Sair</button>
+             <div style="display: flex; align-items: center;">
+                <button id="sidebar-toggle" class="sidebar-toggle-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Gestão de Inventário</h1>
             </div>
+            <div id="info-utilizador"></div>
         </div>
 
         <div class="form-container">
@@ -39,7 +59,7 @@
                     </div>
                     <input type="hidden" id="id-maquina-emprestimo">
                 </div>
-                 <div class="form-group">
+                <div class="form-group">
                     <label for="busca-monitor">Associar Monitores:</label>
                     <div class="autocomplete-container">
                         <input type="text" id="busca-monitor" placeholder="Digite o modelo ou património do monitor...">
@@ -56,11 +76,11 @@
 
         <div class="stock-container">
             <details open>
-                <summary>Gestão de Estoque de Máquinas</summary>
+                <summary>Gestão de Estoque de Ativos de TI</summary>
                 <div class="form-container-stock">
                     <h3 id="form-title-stock">Adicionar Novo Ativo ao Estoque</h3>
                     <form id="form-estoque">
-                        <div class="form-group">
+                         <div class="form-group">
                             <label for="estoque-categoria">Categoria do Ativo:</label>
                             <select id="estoque-categoria" required>
                                 <option value="COMPUTADOR" selected>Computador</option>
@@ -75,7 +95,6 @@
                             <label for="estoque-patrimonio">Património:</label>
                             <input type="text" id="estoque-patrimonio" placeholder="Ex: 100.001.272.541" required>
                         </div>
-                        
                         <div id="campos-especificos-computador">
                             <div class="form-group">
                                 <label for="estoque-processador">Processador:</label>
@@ -90,7 +109,6 @@
                                 <input type="text" id="estoque-armazenamento" placeholder="Ex: SSD 512 GB">
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="estoque-setor">Setor:</label>
                             <input type="text" id="estoque-setor" placeholder="Ex: DTI">
@@ -108,10 +126,7 @@
                             <input type="text" id="estoque-observacoes" placeholder="Ex: Placa de Vídeo, SO, etc.">
                         </div>
                         <div class="form-group">
-                            <label for="maquina-cadastrado-gpm">
-                                <input type="checkbox" id="maquina-cadastrado-gpm" style="width: auto;">
-                                Já cadastrado no GPM?
-                            </label>
+                            <label for="maquina-cadastrado-gpm"><input type="checkbox" id="maquina-cadastrado-gpm" style="width: auto;"> Já cadastrado no GPM?</label>
                         </div>
                         <div class="form-buttons">
                             <button type="submit" id="btn-adicionar-estoque" class="btn-adicionar-estoque">Adicionar ao Estoque</button>
@@ -119,19 +134,19 @@
                     </form>
                 </div>
                 <div class="list-container-stock">
-                    <h3>Máquinas no Inventário</h3>
+                    <h3>Ativos de TI no Inventário</h3>
                     <div class="search-container">
-                        <input type="text" id="campo-busca-estoque" placeholder="Buscar por modelo ou património...">
+                        <input type="text" id="campo-busca-estoque" placeholder="Buscar por modelo, património ou categoria...">
                     </div>
                     <ul id="lista-estoque"></ul>
                 </div>
             </details>
         </div>
-
+        
         <div class="furniture-container">
             <details>
                 <summary>Gestão de Mobiliário</summary>
-                <div class="form-container">
+                <div class="form-container-stock">
                     <h3 id="form-title-furniture">Associar Mobiliário</h3>
                     <form id="form-associar-mobiliario">
                         <div class="form-group">
@@ -167,7 +182,7 @@
                             <label for="mobiliario-material">Setor:</label>
                             <input type="text" id="mobiliario-material" placeholder="Ex: GAS">
                         </div>
-                       
+                    
                         <div class="form-group">
                             <label for="mobiliario-estado">Estado de Conservação:</label>
                             <select id="mobiliario-estado" required>
@@ -240,17 +255,16 @@
             <h3>Itens "Outros" no Inventário</h3>
             <input type="text" id="campo-busca-outros" placeholder="Buscar por nome ou património...">
             <ul id="lista-outros-ativos">
-                </ul>
+            </ul>
         </div>
     </details>
 </div>
-
         
         <div class="main-sections">
             <a href="lista.html" class="btn-link-pagina">Lista de Associações (Máquinas)</a>
             <a href="lista_mobiliario.html" class="btn-link-pagina">Lista de Associações (Mobiliário)</a>
         </div>
-    </div>
+    </main>
 
     <div id="modal-confirmacao" class="modal-overlay">
         <div class="modal-content">
@@ -446,10 +460,7 @@
         </form>
     </div>
 </div>
-
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js" type="module"></script>   
+    <script src="script.js" type="module"></script>
     <script src="api.js" type="module"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>

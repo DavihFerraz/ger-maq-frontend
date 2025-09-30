@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 :root {
   --cor-fundo: #f4f7f9;
   --cor-container: #fff;
@@ -1122,4 +1126,216 @@ button:disabled,
 
 .remove-monitor:hover {
     opacity: 0.8;
+}
+
+#grafico-nao-localizados,
+grafico-setores,
+#grafico-estado-conservacao {
+    width: 40%;
+    margin: 0 auto;    /* Centra o gráfico se o espaço for maior */
+}
+
+
+/* --- Estilos para a Nova Barra de Menu Lateral --- */
+
+/* O 'invólucro' principal que alinha o menu e o conteúdo */
+.sidebar {
+    position: fixed; /* Garante que o menu fique fixo */
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh; /* Ocupa a altura total da tela */
+    background-color: var(--cor-container);
+    border-right: 1px solid var(--cor-borda);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 100; /* Garante que fique por cima de outros elementos */
+}
+
+/* Conteúdo principal com margem para dar espaço ao menu */
+.main-content {
+    margin-left: 270px; /* Deixa um espaço para o menu lateral (250px de largura + 20px de segurança) */
+    padding: 20px;
+    width: calc(100% - 270px);
+}
+
+/* Estilo para o título/logo no topo da barra de menu */
+.sidebar-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.sidebar-header h2 {
+    color: var(--cor-titulo);
+    border-bottom: none;
+    margin: 0;
+    font-size: 1.5em;
+}
+
+/* A lista de navegação */
+.sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1; /* Empurra as ações (logout, etc.) para o fundo */
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: var(--cor-texto);
+    border-radius: 6px;
+    margin-bottom: 5px;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active { /* Estilo para o link da página ativa */
+    background-color: var(--cor-primaria);
+    color: white;
+}
+
+.sidebar-nav a i {
+    margin-right: 12px;
+    width: 20px; /* Garante que os ícones fiquem alinhados */
+}
+
+/* Container para as ações no fundo do menu */
+.sidebar-actions {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Adiciona um espaço de 8px entre cada botão */
+}
+/* --- Estilos para o Menu Recolhível --- */
+
+/* Botão de alternar o menu */
+.sidebar-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--cor-texto);
+    font-size: 1.5em;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+/* Estado recolhido do menu */
+.sidebar.collapsed {
+    width: 110px; /* Largura do menu quando está fechado */
+}
+
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .sidebar-header h2 {
+    display: none;
+}
+
+/* Ajusta os links de NAVEGAÇÃO (Dashboard, Inventário, etc.) */
+.sidebar.collapsed .sidebar-nav a {
+    justify-content: center; /* Centra o ícone horizontalmente */
+    padding: 12px 10px;      /* Reduz o padding para se ajustar ao novo tamanho */
+}
+
+.sidebar.collapsed .sidebar-nav a i {
+    margin: 0; /* Remove qualquer margem do ícone */
+}
+
+/* Ajusta os botões de AÇÃO (Exportar, Sair, etc.) */
+.sidebar.collapsed .sidebar-actions a {
+    justify-content: center; /* Centra o ícone */
+    padding: 12px 10px;
+}
+
+/* Ajusta o conteúdo principal quando o menu está recolhido */
+.main-content.expanded {
+    margin-left: 100px; /* Nova margem para o conteúdo (80px do menu + 20px de espaço) */
+    width: calc(100% - 100px);
+}
+
+
+/* --- Estilos para os Botões de Ação na Barra de Menu --- */
+
+.sidebar-actions a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 15px;
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+    gap: 10px;
+}
+
+.sidebar-actions a:hover {
+    background-color: #f0f0f0; /* Um cinza claro para o hover */
+}
+
+/* Estilo específico para o botão de Sair */
+#btn-logout-sidebar {
+    background-color: var(--cor-perigo);
+    color: white;
+    border-color: var(--cor-perigo);
+}
+
+#btn-logout-sidebar:hover {
+    background-color: var(--cor-perigo-hover);
+    color: white;
+}
+
+.sidebar-actions a {
+    gap: 10px; 
+}
+
+/* Adiciona uma margem no fundo do último botão (Sair) para não colar na borda */
+.sidebar-actions li:last-child {
+    margin-bottom: 10px;
+}
+.sidebar-nav .has-submenu > a {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* --- Estilos Definitivos para o Submenu (Versão Simplificada) --- */
+
+.sidebar-nav .has-submenu > a {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* O submenu começa escondido */
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0; /* Garante que não há margens inesperadas */
+    width: 100%; /* Força o submenu a ocupar a largura do seu contentor */
+    display: none;
+    position: static; /* Garante que ele não "flutue" para o lado */
+}
+
+/* Quando o menu pai tem a classe 'open', o submenu é mostrado */
+.has-submenu.open > .submenu {
+    display: block; /* Simplesmente mostra o submenu */
+    margin-top: 8px;
+}
+
+.submenu a {
+    padding-left: 47px;
+    font-size: 0.9em;
+}
+
+.submenu-arrow {
+    transition: transform 0.3s;
+}
+
+/* Gira a seta quando o menu está aberto */
+.has-submenu.open > a > .submenu-arrow {
+    transform: rotate(180deg);
 }

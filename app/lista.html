@@ -4,44 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Máquinas Associadas</title>
-
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 </head>
 <body>
-  <div class="container container-largo">
-        <a href="index.html" class="btn-voltar">‹ Menu Principal</a>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>AMEP ATIVOS</h2>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> <span class="nav-text">Dashboard</span></a></li>
+            <li><a href="index.html"><i class="fas fa-tasks"></i> <span class="nav-text">Inventário</span></a></li>
+            <li class="has-submenu"> <a href="#"><i class="fas fa-clipboard-list"></i> <span class="nav-text">Associações</span> <i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <ul class="submenu">
+                    <li><a href="lista.html" class="active"><span class="nav-text">Máquinas</span></a></li>
+                    <li><a href="lista_mobiliario.html"><span class="nav-text">Mobiliário</span></a></li>
+                </ul>
+            </li>
+        </ul>
+        <ul class="sidebar-actions">
+             <li><a href="#" id="btn-mudar-senha-sidebar"><i class="fas fa-key"></i> <span class="nav-text">Mudar Senha</span></a></li>
+             <li><a href="#" id="btn-logout-sidebar"><i class="fas fa-sign-out-alt"></i> <span class="nav-text">Sair</span></a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="header-container">
+            <div style="display: flex; align-items: center;">
+                <button id="sidebar-toggle" class="sidebar-toggle-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Máquinas Associadas</h1>
+            </div>
+            <div id="info-utilizador"></div>
+        </div>
 
         <div class="list-container">
-            <h2>Máquinas Associadas</h2>
-
             <div class="list-controls"> 
                 <button id="btn-exportar" class="btn-exportar">Exportar para CSV</button>
                 <div class="filter-container">
                     <label for="filtro-departamento">Filtrar por Departamento:</label>
                     <select id="filtro-departamento">
                         <option value="">-- Todos os Departamentos --</option>
-                        </select>
+                    </select>
                 </div>
                 <div class="search-container">
                     <input type="text" id="campo-busca" placeholder="Buscar por pessoa, máquina ou departamento">
-                    <p id="search-summary"></p>
                 </div>
-        </div>
+            </div>
 
-    <ul id="lista-associacoes">
-        <li class="loading-indicator-item">
-        <i class="fas fa-spinner fa-spin"></i>
-        A carregar a lista...
-    </li>
-    </ul>
-</div>
+            <ul id="lista-associacoes">
+                <li class="loading-indicator-item">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    A carregar a lista...
+                </li>
+            </ul>
         </div>
+    </main>
 
-         <div id="modal-confirmacao" class="modal-overlay">
+    <div id="modal-confirmacao" class="modal-overlay">
         <div class="modal-content">
             <p id="modal-texto">Tem certeza que deseja executar esta ação?</p>
             <div class="modal-buttons">
@@ -50,25 +75,38 @@
             </div>
         </div>
     </div>
-
-
     <div id="modal-especificacoes" class="modal-overlay">
-    <div class="modal-content">
-        <h3 id="spec-modelo">Modelo da Máquina</h3>
-        <ul id="spec-lista" class="spec-lista">
-            </ul>
-        <div class="modal-buttons">
-            <button id="btn-spec-fechar" class="btn-modal">Fechar</button>
+        <div class="modal-content">
+            <h3 id="spec-modelo">Modelo da Máquina</h3>
+            <ul id="spec-lista" class="spec-lista"></ul>
+            <div class="modal-buttons">
+                <button id="btn-spec-fechar" class="btn-modal">Fechar</button>
+            </div>
         </div>
+    </div>
+
+    <div id="modal-senha" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Mudar Palavra-passe</h3>
+        <form id="form-mudar-senha">
+    <div class="form-group">
+        <label for="senha-atual">Palavra-passe Atual:</label>
+        <input type="password" id="senha-atual" required>
+    </div>
+    <div class="form-group">
+        <label for="nova-senha">Nova Palavra-passe:</label>
+        <input type="password" id="nova-senha" required minlength="6">
+    </div>
+    <div class="modal-buttons">
+        <button type="button" class="btn-modal" id="btn-senha-cancelar">Cancelar</button>
+        <button type="submit" class="btn-modal btn-confirmar">Salvar Nova Senha</button>
+    </div>
+</form>
     </div>
 </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-    <script src="script.js" type="module"></script> 
-    <script src="api.js" type="module"></script>   
+    <script src="script.js" type="module"></script>
+    <script src="api.js" type="module"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
