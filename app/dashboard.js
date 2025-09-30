@@ -81,6 +81,31 @@ function renderizarAtividadeRecente(atividades) {
     atividades.forEach(item => { const li = document.createElement('li'); const acao = item.data_devolucao ? 'devolveu' : 'recebeu'; li.innerHTML = `<strong>${item.pessoa_depto}</strong> ${acao} <em>${item.modelo_tipo}</em>`; listaUI.appendChild(li); });
 }
 
+function abrirModalSenha() {
+    const modal = document.getElementById('modal-senha');
+    if (modal) modal.classList.add('visible');
+}
+
+function fecharModalSenha() {
+    const modal = document.getElementById('modal-senha');
+    if (modal) modal.classList.remove('visible');
+}
+
+async function mudarSenha(event) {
+    event.preventDefault();
+    const senhaAtual = document.getElementById('senha-atual').value;
+    const novaSenha = document.getElementById('nova-senha').value;
+    try {
+        // A importação de 'apiChangePassword' foi adicionada no topo do ficheiro
+        const response = await apiChangePassword(senhaAtual, novaSenha);
+        alert(response.message); // Usamos um alerta simples para a confirmação
+        fecharModalSenha();
+        document.getElementById('form-mudar-senha').reset();
+    } catch (error) {
+        alert("Erro: " + error.message);
+    }
+}
+
 async function carregarDashboard() {
     exibirInfoUtilizador();
     try {
@@ -147,12 +172,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('btn-exportar-dashboard-sidebar').addEventListener('click', exportarRelatorioDashboard);
     
-    const btnMudarSenha = document.getElementById('btn-mudar-senha-sidebar');
-    if(btnMudarSenha) {
-        btnMudarSenha.addEventListener('click', () => {
-            // A sua lógica para abrir o modal de mudar senha viria aqui
-            alert("Funcionalidade 'Mudar Senha' a ser implementada.");
-        });
+  const btnMudarSenha = document.getElementById('btn-mudar-senha-sidebar');
+    if (btnMudarSenha) {
+        btnMudarSenha.addEventListener('click', abrirModalSenha);
+    }
+
+    const formMudarSenha = document.getElementById('form-mudar-senha');
+    if (formMudarSenha) {
+        formMudarSenha.addEventListener('submit', mudarSenha);
+    }
+
+    const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
+    if (btnSenhaCancelar) {
+        btnSenhaCancelar.addEventListener('click', fecharModalSenha);
     }
 
  const submenuParent = document.querySelector('.has-submenu');
