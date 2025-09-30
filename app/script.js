@@ -171,6 +171,9 @@ function renderizarEstoque() {
     const todoMaquinasMonitores = todoEstoque.filter(item => item.categoria === 'COMPUTADOR' || item.categoria === 'MONITOR');
     
     const campoBuscaEstoque = document.getElementById('campo-busca-estoque');
+    if(campoBuscaEstoque) {
+        campoBuscaEstoque.addEventListener('input', renderizarEstoque);
+    }
     const termoBusca = campoBuscaEstoque ? campoBuscaEstoque.value.toLowerCase() : '';
 
     let estoqueParaRenderizar = todoMaquinasMonitores.filter(item => {
@@ -237,7 +240,14 @@ function renderizarMobiliario() {
     // Filtra para pegar apenas a categoria 'MOBILIARIO'
     const todoMobiliario = todoEstoque.filter(item => item.categoria === 'MOBILIARIO');
     const campoBuscaMobiliario = document.getElementById('campo-busca-mobiliario');
+    if(campoBuscaMobiliario) {
+    campoBuscaMobiliario.addEventListener('input', renderizarMobiliario);
+    }
     const termoBusca = campoBuscaMobiliario ? campoBuscaMobiliario.value.toLowerCase() : '';
+    const campoBuscaOutros = document.getElementById('campo-busca-outros');
+    if(campoBuscaOutros) {
+        campoBuscaOutros.addEventListener('input', renderizarOutrosAtivos);
+    }
 
     // Filtro de busca atualizado para incluir o nome do utilizador
     let mobiliarioParaRenderizar = todoMobiliario.filter(item => {
@@ -764,7 +774,7 @@ function abrirModalEspecificacoes(itemId) {
     const listaSpecs = modal.querySelector('#spec-lista');
     
     listaSpecs.innerHTML = `
-        <li><strong>Património:</strong> ${item.patrimonio || 'N/P'}</li>
+        <li><strong>Património:</strong>${formatarPatrimonio(item.patrimonio) || 'N/P'}</li>
         <li><strong>Processador:</strong> ${item.espec_processador || 'N/P'}</li>
         <li><strong>Memória RAM:</strong> ${item.espec_ram || 'N/P'}</li>
         <li><strong>Armazenamento:</strong> ${item.espec_armazenamento || 'N/P'}</li>
@@ -1162,7 +1172,7 @@ function mostrarResultados(resultados, resultadosDiv, inputBusca, inputId) {
     resultados.forEach(item => {
         const itemDiv = document.createElement('div');
         itemDiv.classList.add('autocomplete-item');
-        itemDiv.textContent = `${item.modelo_tipo} (Património: ${item.patrimonio})`;
+        itemDiv.textContent = `${item.modelo_tipo} (Património: ${formatarPatrimonio(item.patrimonio)})`;
         
         // Ação de clique num resultado
         itemDiv.addEventListener('click', () => {
@@ -1176,6 +1186,63 @@ function mostrarResultados(resultados, resultadosDiv, inputBusca, inputId) {
 
     resultadosDiv.style.display = 'block';
 }
+
+// Lógica para a busca de Máquina
+const buscaMaquinaInput = document.getElementById('busca-maquina');
+const maquinaResultadosDiv = document.getElementById('maquina-resultados');
+const maquinaIdInput = document.getElementById('id-maquina-emprestimo');
+
+if (buscaMaquinaInput) {
+    buscaMaquinaInput.addEventListener('input', () => {
+        const termoBusca = buscaMaquinaInput.value.toLowerCase();
+        maquinaIdInput.value = '';
+        if (termoBusca.length < 2) {
+            maquinaResultadosDiv.style.display = 'none';
+            return;
+        }
+        const maquinasDisponiveis = todoEstoque.filter(item =>
+            item.categoria === 'COMPUTADOR' && item.status === 'Disponível'
+        );
+        const resultados = maquinasDisponiveis.filter(maquina =>
+            maquina.modelo_tipo.toLowerCase().includes(termoBusca) ||
+            maquina.patrimonio.toLowerCase().includes(termoBusca)
+        );
+        mostrarResultados(resultados, maquinaResultadosDiv, buscaMaquinaInput, maquinaIdInput);
+    });
+}
+
+// Lógica para a busca de Mobiliário
+const buscaMobiliarioInput = document.getElementById('busca-mobiliario');
+const mobiliarioResultadosDiv = document.getElementById('mobiliario-resultados');
+const mobiliarioIdInput = document.getElementById('id-mobiliario-emprestimo');
+
+if (buscaMobiliarioInput) {
+    buscaMobiliarioInput.addEventListener('input', () => {
+        const termoBusca = buscaMobiliarioInput.value.toLowerCase();
+        mobiliarioIdInput.value = '';
+        if (termoBusca.length < 2) {
+            mobiliarioResultadosDiv.style.display = 'none';
+            return;
+        }
+        const mobiliarioDisponivel = todoEstoque.filter(item =>
+            item.categoria === 'MOBILIARIO' && item.status === 'Disponível'
+        );
+        const resultados = mobiliarioDisponivel.filter(item =>
+            item.modelo_tipo.toLowerCase().includes(termoBusca) ||
+            item.patrimonio.toLowerCase().includes(termoBusca)
+        );
+        mostrarResultados(resultados, mobiliarioResultadosDiv, buscaMobiliarioInput, mobiliarioIdInput);
+    });
+}
+
+// Esconde os resultados se o utilizador clicar fora
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.autocomplete-container')) {
+        if (maquinaResultadosDiv) maquinaResultadosDiv.style.display = 'none';
+        if (mobiliarioResultadosDiv) mobiliarioResultadosDiv.style.display = 'none';
+        // A lógica para esconder os resultados de monitores já deve estar no seu ficheiro
+    }
+});
 
 
 
@@ -1382,9 +1449,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Listeners para os campos de busca de máquina, mobiliário e monitores...
-    // (O código para os autocompletes permanece o mesmo)
-
     const buscaMonitorInput = document.getElementById('busca-monitor');
     const monitorResultadosDiv = document.getElementById('monitor-resultados');
     if (buscaMonitorInput) {
@@ -1405,7 +1469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultados.forEach(monitor => {
                     const itemDiv = document.createElement('div');
                     itemDiv.classList.add('autocomplete-item');
-                    itemDiv.textContent = `${monitor.modelo_tipo} (Património: ${monitor.patrimonio})`;
+                    itemDiv.textContent = `${monitor.modelo_tipo} (Património: ${formatarPatrimonio(monitor.patrimonio)})`;
                     itemDiv.addEventListener('click', () => {
                         adicionarMonitorTag(monitor);
                         buscaMonitorInput.value = '';
