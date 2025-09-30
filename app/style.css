@@ -1225,30 +1225,36 @@ grafico-setores,
     margin-right: 15px;
 }
 
-/* Estado recolhido do menu */
 .sidebar.collapsed {
-    width: 110px; /* Largura do menu quando está fechado */
+    width: 120px;
 }
 
-.sidebar.collapsed .nav-text,
-.sidebar.collapsed .sidebar-header h2 {
+/* Esconde APENAS o texto dos itens principais do menu */
+.sidebar.collapsed > .sidebar-nav > li > a > .nav-text,
+.sidebar.collapsed > .sidebar-actions > li > a > .nav-text,
+.sidebar.collapsed > .sidebar-header > h2 {
     display: none;
 }
 
-/* Ajusta os links de NAVEGAÇÃO (Dashboard, Inventário, etc.) */
-.sidebar.collapsed .sidebar-nav a {
-    justify-content: center; /* Centra o ícone horizontalmente */
-    padding: 12px 10px;      /* Reduz o padding para se ajustar ao novo tamanho */
+/* Garante que o submenu "flutue" para fora quando o menu está fechado */
+.sidebar.collapsed .has-submenu.open > .submenu {
+    top: 0;
+    left: 100%; /* Posiciona o submenu à direita da barra fechada */
+    margin-left: 10px; /* Adiciona um pequeno espaço */
 }
 
-.sidebar.collapsed .sidebar-nav a i {
-    margin: 0; /* Remove qualquer margem do ícone */
-}
-
-/* Ajusta os botões de AÇÃO (Exportar, Sair, etc.) */
+.sidebar.collapsed .sidebar-nav a,
 .sidebar.collapsed .sidebar-actions a {
-    justify-content: center; /* Centra o ícone */
-    padding: 12px 10px;
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-nav a i,
+.sidebar.collapsed .sidebar-actions a i {
+    margin-right: 0;
+}
+
+.sidebar.collapsed .submenu-arrow {
+    display: none; /* Esconde a seta para baixo quando o menu está fechado */
 }
 
 /* Ajusta o conteúdo principal quando o menu está recolhido */
@@ -1298,36 +1304,48 @@ grafico-setores,
 .sidebar-actions li:last-child {
     margin-bottom: 10px;
 }
+
+.sidebar-nav .has-submenu {
+    position: relative;
+}
+
 .sidebar-nav .has-submenu > a {
     display: flex;
     justify-content: space-between;
 }
 
-/* --- Estilos Definitivos para o Submenu (Versão Simplificada) --- */
-
-.sidebar-nav .has-submenu > a {
-    display: flex;
-    justify-content: space-between;
-}
-
-/* O submenu começa escondido */
+/* Estilo e posicionamento do submenu para que ele "flutue" */
 .submenu {
     list-style: none;
-    padding: 0;
-    margin: 0; /* Garante que não há margens inesperadas */
-    width: 100%; /* Força o submenu a ocupar a largura do seu contentor */
-    display: none;
-    position: static; /* Garante que ele não "flutue" para o lado */
+    padding: 8px;
+    margin: 0;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* Sombra para destacar */
+    width: 200px; /* Largura do submenu */
+    
+    /* Posicionamento "flutuante" */
+    position: absolute;
+    top: 0; /* Alinha com o topo do link "Associações" */
+    left: 100%; /* Começa exatamente onde a barra de menu acaba */
+    margin-left: 12px; /* Um pequeno espaço entre o menu e o submenu */
+    z-index: 101; /* Garante que fique por cima de tudo */
+
+    /* Lógica para esconder/mostrar com uma animação suave */
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95);
+    transition: all 0.2s ease-in-out;
 }
 
-/* Quando o menu pai tem a classe 'open', o submenu é mostrado */
 .has-submenu.open > .submenu {
-    display: block; /* Simplesmente mostra o submenu */
-    margin-top: 8px;
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
 }
 
 .submenu a {
-    padding-left: 47px;
+    padding: 8px 15px;
     font-size: 0.9em;
 }
 
@@ -1335,7 +1353,8 @@ grafico-setores,
     transition: transform 0.3s;
 }
 
-/* Gira a seta quando o menu está aberto */
+/* Gira a seta para o lado para indicar que o menu abriu ao lado */
 .has-submenu.open > a > .submenu-arrow {
-    transform: rotate(180deg);
+    transform: rotate(-90deg);
 }
+
