@@ -14,7 +14,8 @@ import {
     apiChangePassword,
     getModelos, 
     createModelo,
-    getItemHistory
+    getItemHistory,
+    getSetores 
 } from './api.js';
 
 // 2. ESTADO LOCAL DA APLICAÇÃO
@@ -156,7 +157,7 @@ function renderizarEstoque() {
                 <span>
                     <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
                     <br><small>Categoria: ${item.categoria}</small>
-                    <br><small>Setor: ${item.setor || 'N/A'}</small>
+                    <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
                     ${detalhesHtml}
                 </span>
                 <div class="status-badges-container">
@@ -239,7 +240,7 @@ function renderizarMobiliario() {
             <div class="info-item">
                 <span>
                     <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
-                    <br><small>Setor: ${item.setor || 'N/A'}</small>
+                    <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
                     <br><small>Classe: ${item.classe || 'N/A'}</small>
                     <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
                     ${item.observacoes ? `<br><small>${item.observacoes}</small>` : ''}
@@ -1178,6 +1179,26 @@ function popularDropdownModelos() {
     });
 }
 
+async function popularDropdownSetores() {
+    const selectSetor = document.getElementById('estoque-setor');
+    if (!selectSetor) return; // Se o elemento não existir na página, não faz nada
+
+    try {
+        const setores = await getSetores(); // Chama a função da api.js
+        selectSetor.innerHTML = '<option value="" disabled selected>-- Selecione um Setor --</option>'; // Opção padrão
+
+        setores.forEach(setor => {
+            const option = document.createElement('option');
+            option.value = setor.nome; // O valor será o nome do setor
+            option.textContent = setor.nome; // O texto que o usuário vê
+            selectSetor.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar setores:', error);
+        selectSetor.innerHTML = '<option value="" disabled selected>Erro ao carregar setores</option>';
+    }
+}
+
 // Função para salvar um novo modelo
 async function salvarNovoModelo(event) {
     event.preventDefault();
@@ -1226,6 +1247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     carregarDados();
+    popularDropdownSetores();
 
     // 2. LÓGICA DO MENU LATERAL
     const sidebarToggle = document.getElementById('sidebar-toggle');

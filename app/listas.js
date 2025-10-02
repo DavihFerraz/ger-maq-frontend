@@ -40,47 +40,49 @@ async function carregarDados() {
     } catch (error) { console.error("Erro ao carregar dados da API:", error); }
 }
 
-// --- FUNÇÃO DE RENDERIZAÇÃO UNIFICADA ---
+// --- FUNÇÕES DE RENDERIZAÇÃO ---
+
 function renderizarListaAssociada(tipo) {
+    // 1. Define as variáveis corretas com base no 'tipo' (maquina ou mobiliario)
     const ehMaquina = tipo === 'maquina';
     const listaUI = document.getElementById(ehMaquina ? 'lista-associacoes' : 'lista-associacoes-mobiliario');
     const associacoesSource = ehMaquina ? todasAssociacoes : todasAssociacoesMobiliario;
 
     if (!listaUI) return;
 
-    // --- CORREÇÃO APLICADA AQUI ---
-    // Esta nova lógica encontra os campos, não importa a página
-    const campoBusca = document.getElementById('campo-busca');
-    const filtroDeptoSelect = document.getElementById('filtro-departamento');
-    
-    const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
-    const filtroDepto = filtroDeptoSelect ? filtroDeptoSelect.value : '';
-    // --- FIM DA CORREÇÃO ---
-    
-    console.log(`--- INICIANDO FILTRAGEM (${tipo}) ---`);
-    console.log(`Termo: "${termoBusca}", Depto: "${filtroDepto}"`);
+    // 2. Obtém os valores dos filtros
+    const termoBusca = document.getElementById('campo-busca').value.toLowerCase();
+    const filtroDepto = document.getElementById('filtro-departamento').value;
 
+    // Adicionado para depuração:
+    console.log(`Renderizando lista: ${tipo}. Termo de busca: "${termoBusca}", Filtro Depto: "${filtroDepto}"`);
+
+    // 3. Aplica os filtros
     let associacoesFiltradas = associacoesSource;
-    console.log(`Passo 1: A lista original tem ${associacoesFiltradas.length} itens.`);
 
     if (filtroDepto) {
         associacoesFiltradas = associacoesFiltradas.filter(a => {
+            // Garante que a propriedade pessoa_depto exista antes de tentar dividir
             const depto = a.pessoa_depto ? (a.pessoa_depto.split(' - ')[1] || '').trim() : '';
             return depto === filtroDepto;
         });
-        console.log(`Passo 2: Após filtrar por DEPARTAMENTO, restam ${associacoesFiltradas.length} itens.`);
     }
 
     if (termoBusca) {
         associacoesFiltradas = associacoesFiltradas.filter(a => {
             const item = todoEstoque.find(t => t.id === a.item_id);
-            if (!item) return false;
+            if (!item) return false; // Se o item não for encontrado no estoque, remove da lista
+
+            // Constrói uma string de busca segura, mesmo que alguns campos sejam nulos
             const searchString = `${a.pessoa_depto || ''} ${item.modelo_tipo || ''} ${item.patrimonio || ''}`.toLowerCase();
             return searchString.includes(termoBusca);
         });
-        console.log(`Passo 3: Após filtrar por BUSCA, restam ${associacoesFiltradas.length} itens.`);
     }
 
+    // Adicionado para depuração:
+    console.log(`Encontrados ${associacoesFiltradas.length} itens após o filtro.`);
+
+    // 4. Renderiza a lista na tela
     listaUI.innerHTML = '';
     if (associacoesFiltradas.length === 0) {
         listaUI.innerHTML = `<li>Nenhuma associação ${ehMaquina ? '' : 'de mobiliário'} encontrada.</li>`;
@@ -96,7 +98,7 @@ function renderizarListaAssociada(tipo) {
                 <strong>${a.pessoa_depto}</strong> está com: 
                 <a href="#" class="spec-link" data-id="${i.id}">${i.modelo_tipo}</a>
                 <br>
-                <small class="patrimonio-info">Património: ${i.patrimonio || 'N/A'}</small>
+                <small class="patrimonio-info">Património: ${i.patrimonio}</small>
             </span>
             <div class="botoes-item">
                 <button class="btn-item btn-devolver" data-id="${a.id}">Devolver</button>
@@ -106,6 +108,7 @@ function renderizarListaAssociada(tipo) {
     });
 }
 
+
 function popularFiltroDepartamentos(associacoes) {
     const f = document.getElementById('filtro-departamento');
     if (!f) return;
@@ -114,21 +117,36 @@ function popularFiltroDepartamentos(associacoes) {
     d.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; f.appendChild(o); });
 }
 
-// --- MODAL DE SENHA E OUTRAS FUNÇÕES ---
 function abrirModalSenha() { const m = document.getElementById('modal-senha'); if (m) m.classList.add('visible'); }
 function fecharModalSenha() { const m = document.getElementById('modal-senha'); if (m) m.classList.remove('visible'); }
 async function mudarSenha(e) { e.preventDefault(); const a = document.getElementById('senha-atual').value, n = document.getElementById('nova-senha').value; try { const r = await apiChangePassword(a, n); alert(r.message); fecharModalSenha(); e.target.reset(); } catch (r) { alert("Erro: " + r.message); } }
 
-// --- EVENT LISTENER PRINCIPAL ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('[DEBUG] DOM completamente carregado. Iniciando script.');
+/**
+ * Formata um número de património (ex: 100001272541) para o formato com pontos (ex: 100.001.272.541).
+ * @param {string} numero O número de património a ser formatado.
+ * @returns {string} O número formatado ou o original se não for válido.
+ */
+function formatarPatrimonio(numero) {
+    if (!numero || typeof numero !== 'string') {
+        return numero; // Retorna o valor original se for nulo ou não for uma string
+    }
+    // Remove quaisquer caracteres que não sejam dígitos para limpar o número
+    const numeroLimpo = numero.replace(/\D/g, '');
 
+    // Aplica a formatação com pontos
+    return numeroLimpo.replace(/(\d{3})(?=\d)/g, '$1.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Verifica a autenticação do usuário
     if (!localStorage.getItem('authToken')) {
         window.location.href = 'login.html';
         return;
     }
+    // Carrega os dados iniciais da página
     carregarDados();
 
+    // Lógica para o menu lateral (sidebar)
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
     const mainContent = document.querySelector('.main-content');
@@ -139,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Lógica para expandir submenus
     document.querySelectorAll('.has-submenu > a').forEach(m => {
         m.addEventListener('click', function (e) {
             e.preventDefault();
@@ -146,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Mantém o submenu aberto se a página atual for dele
     const c = window.location.pathname;
     document.querySelectorAll('.submenu a').forEach(l => {
         if (c.includes(l.getAttribute('href'))) {
@@ -154,47 +174,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- CORREÇÃO FINAL: USANDO DELEGAÇÃO DE EVENTOS ---
-    console.log('[DEBUG] Anexando eventos com a técnica de DELEGAÇÃO.');
+   
+    // Adiciona os "escutadores" de eventos para busca e filtro
+    const campoBusca = document.getElementById('campo-busca');
+    const filtroDepartamento = document.getElementById('filtro-departamento');
 
-    document.body.addEventListener('input', function(event) {
-        // Verifica se o evento aconteceu no nosso campo de busca
-        if (event.target.id === 'campo-busca') {
-            console.log(`[DEBUG] Evento 'input' capturado em #${event.target.id}!`);
-            const paginaAtual = window.location.pathname;
-            if (paginaAtual.includes('lista.html')) {
-                renderizarListaAssociada('maquina');
-            } else if (paginaAtual.includes('lista_mobiliario.html')) {
-                renderizarListaAssociada('mobiliario');
-            }
-        }
-    });
+    if (c.includes('lista.html')) {
+        // Se estiver na página de máquinas
+        if (campoBusca) campoBusca.addEventListener('input', () => renderizarListaAssociada('maquina'));
+        if (filtroDepartamento) filtroDepartamento.addEventListener('change', () => renderizarListaAssociada('maquina'));
+    } else if (c.includes('lista_mobiliario.html')) {
+        // Se estiver na página de mobiliário
+        if (campoBusca) campoBusca.addEventListener('input', () => renderizarListaAssociada('mobiliario'));
+        if (filtroDepartamento) filtroDepartamento.addEventListener('change', () => renderizarListaAssociada('mobiliario'));
+    }
+  
 
-    document.body.addEventListener('change', function(event) {
-        // Verifica se o evento aconteceu no nosso filtro de departamento
-        if (event.target.id === 'filtro-departamento') {
-            console.log(`[DEBUG] Evento 'change' capturado em #${event.target.id}!`);
-            const paginaAtual = window.location.pathname;
-            if (paginaAtual.includes('lista.html')) {
-                renderizarListaAssociada('maquina');
-            } else if (paginaAtual.includes('lista_mobiliario.html')) {
-                renderizarListaAssociada('mobiliario');
-            }
-        }
-    });
-    // --- FIM DA CORREÇÃO ---
-
+    // Lógica para o botão de logout
     document.getElementById('btn-logout-sidebar').addEventListener('click', () => {
         localStorage.removeItem('authToken');
         window.location.href = 'login.html';
     });
 
+    // Lógica para o modal de mudança de senha
     const btnMudarSenha = document.getElementById('btn-mudar-senha-sidebar');
     if (btnMudarSenha) btnMudarSenha.addEventListener('click', abrirModalSenha);
     const formMudarSenha = document.getElementById('form-mudar-senha');
     if (formMudarSenha) formMudarSenha.addEventListener('submit', mudarSenha);
     const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
     if (btnSenhaCancelar) btnSenhaCancelar.addEventListener('click', fecharModalSenha);
-
-    console.log('[DEBUG] Script finalizado.');
 });

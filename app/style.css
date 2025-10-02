@@ -295,6 +295,7 @@ ul li .botoes-item {
     max-width: 400px;
     text-align: center;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    
 }
 
 .modal-content p {
@@ -1357,4 +1358,3 @@ grafico-setores,
 .has-submenu.open > a > .submenu-arrow {
     transform: rotate(-90deg);
 }
-

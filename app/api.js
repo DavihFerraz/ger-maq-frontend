@@ -124,3 +124,7 @@ export const getDashboardData = () => {
 export const getItemHistory = (itemId) => {
     return fetchAPI(`/itens/${itemId}/historico`);
 };
+
+export const getSetores = () => {
+    return fetchAPI('/setores');
+};
