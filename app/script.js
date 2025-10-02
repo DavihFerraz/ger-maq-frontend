@@ -75,8 +75,6 @@ async function carregarDados() {
         todoHistorico = todosOsEmprestimos.filter(e => e.data_devolucao);
 
         renderizarTudo();
-        popularFiltroDepartamentos();
-        popularFiltroDepartamentosMobiliario();
         popularDropdownModelos();
 
     } catch (error) {
@@ -94,74 +92,13 @@ function renderizarTudo() {
     // Estas funções dependem da sua implementação de HTML e CSS.
     // Adapte os nomes dos campos se necessário (ex: .modelo para .modelo_tipo)
     renderizarEstoque();
-    renderizarAssociacoes();
     renderizarMobiliario();
-    renderizarAssociacoesMobiliario();
     renderizarResumos();
     renderizarGraficos();
     renderizarHistorico();
     popularDropdownMonitores();
     renderizarOutrosAtivos();
 }
-
-
-function renderizarAssociacoes() {
-    const listaUI = document.getElementById('lista-associacoes');
-    if (!listaUI) return;
-
-    // Obtém os valores dos filtros
-    const campoBusca = document.getElementById('campo-busca');
-    const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
-    
-    const filtroDeptoSelect = document.getElementById('filtro-departamento');
-    const filtroDepto = filtroDeptoSelect ? filtroDeptoSelect.value : '';
-
-    let associacoesFiltradas = todasAssociacoes;
-
-    // 1. Aplica o filtro de departamento, se um for selecionado
-    if (filtroDepto) {
-        associacoesFiltradas = associacoesFiltradas.filter(assoc => {
-            const partes = assoc.pessoa_depto.split(' - ');
-            return partes.length > 1 && partes[1].trim() === filtroDepto;
-        });
-    }
-
-    // 2. Aplica o filtro de busca de texto sobre o resultado anterior
-    if (termoBusca) {
-        associacoesFiltradas = associacoesFiltradas.filter(assoc => {
-            const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-            if (!itemAssociado) return false;
-
-            const textoCompleto = `${assoc.pessoa_depto} ${itemAssociado.modelo_tipo} ${itemAssociado.patrimonio}`.toLowerCase();
-            return textoCompleto.includes(termoBusca);
-        });
-    }
-
-    // 3. Renderiza o resultado final
-    listaUI.innerHTML = '';
-    if (associacoesFiltradas.length === 0) {
-        listaUI.innerHTML = '<li>Nenhuma associação encontrada.</li>';
-        return;
-    }
-
-    associacoesFiltradas.forEach(assoc => {
-        const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-        if (!itemAssociado) return; // Segurança extra
-
-        const li = document.createElement('li');
-        li.innerHTML = `
-        <span>
-            <strong>${assoc.pessoa_depto}</strong> está com: 
-            <a href="#" class="spec-link" data-id="${itemAssociado.id}">${itemAssociado.modelo_tipo}</a>
-            <br><small class="patrimonio-info">Património: ${formatarPatrimonio(itemAssociado.patrimonio)}</small>
-        </span>
-        <div class="botoes-item">
-            <button class="btn-item btn-devolver" data-id="${assoc.id}">Devolver</button>
-        </div>`;
-        listaUI.appendChild(li);
-    });
-}
-
 
 function renderizarEstoque() {
     const listaEstoqueUI = document.getElementById('lista-estoque');
@@ -359,56 +296,6 @@ function renderizarOutrosAtivos() {
                 <span class="status-badge status-${statusClass}">${item.status}</span>
             </div>
             <div class="botoes-item">${botoesHTML}</div>`;
-        listaUI.appendChild(li);
-    });
-}
-
-function renderizarAssociacoesMobiliario() {
-    const listaUI = document.getElementById('lista-associacoes-mobiliario');
-    if (!listaUI) return;
-
-    const filtroDeptoSelect = document.getElementById('filtro-departamento');
-    const filtroDepto = filtroDeptoSelect ? filtroDeptoSelect.value : '';
-
-    let associacoesFiltradas = todasAssociacoesMobiliario;
-
-    if (filtroDepto) {
-        associacoesFiltradas = associacoesFiltradas.filter(assoc => {
-            const partes = assoc.pessoa_depto.split(' - ');
-            return partes.length > 1 && partes[1].trim() === filtroDepto;
-        });
-    }
-
-    // A lógica de busca por texto continua a funcionar em conjunto com o filtro
-    const campoBusca = document.getElementById('campo-busca');
-    const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
-    if (termoBusca) {
-         associacoesFiltradas = associacoesFiltradas.filter(assoc => {
-            const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-            if (!itemAssociado) return false;
-            const textoCompleto = `${assoc.pessoa_depto} ${itemAssociado.modelo_tipo} ${itemAssociado.patrimonio}`.toLowerCase();
-            return textoCompleto.includes(termoBusca);
-        });
-    }
-
-    listaUI.innerHTML = '';
-    if (associacoesFiltradas.length === 0) {
-        listaUI.innerHTML = '<li>Nenhuma associação de mobiliário encontrada.</li>';
-        return;
-    }
-
-    associacoesFiltradas.forEach(assoc => {
-        const itemAssociado = todoEstoque.find(item => item.id === assoc.item_id);
-        if (!itemAssociado) return;
-        const li = document.createElement('li');
-        li.innerHTML = `
-        <span>
-            <strong>${assoc.pessoa_depto}</strong> está com: ${itemAssociado.modelo_tipo}
-            <br><small class="patrimonio-info">Património: ${formatarPatrimonio(itemAssociado.patrimonio)}</small>
-        </span>
-        <div class="botoes-item">
-            <button class="btn-item btn-devolver" data-id="${assoc.id}">Devolver</button>
-        </div>`;
         listaUI.appendChild(li);
     });
 }
@@ -1309,49 +1196,6 @@ async function salvarNovoModelo(event) {
     }
 }
 
-
-function popularFiltroDepartamentos() {
-    const filtroUI = document.getElementById('filtro-departamento');
-    if (!filtroUI) return;
-
-    // Extrai departamentos únicos das associações
-    const departamentos = [... new Set(todasAssociacoes.map(assoc => {
-        const partes = assoc.pessoa_depto.split(' - ');
-        return partes.length > 1 ? partes[1].trim().toUpperCase() : 'N/D';
-    }))].filter(Boolean).sort(); // Remove entradas vazias e ordena
-
-    // Limpa opções antigas
-    filtroUI.innerHTML = '<option value="">-- Todos os Departamentos --</option>';
-
-    // Adiciona cada departamento como uma opção no dropdown
-    departamentos.forEach(depto => {
-        const option = document.createElement('option');
-        option.value = depto;
-        option.textContent = depto;
-        filtroUI.appendChild(option);
-    });
-};
-
-
-function popularFiltroDepartamentosMobiliario() {
-    const filtroUI = document.getElementById('filtro-departamento');
-    // A função só executa se o filtro estiver na página atual
-    if (!filtroUI || !window.location.pathname.includes('lista_mobiliario.html')) return;
-
-    const departamentos = [...new Set(todasAssociacoesMobiliario.map(assoc => {
-        const partes = assoc.pessoa_depto.split(' - ');
-        return partes.length > 1 ? partes[1].trim() : null;
-    }))].filter(Boolean).sort();
-
-    filtroUI.innerHTML = '<option value="">-- Todos os Departamentos --</option>';
-
-    departamentos.forEach(depto => {
-        const option = document.createElement('option');
-        option.value = depto;
-        option.textContent = depto;
-        filtroUI.appendChild(option);
-    });
-}
 /**
  * Formata um número de património (ex: 100001272541) para o formato com pontos (ex: 100.001.272.541).
  * @param {string} numero O número de património a ser formatado.
