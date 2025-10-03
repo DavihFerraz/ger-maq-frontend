@@ -830,10 +830,8 @@ async function salvarMobiliario(event) {
     const dados = {
         modelo_tipo: form.querySelector('#mobiliario-tipo').value.trim(),
         patrimonio: form.querySelector('#mobiliario-patrimonio').value.trim(),
-        setor: form.querySelector('#mobiliario-material').value.trim(),
-        // ADICIONADOS:
-        estado_conservacao: form.querySelector('#mobiliario-estado').value.trim(),
-        // FIM DOS ADICIONADOS
+        setor: form.querySelector('#mobiliario-setor').value, // <-- Alterado aqui para o novo ID
+        estado_conservacao: form.querySelector('#mobiliario-estado').value,
         categoria: 'MOBILIARIO',
         cadastrado_gpm: form.querySelector('#mobiliario-cadastrado-outro-software').checked
     };
@@ -851,27 +849,32 @@ async function salvarMobiliario(event) {
 
 async function salvarAssociacao(event) {
     event.preventDefault();
-    const pessoa = document.getElementById('nome-pessoa').value.trim();
+
+    // Pega os valores dos novos campos
+    const nomePessoa = document.getElementById('nome-pessoa-assoc').value.trim();
+    const departamento = document.getElementById('departamento-pessoa-assoc').value;
     const itemId = document.getElementById('id-maquina-emprestimo').value;
 
-    if (!pessoa || !itemId) {
-        alert("Pessoa e Máquina são obrigatórios.");
+    if (!nomePessoa || !departamento || !itemId) {
+        alert("Pessoa, Departamento e Máquina são obrigatórios.");
         return;
     }
 
-    //  Pega os IDs do novo Set de monitores
+    // Concatena o nome e o departamento no formato esperado
+    const pessoa_depto = `${nomePessoa} - ${departamento}`;
+
     const dadosEmprestimo = {
         item_id: parseInt(itemId),
-        pessoa_depto: pessoa,
-        monitores_ids: Array.from(monitoresSelecionadosIds) // Converte o Set para um Array
+        pessoa_depto: pessoa_depto, // Usa a string combinada
+        monitores_ids: Array.from(monitoresSelecionadosIds)
     };
 
     try {
         await createEmprestimo(dadosEmprestimo);
-        Toastify({ text: "Empréstimo registado com sucesso!" }).showToast();
+        Toastify({ text: "Empréstimo registrado com sucesso!" }).showToast();
         document.getElementById('form-maquina').reset();
-        document.getElementById('monitores-selecionados-container').innerHTML = ''; // Limpa as etiquetas
-        monitoresSelecionadosIds.clear(); // Limpa o Set de IDs
+        document.getElementById('monitores-selecionados-container').innerHTML = '';
+        monitoresSelecionadosIds.clear();
         carregarDados();
     } catch (error) {
         console.error("Erro ao salvar associação:", error);
@@ -879,23 +882,28 @@ async function salvarAssociacao(event) {
     }
 }
 
-
 async function salvarAssociacaoMobiliario(event) {
     event.preventDefault();
     const form = document.getElementById('form-associar-mobiliario');
-    const pessoa = form.querySelector('#nome-pessoa-mobiliario').value.trim();
+
+    // Pega os valores dos novos campos
+    const nomePessoa = form.querySelector('#nome-pessoa-mobiliario-assoc').value.trim();
+    const departamento = form.querySelector('#departamento-pessoa-mobiliario-assoc').value;
     const itemId = form.querySelector('#id-mobiliario-emprestimo').value;
 
-    if (!pessoa || !itemId) {
-        Toastify({ text: "Pessoa e Mobiliário são obrigatórios." }).showToast();
+    if (!nomePessoa || !departamento || !itemId) {
+        Toastify({ text: "Pessoa, Departamento e Mobiliário são obrigatórios." }).showToast();
         return;
     }
 
+    // Concatena nome e departamento no formato que o backend espera
+    const pessoa_depto = `${nomePessoa} - ${departamento}`;
+
     try {
-        await createEmprestimo({ item_id: parseInt(itemId), pessoa_depto: pessoa });
-        Toastify({ text: "Associação de mobiliário registada com sucesso!" }).showToast();
+        await createEmprestimo({ item_id: parseInt(itemId), pessoa_depto: pessoa_depto });
+        Toastify({ text: "Associação de mobiliário registrada com sucesso!" }).showToast();
         form.reset();
-        carregarDados();
+        carregarDados(); // Recarrega os dados para atualizar as listas
     } catch (error) {
         console.error("Erro ao salvar associação de mobiliário:", error);
         Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
@@ -1180,22 +1188,39 @@ function popularDropdownModelos() {
 }
 
 async function popularDropdownSetores() {
-    const selectSetor = document.getElementById('estoque-setor');
-    if (!selectSetor) return; // Se o elemento não existir na página, não faz nada
+    // IDs de todos os dropdowns de setor que queremos popular
+    const idsDosDropdowns = [
+        'estoque-setor', 
+        'departamento-pessoa-assoc', 
+        'departamento-pessoa-mobiliario-assoc' ,
+        'mobiliario-setor'
+    ];
+
+    // Pega apenas os elementos que realmente existem na página atual
+    const selects = idsDosDropdowns
+        .map(id => document.getElementById(id))
+        .filter(Boolean); // 'Boolean' remove quaisquer elementos nulos/não encontrados
+
+    if (selects.length === 0) return;
 
     try {
-        const setores = await getSetores(); // Chama a função da api.js
-        selectSetor.innerHTML = '<option value="" disabled selected>-- Selecione um Setor --</option>'; // Opção padrão
+        const setores = await getSetores();
 
-        setores.forEach(setor => {
-            const option = document.createElement('option');
-            option.value = setor.nome; // O valor será o nome do setor
-            option.textContent = setor.nome; // O texto que o usuário vê
-            selectSetor.appendChild(option);
+        selects.forEach(selectElement => {
+            selectElement.innerHTML = '<option value="" disabled selected>-- Selecione um Setor --</option>';
+            setores.forEach(setor => {
+                const option = document.createElement('option');
+                option.value = setor.nome;
+                option.textContent = setor.nome;
+                selectElement.appendChild(option);
+            });
         });
+
     } catch (error) {
         console.error('Erro ao carregar setores:', error);
-        selectSetor.innerHTML = '<option value="" disabled selected>Erro ao carregar setores</option>';
+        selects.forEach(selectElement => {
+            selectElement.innerHTML = '<option value="">Erro ao carregar</option>';
+        });
     }
 }
 
@@ -1313,6 +1338,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const camposComputador = document.getElementById('campos-especificos-computador');
             camposComputador.style.display = (event.target.value === 'COMPUTADOR') ? 'block' : 'none';
         });
+    }
+    
+    const formMobiliario = document.getElementById('form-mobiliario');
+    if (formMobiliario) {
+        formMobiliario.addEventListener('submit', salvarMobiliario);
+    }
+    const formAssociarMobiliario = document.getElementById('form-associar-mobiliario');
+    if (formAssociarMobiliario) {
+        formAssociarMobiliario.addEventListener('submit', salvarAssociacaoMobiliario);
     }
 
     const buscaMonitorInput = document.getElementById('busca-monitor');

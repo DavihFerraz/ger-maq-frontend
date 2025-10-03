@@ -137,6 +137,66 @@ function formatarPatrimonio(numero) {
     return numeroLimpo.replace(/(\d{3})(?=\d)/g, '$1.');
 }
 
+
+/**
+ * Exibe um modal de confirmação para uma ação.
+ * @param {string} mensagem A mensagem a ser exibida no modal.
+ * @param {function} onConfirm A função a ser executada se o usuário confirmar.
+ */
+function exibirModalConfirmacao(mensagem, onConfirm) {
+    const modal = document.getElementById('modal-confirmacao');
+    const textoModal = document.getElementById('modal-texto');
+    const btnConfirmar = document.getElementById('btn-modal-confirmar');
+    const btnCancelar = document.getElementById('btn-modal-cancelar');
+
+    if (!modal || !textoModal || !btnConfirmar || !btnCancelar) {
+        console.error("Elementos do modal de confirmação não encontrados.");
+        return;
+    }
+
+    textoModal.textContent = mensagem;
+    modal.classList.add('visible');
+
+    const fecharModal = () => modal.classList.remove('visible');
+
+    // Usamos .onclick para garantir que apenas uma ação de confirmação esteja ativa por vez
+    btnConfirmar.onclick = () => {
+        fecharModal();
+        onConfirm();
+    };
+
+    btnCancelar.onclick = fecharModal;
+}
+
+/**
+ * Lida com o clique no botão "Devolver", mostrando um modal de confirmação
+ * e chamando a API de devolução se confirmado.
+ * @param {number} emprestimoId O ID do empréstimo a ser devolvido.
+ */
+async function handleDevolverClick(emprestimoId) {
+    // Encontra a associação para obter detalhes para a mensagem de confirmação
+    const associacao = [...todasAssociacoes, ...todasAssociacoesMobiliario].find(a => a.id === emprestimoId);
+    const item = associacao ? todoEstoque.find(t => t.id === associacao.item_id) : null;
+
+    if (!associacao || !item) {
+        Toastify({ text: "Erro: Associação não encontrada.", backgroundColor: "red" }).showToast();
+        return;
+    }
+
+    const mensagem = `Tem certeza que deseja devolver o item "${item.modelo_tipo}" que está com ${associacao.pessoa_depto}?`;
+
+    exibirModalConfirmacao(mensagem, async () => {
+        try {
+            await devolverEmprestimo(emprestimoId);
+            Toastify({ text: "Item devolvido com sucesso!", backgroundColor: "var(--cor-sucesso)" }).showToast();
+            carregarDados(); // Recarrega e renderiza os dados atualizados
+        } catch (error) {
+            console.error("Erro ao devolver o item:", error);
+            Toastify({ text: `Erro: ${error.message}`, backgroundColor: "var(--cor-perigo)" }).showToast();
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Verifica a autenticação do usuário
     if (!localStorage.getItem('authToken')) {
@@ -188,6 +248,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (campoBusca) campoBusca.addEventListener('input', () => renderizarListaAssociada('mobiliario'));
         if (filtroDepartamento) filtroDepartamento.addEventListener('change', () => renderizarListaAssociada('mobiliario'));
     }
+
+    document.body.addEventListener('click', (event) => {
+    const target = event.target; // O elemento que foi clicado
+
+    // Verifica se o elemento clicado é um botão de "Devolver"
+    if (target.classList.contains('btn-devolver')) {
+        const emprestimoId = parseInt(target.dataset.id, 10);
+        if (emprestimoId) {
+            handleDevolverClick(emprestimoId);
+        }
+    }
+});
   
 
     // Lógica para o botão de logout
