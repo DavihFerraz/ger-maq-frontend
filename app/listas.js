@@ -226,12 +226,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Mantém o submenu aberto se a página atual for dele
-    const c = window.location.pathname;
-    document.querySelectorAll('.submenu a').forEach(l => {
-        if (c.includes(l.getAttribute('href'))) {
-            const p = l.closest('.has-submenu');
-            if (p) p.classList.add('open');
-        }
+   
+
+     document.querySelectorAll('.submenu a').forEach(submenuLink => {
+        submenuLink.addEventListener('click', function() {
+            // Encontra o elemento pai 'li' que contém o submenu
+            const parentLi = this.closest('.has-submenu');
+            if (parentLi) {
+                // Remove a classe 'open' para fechar o submenu
+                parentLi.classList.remove('open');
+            }
+        });
     });
 
    
