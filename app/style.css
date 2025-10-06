@@ -24,6 +24,8 @@
   --cor-chart-borda: #e0e0e0;
   --cor-chart-texto: #666;
   --cor-chart-grid: rgba(0, 0, 0, 0.1);
+  --cor-export:#e79d3c; 
+  --cor-export-hover:#d4882c;
 }
 
 body.dark-mode {
@@ -786,7 +788,26 @@ button:disabled,
 #btn-logout:hover {
     background-color: var(--cor-perigo-hover);
 }
+#btn-logout-sidebar {
+    background-color: var(--cor-perigo); /* Vermelho para indicar uma ação de "saída" */
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+}
 
+#btn-logout-sidebar:hover {
+    background-color: var(--cor-perigo-hover);
+}
+#btn-exportar-dashboard-sidebar {
+    background-color: var(--cor-export); /* Vermelho para indicar uma ação de "saída" */
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+#btn-exportar-dashboard-sidebar:hover {
+    background-color: var(--cor-export-hover);
+}
 /* Estilos para os campos de input de e-mail e palavra-passe */
  #email,
  #password {
@@ -851,8 +872,17 @@ button:disabled,
     padding: 8px 16px;
     font-size: 14px;
 }
+#btn-mudar-senha-sidebar {
+    background-color: var(--cor-sucesso);
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+}
 
 #btn-mudar-senha:hover {
+    background-color: var(--cor-sucesso-hover);
+}
+#btn-mudar-senha-sidebar:hover {
     background-color: var(--cor-sucesso-hover);
 }
 
@@ -1285,17 +1315,6 @@ grafico-setores,
     background-color: #f0f0f0; /* Um cinza claro para o hover */
 }
 
-/* Estilo específico para o botão de Sair */
-#btn-logout-sidebar {
-    background-color: var(--cor-perigo);
-    color: white;
-    border-color: var(--cor-perigo);
-}
-
-#btn-logout-sidebar:hover {
-    background-color: var(--cor-perigo-hover);
-    color: white;
-}
 
 .sidebar-actions a {
     gap: 10px; 

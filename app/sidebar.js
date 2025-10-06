@@ -1,8 +1,35 @@
 // Importa a função da API para mudar a senha
 import { apiChangePassword } from './api.js';
 
-// --- Funções do Modal de Senha ---
+// --- Funções de Autenticação e UI ---
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null;
+    }
+}
 
+function exibirInfoUsuario() {
+    const infoUsuarioUI = document.getElementById('info-usuario');
+    const token = localStorage.getItem('authToken');
+    if (!infoUsuarioUI || !token) return;
+
+    const decoded = parseJwt(token);
+    if (decoded) {
+        const nome = decoded.nome || 'Usuário';
+        const depto = decoded.departamento || 'N/D';
+        infoUsuarioUI.innerHTML = `<span>Olá, <strong>${nome}</strong> (${depto})</span>`;
+    }
+}
+
+
+// --- Funções do Modal de Senha ---
 function abrirModalSenha() {
     const modal = document.getElementById('modal-senha');
     if (modal) modal.classList.add('visible');
@@ -21,25 +48,25 @@ async function mudarSenha(event) {
     
     try {
         const response = await apiChangePassword(senhaAtual, novaSenha);
-        alert(response.message); // Confirmação simples
+        Toastify({ text: response.message || "Senha alterada com sucesso!" }).showToast();
         fecharModalSenha();
         form.reset();
     } catch (error) {
-        alert("Erro: " + error.message);
+        Toastify({ text: "Erro: " + error.message, backgroundColor: "red" }).showToast();
     }
 }
 
 // --- Função Principal de Inicialização da Sidebar ---
-
 function inicializarSidebar() {
+    // Exibe as informações do usuário logado
+    exibirInfoUsuario();
+
     // Lógica para o botão de expandir/colapsar (hamburguer)
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
-    if (sidebarToggle) {
+    if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
         });
     }
 
@@ -52,7 +79,7 @@ function inicializarSidebar() {
     });
 
     // Lógica para o botão de logout
-    const btnLogout = document.getElementById('btn-logout-sidebar');
+    const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
         btnLogout.addEventListener('click', () => {
             localStorage.removeItem('authToken');
@@ -61,7 +88,7 @@ function inicializarSidebar() {
     }
 
     // Lógica para o botão e modal de mudar senha
-    const btnMudarSenha = document.getElementById('btn-mudar-senha-sidebar');
+    const btnMudarSenha = document.getElementById('btn-mudar-senha');
     if (btnMudarSenha) {
         btnMudarSenha.addEventListener('click', abrirModalSenha);
     }

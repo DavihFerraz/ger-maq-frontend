@@ -9,30 +9,8 @@ let dadosFiltrados = []; // Mantém os dados atualmente exibidos na tela
 
 // --- FUNÇÕES DE LÓGICA E AUTENTICAÇÃO ---
 
-function parseJwt(token) {
-    try {
-        const base64Url = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        return null;
-    }
-}
-
-function exibirInfoUtilizador() {
-    const infoUtilizadorUI = document.getElementById('info-utilizador');
-    const token = localStorage.getItem('authToken');
-    if (infoUtilizadorUI && token) {
-        const d = parseJwt(token);
-        if (d) {
-            const n = d.nome || 'Utilizador', t = d.departamento || 'N/D', c = { 'TI': { icon: '#3498db', bg: '#eaf4fc', text: '#2980b9' }, 'GAS': { icon: '#27ae60', bg: '#e9f7ef', text: '#229954' }, 'default': { icon: '#8e8e8e', bg: '#f0f0f0', text: '#5e5e5e' } }, o = c[t.toUpperCase()] || c['default'];
-            infoUtilizadorUI.innerHTML = `<span><i class="fas fa-user-circle" style="color: ${o.icon};"></i> Olá, <strong style="background-color: ${o.bg}; color: ${o.text};">${n}</strong> (${t})</span>`;
-        }
-    }
-}
 
 async function carregarDados() {
-    exibirInfoUtilizador();
     try {
         const [itens, todosOsEmprestimos] = await Promise.all([getItens(), getEmprestimos()]);
         todoEstoque = itens;
