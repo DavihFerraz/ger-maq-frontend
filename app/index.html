@@ -137,7 +137,7 @@
                             <label for="maquina-cadastrado-gpm"><input type="checkbox" id="maquina-cadastrado-gpm" style="width: auto;"> Já cadastrado no GPM?</label>
                         </div>
                         <div class="form-buttons">
-                            <button type="submit" id="btn-adicionar-estoque" class="btn-adicionar-estoque">Adicionar ao Estoque</button>
+                            <button type="submit" id="btn-adicionar-mobiliario" class="btn-adicionar-estoque">Adicionar ao Estoque</button>
                         </div>
                     </form>
                 </div>
@@ -245,7 +245,9 @@
                         </div>
                         <div class="form-group">
                             <label for="outros-setor">Setor:</label>
-                            <input type="text" id="outros-setor" placeholder="Ex: DTI">
+                            <select id="outros-setor" required>
+                                <option value="" disabled selected>Carregando setores...</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="outros-estado">Estado de Conservação:</label>
@@ -389,6 +391,20 @@
                 <label for="editar-mobiliario-setor">Setor:</label>
                 <input type="text" id="editar-mobiliario-setor">
             </div>
+
+            <div class="form-group">
+                <label for="editar-mobiliario-estado">Estado de Conservação:</label>
+                <select id="editar-mobiliario-estado" required>
+                    <option value="Novo">Novo</option>
+                    <option value="Bom">Bom</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Inservível">Inservível</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editar-mobiliario-observacoes">Observações:</label>
+                <input type="text" id="editar-mobiliario-observacoes" placeholder="Qualquer detalhe adicional">
+            </div>
             <div class="form-group">
                 <label>
                     <input type="checkbox" id="editar-mobiliario-cadastrado-gpm" style="width: auto;">
@@ -449,23 +465,27 @@
 <div id="modal-outros" class="modal-overlay">
     <div class="modal-content">
         <h3>Editar Item</h3>
-        <form id="form-editar-outros">
-            <input type="hidden" id="editar-outros-id">
+        <form id="form-editar-outro">
+            <input type="hidden" id="editar-outro-id">
             <div class="form-group">
-                <label for="editar-outros-modelo">Nome/Descrição:</label>
-                <input type="text" id="editar-outros-modelo" required>
+                <label for="editar-outro-modelo">Nome/Descrição:</label>
+                <input type="text" id="editar-outro-modelo" required>
             </div>
             <div class="form-group">
-                <label for="editar-outros-patrimonio">Património:</label>
-                <input type="text" id="editar-outros-patrimonio" required>
+                <label for="editar-outro-patrimonio">Património:</label>
+                <input type="text" id="editar-outro-patrimonio" required>
             </div>
             <div class="form-group">
-                <label for="editar-outros-setor">Setor:</label>
-                <input type="text" id="editar-outros-setor">
+                <label for="editar-outro-setor">Setor:</label>
+                <input type="text" id="editar-outro-setor">
+            </div>
+            <div class="form-group">
+                <label for="editar-outro-observacoes">Observações:</label>
+                <input type="text" id="editar-outro-observacoes">
             </div>
             <div class="form-group">
                 <label>
-                    <input type="checkbox" id="editar-outros-cadastrado-gpm" style="width: auto;">
+                    <input type="checkbox" id="editar-outro-cadastrado-gpm" style="width: auto;">
                     Já cadastrado no GPM?
                 </label>
             </div>

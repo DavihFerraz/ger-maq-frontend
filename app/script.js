@@ -241,7 +241,7 @@ function renderizarMobiliario() {
                 <span>
                     <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
                     <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
-                    <br><small>Classe: ${item.classe || 'N/A'}</small>
+                    <br><small>Categoria: ${item.categoria || 'N/A'}</small>
                     <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
                     ${item.observacoes ? `<br><small>${item.observacoes}</small>` : ''}
                     ${utilizadorHtml}
@@ -291,10 +291,22 @@ function renderizarOutrosAtivos() {
             <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
         `;
         
+        const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
+        
+        // Template HTML atualizado para mostrar mais detalhes
         li.innerHTML = `
             <div class="info-item">
-                <span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})</span>
-                <span class="status-badge status-${statusClass}">${item.status}</span>
+                <span>
+                    <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
+                    <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
+                    <br><small>Categoria: ${item.categoria || 'N/A'}</small>
+                    <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
+                    ${item.observacoes ? `<br><small>Observações: ${item.observacoes}</small>` : ''}
+                </span>
+                <div class="status-badges-container">
+                    <span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>
+                    ${statusGASCadastroHTML}
+                </div>
             </div>
             <div class="botoes-item">${botoesHTML}</div>`;
         listaUI.appendChild(li);
@@ -489,10 +501,10 @@ function abrirModalEditarMaquina(maquinaId) {
     document.getElementById('editar-maquina-processador').value = maquina.espec_processador || '';
     document.getElementById('editar-maquina-ram').value = maquina.espec_ram || '';
     document.getElementById('editar-maquina-armazenamento').value = maquina.espec_armazenamento || '';
-    document.getElementById('editar-maquina-setor').value = maquina.setor || '';
+    document.getElementById('editar-maquina-setor').value = maquina.setor_nome || ''; // <-- Correção importante aqui
     document.getElementById('editar-maquina-observacoes').value = maquina.observacoes || '';
     document.getElementById('editar-maquina-cadastrado-gpm').checked = maquina.cadastrado_gpm || false;
-    
+
     const modal = document.getElementById('modal-maquina');
     if(modal) modal.classList.add('visible');
 }
@@ -502,21 +514,56 @@ function fecharModalEditarMaquina() {
     if(modal) modal.classList.remove('visible');
 }
 
+async function salvarEdicaoMaquina(event) {
+    event.preventDefault(); // Impede o recarregamento da página
+
+    const form = document.getElementById('form-editar-item');
+    const id = form.querySelector('#editar-id').value;
+
+    // Coleta todos os dados do formulário de edição da máquina
+    const dadosAtualizados = {
+        patrimonio: form.querySelector('#editar-patrimonio').value.trim(),
+        categoria: form.querySelector('#editar-categoria').value,
+        modelo_tipo: form.querySelector('#editar-modelo-tipo').value.trim(),
+        setor: form.querySelector('#editar-setor').value,
+        espec_processador: form.querySelector('#editar-espec-processador').value.trim(),
+        espec_ram: form.querySelector('#editar-espec-ram').value.trim(),
+        espec_armazenamento: form.querySelector('#editar-espec-armazenamento').value.trim(),
+        observacoes: form.querySelector('#editar-observacoes').value.trim(),
+        cadastrado_gpm: form.querySelector('#editar-cadastrado-gpm').checked
+    };
+
+    try {
+        // Envia os dados atualizados para a API
+        await updateItem(id, dadosAtualizados);
+        
+        Toastify({ text: "Máquina atualizada com sucesso!" }).showToast();
+        fecharModalEditar(); // Fecha o modal
+        carregarDados(); // Recarrega os dados para atualizar a lista na tela
+    } catch (error) {
+        console.error("Erro ao atualizar máquina:", error);
+        Toastify({ text: `Erro ao atualizar: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
+}
+
 
 // Funções para o modal de Mobiliário
 function abrirModalEditarMobiliario(itemId) {
     const item = todoEstoque.find(i => i.id === itemId);
     if (!item) return;
 
+    // Preenche todos os campos do formulário com os dados do item
     document.getElementById('editar-mobiliario-id').value = item.id;
-    document.getElementById('editar-mobiliario-tipo').value = item.modelo_tipo;
-    document.getElementById('editar-mobiliario-patrimonio').value = item.patrimonio;
-    document.getElementById('editar-mobiliario-setor').value = item.setor;
-    document.getElementById('editar-mobiliario-cadastrado-gpm').checked = item.cadastrado_gpm;
+    document.getElementById('editar-mobiliario-tipo').value = item.modelo_tipo || '';
+    document.getElementById('editar-mobiliario-patrimonio').value = item.patrimonio || '';
+    document.getElementById('editar-mobiliario-setor').value = item.setor_nome || ''; // Corrigido para setor_nome
+    document.getElementById('editar-mobiliario-estado').value = item.estado_conservacao || 'Regular'; // Campo novo
+    document.getElementById('editar-mobiliario-observacoes').value = item.observacoes || ''; // Campo novo
+    document.getElementById('editar-mobiliario-cadastrado-gpm').checked = item.cadastrado_gpm || false;
 
+    // Mostra o modal
     document.getElementById('modal-mobiliario').classList.add('visible');
 }
-
 function fecharModalEditarMobiliario() {
     document.getElementById('modal-mobiliario').classList.remove('visible');
 }
@@ -576,7 +623,7 @@ function abrirModalEditarMonitor(itemId) {
     document.getElementById('editar-monitor-id').value = item.id;
     document.getElementById('editar-monitor-modelo').value = item.modelo_tipo;
     document.getElementById('editar-monitor-patrimonio').value = item.patrimonio;
-    document.getElementById('editar-monitor-setor').value = item.setor;
+    document.getElementById('editar-monitor-setor').value = item.setor_nome || '';
     document.getElementById('editar-monitor-cadastrado-gpm').checked = item.cadastrado_gpm;
 
     document.getElementById('modal-monitor').classList.add('visible');
@@ -610,44 +657,71 @@ async function salvarAlteracoesMonitor(event) {
     }
 }
 
-function abrirModalEditarOutros(itemId) {
-    const item = todoEstoque.find(i => i.id === itemId);
-    if (!item) return;
+function abrirModalEditarOutro(outroId) {
+    console.log("Dentro da função abrirModalEditarOutro para o ID:", outroId); // VERIFICAÇÃO 1
+    
+    const outro = todoEstoque.find(o => o.id === outroId);
+    if (!outro) {
+        console.error("Não foi possível encontrar o item 'Outro' no estoque local.");
+        return;
+    }
 
-    document.getElementById('editar-outros-id').value = item.id;
-    document.getElementById('editar-outros-modelo').value = item.modelo_tipo;
-    document.getElementById('editar-outros-patrimonio').value = item.patrimonio;
-    document.getElementById('editar-outros-setor').value = item.setor;
-    document.getElementById('editar-outros-cadastrado-gpm').checked = item.cadastrado_gpm;
+    // Tenta preencher os campos
+    try {
+        document.getElementById('editar-outro-id').value = outro.id;
+        document.getElementById('editar-outro-modelo').value = outro.modelo_tipo || '';
+        document.getElementById('editar-outro-patrimonio').value = outro.patrimonio || '';
+        document.getElementById('editar-outro-setor').value = outro.setor_nome || '';
+        document.getElementById('editar-outro-observacoes').value = outro.observacoes || '';
+        document.getElementById('editar-outro-cadastrado-gpm').checked = outro.cadastrado_gpm || false;
+        console.log("Campos do formulário preenchidos com sucesso."); // VERIFICAÇÃO 2
+    } catch (e) {
+        console.error("ERRO ao tentar preencher os campos do formulário!", e);
+        return;
+    }
+    
+    // Tenta encontrar e abrir o modal
+    const modal = document.getElementById('modal-outros');
+    console.log("Procurando por #modal-outros. Encontrado:", modal); // VERIFICAÇÃO 3
 
-    document.getElementById('modal-outros').classList.add('visible');
+    if (modal) {
+        modal.classList.add('visible');
+        console.log("Modal aberto com sucesso!"); // VERIFICAÇÃO 4
+    } else {
+        console.error("ERRO CRÍTICO: O HTML do modal com id='modal-outros' não foi encontrado na página.");
+    }
 }
 
 function fecharModalEditarOutros() {
     document.getElementById('modal-outros').classList.remove('visible');
 }
 
-async function salvarAlteracoesOutros(event) {
-    event.preventDefault();
-    const form = event.target;
-    const itemId = form.querySelector('#editar-outros-id').value;
+async function salvarEdicaoOutro(event) {
+    event.preventDefault(); // Impede o recarregamento da página
 
+    const form = event.target;
+    const outroId = form.querySelector('#editar-outro-id').value;
+
+    // Coleta todos os dados do formulário de edição
     const dadosAtualizados = {
-        modelo_tipo: form.querySelector('#editar-outros-modelo').value.trim(),
-        patrimonio: form.querySelector('#editar-outros-patrimonio').value.trim(),
-        setor: form.querySelector('#editar-outros-setor').value.trim(),
-        cadastrado_gpm: form.querySelector('#editar-outros-cadastrado-gpm').checked,
-        categoria: 'OUTROS'
+        modelo_tipo: form.querySelector('#editar-outro-modelo').value.trim(),
+        patrimonio: form.querySelector('#editar-outro-patrimonio').value.trim(),
+        setor: form.querySelector('#editar-outro-setor').value.trim(),
+        observacoes: form.querySelector('#editar-outro-observacoes').value.trim(),
+        cadastrado_gpm: form.querySelector('#editar-outro-cadastrado-gpm').checked,
     };
 
     try {
-        await updateItem(itemId, dadosAtualizados);
-        Toastify({ text: "Item atualizado com sucesso!" }).showToast();
-        fecharModalEditarOutros();
-        carregarDados();
+        // Envia os dados atualizados para a API
+        await updateItem(outroId, dadosAtualizados);
+        
+        Toastify({ text: "Ativo atualizado com sucesso!" }).showToast();
+        
+        fecharModalEditarOutros(); // Fecha o modal
+        carregarDados(); // Recarrega os dados para atualizar a lista na tela
     } catch (error) {
-        console.error("Erro ao atualizar item:", error);
-        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+        console.error("Erro ao atualizar o ativo:", error);
+        Toastify({ text: `Erro ao atualizar: ${error.message}`, backgroundColor: "red" }).showToast();
     }
 }
 
@@ -675,75 +749,34 @@ function fecharModalEspecificacoes() {
     const modal = document.getElementById('modal-especificacoes');
     if (modal) modal.classList.remove('visible');
 }
+async function salvarEdicaoMobiliario(event) {
+    event.preventDefault(); // Impede o recarregamento da página
 
-function exportarParaCSV() {
-    if (todasAssociacoes.length === 0) {
-        Toastify({ text: "Não há dados para exportar." }).showToast();
-        return;
-    }
+    const form = document.getElementById('form-editar-mobiliario');
+    const id = form.querySelector('#editar-mobiliario-id').value;
 
-    // Cabeçalho do ficheiro CSV
-    const cabecalho = ['Pessoa', 'Departamento', 'Maquina', 'Patrimonio', 'Data Emprestimo'];
+    // Coleta todos os dados do formulário de edição
+    const dadosAtualizados = {
+        modelo_tipo: form.querySelector('#editar-mobiliario-tipo').value.trim(),
+        patrimonio: form.querySelector('#editar-mobiliario-patrimonio').value.trim(),
+        setor: form.querySelector('#editar-mobiliario-setor').value, // <-- A linha que faltava
+        estado_conservacao: form.querySelector('#editar-mobiliario-estado').value,
+        observacoes: form.querySelector('#editar-mobiliario-observacoes').value.trim(),
+        cadastrado_gpm: form.querySelector('#editar-mobiliario-cadastrado-gpm').checked
+    };
 
-    // Mapeia os dados das associações para o formato de linha do CSV
-    const linhas = todasAssociacoes.map(assoc => {
-        const item = todoEstoque.find(i => i.id === assoc.item_id);
-        if (!item) return null; // Ignora se o item não for encontrado
-
-        const [nome, departamento = 'N/D'] = assoc.pessoa_depto.split(' - ');
-        const maquina = item.modelo_tipo;
-        const patrimonio = item.patrimonio || 'N/A';
-        const dataEmprestimo = new Date(assoc.data_emprestimo).toLocaleDateString('pt-BR');
-
-        return [nome.trim(), departamento.trim(), maquina, patrimonio, dataEmprestimo];
-    }).filter(linha => linha !== null); // Remove linhas nulas
-
-    // Cria o conteúdo do ficheiro CSV
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
-        + cabecalho.join(";") + "\n" 
-        + linhas.map(e => e.join(";")).join("\n");
-
-    // Cria um link de download e simula um clique
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `relatorio_maquinas_associadas_${new Date().toLocaleDateString('pt-BR')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-
-function exportarMobiliarioCSV() {
-    if (todasAssociacoesMobiliario.length === 0) {
-        Toastify({ text: "Não há dados de mobiliário para exportar." }).showToast();
-        return;
-    }
-
-    const cabecalho = ['Pessoa', 'Departamento', 'Tipo', 'Patrimonio', 'Data Associação'];
-    const linhas = todasAssociacoesMobiliario.map(assoc => {
-        const item = todoEstoque.find(i => i.id === assoc.item_id);
-        if (!item) return null;
-
-        const [nome, departamento = 'N/D'] = assoc.pessoa_depto.split(' - ');
-        const dataAssociacao = new Date(assoc.data_emprestimo).toLocaleDateString('pt-BR');
+    try {
+        // Envia os dados atualizados para a API
+        await updateItem(id, dadosAtualizados);
         
-        return [nome.trim(), departamento.trim(), item.modelo_tipo, item.patrimonio, dataAssociacao];
-    }).filter(Boolean);
-
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
-        + cabecalho.join(";") + "\n" 
-        + linhas.map(e => e.join(";")).join("\n");
-        
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `relatorio_mobiliario_${new Date().toLocaleDateString('pt-BR')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+        Toastify({ text: "Mobiliário atualizado com sucesso!" }).showToast();
+        fecharModalEditarMobiliario(); // Fecha o modal
+        carregarDados(); // Recarrega os dados para atualizar a lista na tela
+    } catch (error) {
+        console.error("Erro ao atualizar mobiliário:", error);
+        Toastify({ text: `Erro ao atualizar: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
 }
-
 
 async function abrirModalHistorico(itemId) {
     const modal = document.getElementById('modal-historico');
@@ -916,7 +949,6 @@ async function salvarAlteracoesMaquina(event) {
     const form = event.target;
     const maquinaId = form.querySelector('#editar-maquina-id').value;
 
-    // Cria o objeto de dados com os nomes dos campos que a API espera
     const dadosAtualizados = {
         modelo_tipo: form.querySelector('#editar-maquina-modelo').value.trim(),
         patrimonio: form.querySelector('#editar-maquina-patrimonio').value.trim(),
@@ -929,13 +961,12 @@ async function salvarAlteracoesMaquina(event) {
     };
 
     try {
-        // Usa a função updateItem da nossa API
         await updateItem(maquinaId, dadosAtualizados);
-        
-        Toastify({ text: "Dados da máquina atualizados com sucesso!", backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)" }).showToast();
-        
-        fecharModalEditarMaquina(); // Fecha o modal após o sucesso
-        carregarDados(); // Recarrega os dados para mostrar as alterações na lista
+
+        Toastify({ text: "Dados da máquina atualizados com sucesso!" }).showToast();
+
+        fecharModalEditarMaquina();
+        carregarDados();
     } catch (error) {
         console.error("Erro ao atualizar máquina:", error);
         Toastify({ text: `Erro ao atualizar: ${error.message}`, backgroundColor: "red" }).showToast();
@@ -1193,7 +1224,8 @@ async function popularDropdownSetores() {
         'estoque-setor', 
         'departamento-pessoa-assoc', 
         'departamento-pessoa-mobiliario-assoc' ,
-        'mobiliario-setor'
+        'mobiliario-setor',
+        'outros-setor'
     ];
 
     // Pega apenas os elementos que realmente existem na página atual
@@ -1273,6 +1305,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     carregarDados();
     popularDropdownSetores();
+
+
+    const formEditarMobiliario = document.getElementById('form-editar-mobiliario');
+    if (formEditarMobiliario) {
+        formEditarMobiliario.addEventListener('submit', salvarEdicaoMobiliario);
+    }
+
+
+    const formEditarMaquina = document.getElementById('form-editar-maquina');
+    if (formEditarMaquina) {
+        formEditarMaquina.addEventListener('submit', salvarAlteracoesMaquina);
+    }
+
+    const formEditarOutro = document.getElementById('form-editar-outro');
+    if (formEditarOutro) {
+        formEditarOutro.addEventListener('submit', salvarEdicaoOutro);
+    }
+
+    const formOutrosAtivos = document.getElementById('form-outros-ativos');
+    if (formOutrosAtivos) {
+        formOutrosAtivos.addEventListener('submit', salvarOutroAtivo);
+    }
 
     // 2. LÓGICA DO MENU LATERAL
     const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -1409,52 +1463,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const formMudarSenha = document.getElementById('form-mudar-senha');
     if(formMudarSenha) formMudarSenha.addEventListener('submit', mudarSenha);
 
-    document.body.addEventListener('click', (event) => {
-        if (event.target.classList.contains('remove-monitor')) {
-            const tagElement = event.target.closest('.monitor-tag');
-            if (tagElement) removerMonitorTag(tagElement);
-        }
-        document.body.addEventListener('click', (event) => {
+document.body.addEventListener('click', async (event) => {
     const target = event.target;
-    if (target.disabled) return;
-    
-    // Lógica para remover a etiqueta do monitor
-    if (target.classList.contains('remove-monitor')) {
-        const tagElement = target.closest('.monitor-tag');
-        if (tagElement) {
-            removerMonitorTag(tagElement);
-        }
-        return; // Para a execução para não procurar por 'data-id'
-    }
 
     const id = target.dataset.id;
-    if (!id) return;
+    if (!id) return; // Sai se o elemento clicado não tiver um data-id
 
-    if (target.classList.contains('btn-historico')) {
-        abrirModalHistorico(parseInt(id));
 
-    } else if (target.classList.contains('btn-editar-estoque')) {
+    // Lógica do botão de exclusão (mantida como está)
+    if (target.classList.contains('btn-excluir-estoque')) {
+        excluirMaquinaEstoque(parseInt(id)); 
+        
+    } 
+    // Lógica do botão de edição
+    else if (target.classList.contains('btn-editar-estoque')) {
+        
         const itemParaEditar = todoEstoque.find(i => i.id == id);
+
         if (itemParaEditar) {
+            
             // Verifica a categoria do item e chama a função do modal correto
             if (itemParaEditar.categoria.toUpperCase() === 'COMPUTADOR') {
                 abrirModalEditarMaquina(parseInt(id));
             } else if (itemParaEditar.categoria.toUpperCase() === 'MOBILIARIO') {
                 abrirModalEditarMobiliario(parseInt(id));
             } else if (itemParaEditar.categoria.toUpperCase() === 'MONITOR') {
-              abrirModalEditarMonitor(parseInt(id)); 
+              abrirModalEditarMonitor(parseInt(id));
             } else if (itemParaEditar.categoria.toUpperCase() === 'OUTROS') {
-                abrirModalEditarOutros(parseInt(id));
+                abrirModalEditarOutro(parseInt(id));
             }
+        } else {
+            console.error("ERRO: Item não encontrado no array 'todoEstoque' com o id:", id); // PONTO 5: Avisa se o item não foi achado
         }
-    } else if (target.classList.contains('spec-link')) {
-        event.preventDefault();
-        abrirModalEspecificacoes(parseInt(id));
-    } else if (target.classList.contains('btn-devolver')) {
-        devolverMaquina(parseInt(id)); // Esta função já deve tratar de mobiliário também
-    } else if (target.classList.contains('btn-excluir-estoque')) {
-        excluirMaquinaEstoque(parseInt(id));
+    } 
+    // Lógica do botão de histórico (mantida como está)
+    else if (target.classList.contains('btn-historico')) {
+        abrirModalHistorico(parseInt(id));
     }
 });
-    });
 });
