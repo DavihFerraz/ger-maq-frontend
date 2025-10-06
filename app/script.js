@@ -105,29 +105,42 @@ function renderizarEstoque() {
     const listaEstoqueUI = document.getElementById('lista-estoque');
     if (!listaEstoqueUI) return;
 
-    // ATUALIZADO: Filtra para pegar COMPUTADOR e MONITOR
     const todoMaquinasMonitores = todoEstoque.filter(item => item.categoria === 'COMPUTADOR' || item.categoria === 'MONITOR');
-    
-    const campoBuscaEstoque = document.getElementById('campo-busca-estoque');
-    if(campoBuscaEstoque) {
-        campoBuscaEstoque.addEventListener('input', renderizarEstoque);
-    }
-    const termoBusca = campoBuscaEstoque ? campoBuscaEstoque.value.toLowerCase() : '';
+
+    // --- LÓGICA DOS FILTROS ---
+    const termoBusca = (document.getElementById('campo-busca-estoque')?.value || '').toLowerCase();
+    const filtroSetor = document.getElementById('filtro-setor-estoque')?.value;
+    const filtroGPM = document.getElementById('filtro-gpm-estoque')?.value;
+    const filtroStatus = document.getElementById('filtro-status-estoque')?.value;
 
     let estoqueParaRenderizar = todoMaquinasMonitores.filter(item => {
-        const textoBusca = `${item.modelo_tipo || ''} ${item.patrimonio || ''} ${item.categoria || ''}`.toLowerCase();
-        return textoBusca.includes(termoBusca);
+        // Filtro por termo de busca
+        const buscaOk = termoBusca === '' || 
+            `${item.modelo_tipo} ${item.patrimonio} ${item.categoria}`.toLowerCase().includes(termoBusca);
+
+        // Filtro por setor
+        const setorOk = !filtroSetor || item.setor_id == filtroSetor;
+
+        // Filtro por GPM
+        const gpmOk = !filtroGPM || (filtroGPM === 'sim' && item.cadastrado_gpm) || (filtroGPM === 'nao' && !item.cadastrado_gpm);
+
+        // Filtro por Status
+        const statusOk = !filtroStatus || item.status === filtroStatus;
+
+        return buscaOk && setorOk && gpmOk && statusOk;
     });
 
+    // O resto da função continua igual...
     estoqueParaRenderizar.sort((a, b) => a.modelo_tipo.localeCompare(b.modelo_tipo));
 
     listaEstoqueUI.innerHTML = '';
     if (estoqueParaRenderizar.length === 0) {
-        listaEstoqueUI.innerHTML = '<li>Nenhum computador ou monitor encontrado.</li>';
+        listaEstoqueUI.innerHTML = '<li>Nenhum item encontrado com os filtros aplicados.</li>';
         return;
     }
 
     estoqueParaRenderizar.forEach(item => {
+        // ... (toda a lógica para criar e adicionar o 'li' continua aqui, sem alterações)
         const estaEmUso = item.status && item.status.toLowerCase() === 'em uso';
         let detalhesHtml = '';
         let utilizadorHtml = '';
@@ -139,8 +152,7 @@ function renderizarEstoque() {
                 utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
             }
         }
-        
-        // Mostra detalhes específicos se for um computador
+
         if (item.categoria === 'COMPUTADOR') {
             detalhesHtml = `
                 <br><small>Processador: ${item.espec_processador || 'N/A'}</small>
@@ -150,7 +162,7 @@ function renderizarEstoque() {
         }
 
         const li = document.createElement('li');
-        const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'status-desconhecido';
+        const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'desconhecido';
         li.classList.add(`status-${statusClass}`);
 
         const botoesHTML = `
@@ -158,9 +170,9 @@ function renderizarEstoque() {
             <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
             <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
         `;
-        
+
         const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
-        
+
         li.innerHTML = `
             <div class="info-item">
                 <span>
@@ -168,7 +180,7 @@ function renderizarEstoque() {
                     <br><small>Categoria: ${item.categoria}</small>
                     <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
                     ${detalhesHtml}
-                    ${utilizadorHtml}
+                    ${utilizadorHtml} 
                 </span>
                 <div class="status-badges-container">
                     <span class="status-badge status-${statusClass}">${item.status}</span>
@@ -185,83 +197,47 @@ function renderizarMobiliario() {
     const listaMobiliarioUI = document.getElementById('lista-mobiliario');
     if (!listaMobiliarioUI) return;
 
-    // Filtra para pegar apenas a categoria 'MOBILIARIO'
     const todoMobiliario = todoEstoque.filter(item => item.categoria === 'MOBILIARIO');
-    const campoBuscaMobiliario = document.getElementById('campo-busca-mobiliario');
-    if(campoBuscaMobiliario) {
-    campoBuscaMobiliario.addEventListener('input', renderizarMobiliario);
-    }
-    const termoBusca = campoBuscaMobiliario ? campoBuscaMobiliario.value.toLowerCase() : '';
-    const campoBuscaOutros = document.getElementById('campo-busca-outros');
-    if(campoBuscaOutros) {
-        campoBuscaOutros.addEventListener('input', renderizarOutrosAtivos);
-    }
 
-    // Filtro de busca atualizado para incluir o nome do utilizador
+    // --- LÓGICA DOS FILTROS ---
+    const termoBusca = (document.getElementById('campo-busca-mobiliario')?.value || '').toLowerCase();
+    const filtroSetor = document.getElementById('filtro-setor-mobiliario')?.value;
+    const filtroGPM = document.getElementById('filtro-gpm-mobiliario')?.value;
+    const filtroStatus = document.getElementById('filtro-status-mobiliario')?.value;
+
     let mobiliarioParaRenderizar = todoMobiliario.filter(item => {
-        const tipo = (item.modelo_tipo || '').toLowerCase();
-        const patrimonio = (item.patrimonio || '').toLowerCase();
-        const associacao = todasAssociacoesMobiliario.find(emp => emp.item_id === item.id);
-        const nomeUtilizador = (associacao ? associacao.pessoa_depto : '').toLowerCase();
-        return tipo.includes(termoBusca) || patrimonio.includes(termoBusca) || nomeUtilizador.includes(termoBusca);
-    });
-
-    // Ordenação por status e depois por tipo
-    mobiliarioParaRenderizar.sort((a, b) => {
-        if (a.status < b.status) return 1;
-        if (a.status > b.status) return -1;
-        return a.modelo_tipo.localeCompare(b.modelo_tipo);
+        const buscaOk = termoBusca === '' || `${item.modelo_tipo} ${item.patrimonio}`.toLowerCase().includes(termoBusca);
+        const setorOk = !filtroSetor || item.setor_id == filtroSetor;
+        const gpmOk = !filtroGPM || (filtroGPM === 'sim' && item.cadastrado_gpm) || (filtroGPM === 'nao' && !item.cadastrado_gpm);
+        const statusOk = !filtroStatus || item.status === filtroStatus;
+        return buscaOk && setorOk && gpmOk && statusOk;
     });
 
     listaMobiliarioUI.innerHTML = '';
     if (mobiliarioParaRenderizar.length === 0) {
-        listaMobiliarioUI.innerHTML = '<li>Nenhum mobiliário encontrado.</li>';
+        listaMobiliarioUI.innerHTML = '<li>Nenhum mobiliário encontrado com os filtros aplicados.</li>';
         return;
     }
 
-    mobiliarioParaRenderizar.forEach(item => {
-        const statusAtual = item.status;
-        // Verificação de status consistente (case-insensitive)
-        const estaEmUso = statusAtual && statusAtual.toLowerCase() === 'em uso';
-        let utilizadorHtml = '';
+    mobiliarioParaRenderizar.sort((a, b) => a.modelo_tipo.localeCompare(b.modelo_tipo));
 
+    mobiliarioParaRenderizar.forEach(item => {
+        // ... (toda a lógica para criar e adicionar o 'li' continua aqui, sem alterações)
+        const estaEmUso = item.status && item.status.toLowerCase() === 'em uso';
+        let utilizadorHtml = '';
         if (estaEmUso) {
-            const associacao = todasAssociacoesMobiliario.find(emp => emp.item_id === item.id);
+            const associacao = todasAssociacoes.find(emp => emp.item_id === item.id);
             if (associacao) {
                 const nomePessoa = associacao.pessoa_depto.split(' - ')[0];
                 utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
             }
         }
-
         const li = document.createElement('li');
-        // Lógica de classe de status mais segura
-        const statusClass = statusAtual ? statusAtual.toLowerCase().replace(' ', '-') : 'status-desconhecido';
+        const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
-
-        let botoesHTML = `
-            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
-            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
-        `;
+        const botoesHTML = `<button class="btn-item btn-historico" data-id="${item.id}">Histórico</button><button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button><button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>`;
         const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
-        
-        // Estrutura HTML do item para incluir os mesmos campos
-        li.innerHTML = `
-            <div class="info-item">
-                <span>
-                    <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
-                    <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
-                    <br><small>Categoria: ${item.categoria || 'N/A'}</small>
-                    <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
-                    ${item.observacoes ? `<br><small>${item.observacoes}</small>` : ''}
-                    ${utilizadorHtml}
-                </span>
-                <div class="status-badges-container">
-                    <span class="status-badge status-${statusClass}">${statusAtual || 'Desconhecido'}</span>
-                    ${statusGASCadastroHTML}
-                </div>
-            </div>
-            <div class="botoes-item">${botoesHTML}</div>`;
+        li.innerHTML = `<div class="info-item"><span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})<br><small>Setor: ${item.setor_nome || 'N/A'}</small><br><small>Categoria: ${item.categoria || 'N/A'}</small><br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>${item.observacoes ? `<br><small>${item.observacoes}</small>` : ''}${utilizadorHtml}</span><div class="status-badges-container"><span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>${statusGASCadastroHTML}</div></div><div class="botoes-item">${botoesHTML}</div>`;
         listaMobiliarioUI.appendChild(li);
     });
 }
@@ -273,52 +249,38 @@ function renderizarOutrosAtivos() {
     if (!listaUI) return;
 
     const todoOutros = todoEstoque.filter(item => item.categoria === 'OUTROS');
-    const campoBusca = document.getElementById('campo-busca-outros');
-    const termoBusca = campoBusca ? campoBusca.value.toLowerCase() : '';
+
+    // --- LÓGICA DOS FILTROS ---
+    const termoBusca = (document.getElementById('campo-busca-outros')?.value || '').toLowerCase();
+    const filtroSetor = document.getElementById('filtro-setor-outros')?.value;
+    const filtroGPM = document.getElementById('filtro-gpm-outros')?.value;
+    const filtroStatus = document.getElementById('filtro-status-outros')?.value;
 
     const filtrados = todoOutros.filter(item => {
-        return (item.modelo_tipo || '').toLowerCase().includes(termoBusca) ||
-               (item.patrimonio || '').toLowerCase().includes(termoBusca);
+        const buscaOk = termoBusca === '' || `${item.modelo_tipo} ${item.patrimonio}`.toLowerCase().includes(termoBusca);
+        const setorOk = !filtroSetor || item.setor_id == filtroSetor;
+        const gpmOk = !filtroGPM || (filtroGPM === 'sim' && item.cadastrado_gpm) || (filtroGPM === 'nao' && !item.cadastrado_gpm);
+        const statusOk = !filtroStatus || item.status === filtroStatus;
+        return buscaOk && setorOk && gpmOk && statusOk;
     });
 
     listaUI.innerHTML = '';
     if (filtrados.length === 0) {
-        listaUI.innerHTML = '<li>Nenhum item "Outro" encontrado.</li>';
+        listaUI.innerHTML = '<li>Nenhum item encontrado com os filtros aplicados.</li>';
         return;
     }
 
     filtrados.sort((a, b) => (a.modelo_tipo || '').localeCompare(b.modelo_tipo || ''));
 
     filtrados.forEach(item => {
+        // ... (toda a lógica para criar e adicionar o 'li' continua aqui, sem alterações)
         const estaEmUso = item.status === 'Em Uso';
         const li = document.createElement('li');
         const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'desconhecido';
         li.classList.add(`status-${statusClass}`);
-
-        const botoesHTML = `
-            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
-            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
-        `;
-        
+        const botoesHTML = `<button class="btn-item btn-historico" data-id="${item.id}">Histórico</button><button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button><button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>`;
         const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
-        
-        // Template HTML atualizado para mostrar mais detalhes
-        li.innerHTML = `
-            <div class="info-item">
-                <span>
-                    <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
-                    <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
-                    <br><small>Categoria: ${item.categoria || 'N/A'}</small>
-                    <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
-                    ${item.observacoes ? `<br><small>Observações: ${item.observacoes}</small>` : ''}
-                </span>
-                <div class="status-badges-container">
-                    <span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>
-                    ${statusGASCadastroHTML}
-                </div>
-            </div>
-            <div class="botoes-item">${botoesHTML}</div>`;
+        li.innerHTML = `<div class="info-item"><span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})<br><small>Setor: ${item.setor_nome || 'N/A'}</small><br><small>Categoria: ${item.categoria || 'N/A'}</small><br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>${item.observacoes ? `<br><small>Observações: ${item.observacoes}</small>` : ''}</span><div class="status-badges-container"><span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>${statusGASCadastroHTML}</div></div><div class="botoes-item">${botoesHTML}</div>`;
         listaUI.appendChild(li);
     });
 }
@@ -1229,40 +1191,44 @@ function popularDropdownModelos() {
 }
 
 async function popularDropdownSetores() {
-    // IDs de todos os dropdowns de setor que queremos popular
-    const idsDosDropdowns = [
-        'estoque-setor', 
-        'departamento-pessoa-assoc', 
-        'departamento-pessoa-mobiliario-assoc' ,
-        'mobiliario-setor',
-        'outros-setor'
+    // Lista de todos os IDs de dropdowns de setor que usamos no sistema
+    const ids = [
+        'estoque-setor',        // Formulário de adicionar Ativo de TI
+        'mobiliario-setor',     // Formulário de adicionar Mobiliário
+        'outros-setor',         // Formulário de adicionar Outros Ativos
+        'filtro-setor-estoque',  // Filtro da lista de Ativos de TI
+        'filtro-setor-mobiliario', // Filtro da lista de Mobiliário
+        'filtro-setor-outros'    // Filtro da lista de Outros Ativos
     ];
 
-    // Pega apenas os elementos que realmente existem na página atual
-    const selects = idsDosDropdowns
-        .map(id => document.getElementById(id))
-        .filter(Boolean); // 'Boolean' remove quaisquer elementos nulos/não encontrados
-
+    const selects = ids.map(id => document.getElementById(id)).filter(Boolean);
     if (selects.length === 0) return;
 
     try {
-        const setores = await getSetores();
+        const setores = await getSetores(); // Busca os setores da API (ex: [{id: 1, nome: 'TI'}, ...])
 
         selects.forEach(selectElement => {
-            selectElement.innerHTML = '<option value="" disabled selected>-- Selecione um Setor --</option>';
+            // Guarda a primeira opção existente (ex: "Todos os Setores" ou "-- Selecione --")
+            const placeholder = selectElement.querySelector('option');
+            
+            // Limpa apenas as opções antigas, mantendo o placeholder
+            selectElement.innerHTML = '';
+            if (placeholder) {
+                selectElement.appendChild(placeholder);
+            }
+
+            // Preenche com os novos setores
             setores.forEach(setor => {
                 const option = document.createElement('option');
-                option.value = setor.nome;
-                option.textContent = setor.nome;
+                option.value = setor.id; // <-- CORREÇÃO: O valor agora é o ID numérico
+                option.textContent = setor.nome; // O texto que o usuário vê continua a ser o nome
                 selectElement.appendChild(option);
             });
         });
 
     } catch (error) {
         console.error('Erro ao carregar setores:', error);
-        selects.forEach(selectElement => {
-            selectElement.innerHTML = '<option value="">Erro ao carregar</option>';
-        });
+        selects.forEach(s => s.innerHTML = '<option value="">Erro ao carregar</option>');
     }
 }
 
@@ -1472,6 +1438,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formMudarSenha = document.getElementById('form-mudar-senha');
     if(formMudarSenha) formMudarSenha.addEventListener('submit', mudarSenha);
+
+    const filtrosEstoque = ['filtro-setor-estoque', 'filtro-gpm-estoque', 'filtro-status-estoque'];
+    filtrosEstoque.forEach(idFiltro => {
+        const filtro = document.getElementById(idFiltro);
+        if (filtro) {
+            filtro.addEventListener('change', renderizarEstoque);
+        }
+    });
+    const filtrosMobiliario = ['filtro-setor-mobiliario', 'filtro-gpm-mobiliario', 'filtro-status-mobiliario'];
+    filtrosMobiliario.forEach(idFiltro => {
+        const filtro = document.getElementById(idFiltro);
+        if (filtro) {
+            filtro.addEventListener('change', renderizarMobiliario);
+        }
+    });
+
+    const filtrosOutros = ['filtro-setor-outros', 'filtro-gpm-outros', 'filtro-status-outros'];
+    filtrosOutros.forEach(idFiltro => {
+        const filtro = document.getElementById(idFiltro);
+        if (filtro) {
+            filtro.addEventListener('change', renderizarOutrosAtivos);
+        }
+    });
+
+    const campoBuscaEstoque = document.getElementById('campo-busca-estoque');
+    if (campoBuscaEstoque) {
+        campoBuscaEstoque.addEventListener('input', renderizarEstoque);
+    }
+
+    // Ativa a barra de pesquisa para Mobiliário
+    const campoBuscaMobiliario = document.getElementById('campo-busca-mobiliario');
+    if (campoBuscaMobiliario) {
+        campoBuscaMobiliario.addEventListener('input', renderizarMobiliario);
+    }
+
+    // Ativa a barra de pesquisa para Outros Ativos
+    const campoBuscaOutros = document.getElementById('campo-busca-outros');
+    if (campoBuscaOutros) {
+        campoBuscaOutros.addEventListener('input', renderizarOutrosAtivos);
+    }
 
 document.body.addEventListener('click', async (event) => {
     const target = event.target;

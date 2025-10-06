@@ -1410,3 +1410,29 @@ grafico-setores,
 .export-dropdown:hover .export-options {
     display: block;
 }
+
+/* Estilos para o container de filtros */
+.filtros-container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--cor-fundo-detalhes);
+    border: 1px solid var(--cor-borda);
+    border-radius: 6px;
+    flex-wrap: wrap; /* Permite que os filtros quebrem a linha em telas menores */
+}
+
+.filtro-item {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Faz com que os itens ocupem o espaço disponível */
+    min-width: 180px; /* Largura mínima para cada filtro */
+}
+
+.filtro-item label {
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--cor-texto);
+}

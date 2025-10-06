@@ -146,7 +146,32 @@
                     <div class="search-container">
                         <input type="text" id="campo-busca-estoque" placeholder="Buscar por modelo, património ou categoria...">
                     </div>
-                    <ul id="lista-estoque"></ul>
+                    <div class="filtros-container">
+                    <div class="filtro-item">
+                        <label for="filtro-setor-estoque">Filtrar por Setor:</label>
+                        <select id="filtro-setor-estoque">
+                            <option value="">Todos os Setores</option>
+                            </select>
+                    </div>
+                    <div class="filtro-item">
+                        <label for="filtro-gpm-estoque">Cadastrado no GPM:</label>
+                        <select id="filtro-gpm-estoque">
+                            <option value="">Ambos</option>
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                    </div>
+                    <div class="filtro-item">
+                        <label for="filtro-status-estoque">Status de Uso:</label>
+                        <select id="filtro-status-estoque">
+                            <option value="">Todos</option>
+                            <option value="Disponível">Disponível</option>
+                            <option value="Em Uso">Em Uso</option>
+                            <option value="Em Manutenção">Em Manutenção</option>
+                        </select>
+                    </div>
+                </div>
+                <ul id="lista-estoque"></ul>
                 </div>
             </details>
         </div>
@@ -223,6 +248,30 @@
                     <div class="search-container">
                         <input type="text" id="campo-busca-mobiliario" placeholder="Buscar por tipo ou património...">
                     </div>
+                    <div class="filtros-container">
+                        <div class="filtro-item">
+                            <label for="filtro-setor-mobiliario">Filtrar por Setor:</label>
+                            <select id="filtro-setor-mobiliario">
+                                <option value="">Todos os Setores</option>
+                            </select>
+                        </div>
+                        <div class="filtro-item">
+                            <label for="filtro-gpm-mobiliario">Cadastrado no GPM:</label>
+                            <select id="filtro-gpm-mobiliario">
+                                <option value="">Ambos</option>
+                                <option value="sim">Sim</option>
+                                <option value="nao">Não</option>
+                            </select>
+                        </div>
+                        <div class="filtro-item">
+                            <label for="filtro-status-mobiliario">Status de Uso:</label>
+                            <select id="filtro-status-mobiliario">
+                                <option value="">Todos</option>
+                                <option value="Disponível">Disponível</option>
+                                <option value="Em Uso">Em Uso</option>
+                            </select>
+                        </div>
+                    </div>
                     <ul id="lista-mobiliario"></ul>
                 </div>
             </details>
@@ -272,6 +321,30 @@
         <div class="list-container-stock">
             <h3>Itens "Outros" no Inventário</h3>
             <input type="text" id="campo-busca-outros" placeholder="Buscar por nome ou património...">
+            <div class="filtros-container">
+            <div class="filtro-item">
+                <label for="filtro-setor-outros">Filtrar por Setor:</label>
+                <select id="filtro-setor-outros">
+                    <option value="">Todos os Setores</option>
+                </select>
+            </div>
+            <div class="filtro-item">
+                <label for="filtro-gpm-outros">Cadastrado no GPM:</label>
+                <select id="filtro-gpm-outros">
+                    <option value="">Ambos</option>
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                </select>
+            </div>
+            <div class="filtro-item">
+                <label for="filtro-status-outros">Status de Uso:</label>
+                <select id="filtro-status-outros">
+                    <option value="">Todos</option>
+                    <option value="Disponível">Disponível</option>
+                    <option value="Em Uso">Em Uso</option>
+                </select>
+            </div>
+        </div>
             <ul id="lista-outros-ativos">
             </ul>
         </div>
