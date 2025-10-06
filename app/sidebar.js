@@ -1,6 +1,8 @@
-// app/sidebar.js - VERSÃO FINAL
+// Importa a função da API para mudar a senha
+import { apiChangePassword } from './api.js';
 
-// Função para controlar o modal de senha
+// --- Funções do Modal de Senha ---
+
 function abrirModalSenha() {
     const modal = document.getElementById('modal-senha');
     if (modal) modal.classList.add('visible');
@@ -11,9 +13,26 @@ function fecharModalSenha() {
     if (modal) modal.classList.remove('visible');
 }
 
-// Função principal que inicializa toda a barra lateral
+async function mudarSenha(event) {
+    event.preventDefault();
+    const form = event.target;
+    const senhaAtual = form.querySelector('#senha-atual').value;
+    const novaSenha = form.querySelector('#nova-senha').value;
+    
+    try {
+        const response = await apiChangePassword(senhaAtual, novaSenha);
+        alert(response.message); // Confirmação simples
+        fecharModalSenha();
+        form.reset();
+    } catch (error) {
+        alert("Erro: " + error.message);
+    }
+}
+
+// --- Função Principal de Inicialização da Sidebar ---
+
 function inicializarSidebar() {
-    // Lógica para o botão de expandir/colapsar a sidebar (hamburguer)
+    // Lógica para o botão de expandir/colapsar (hamburguer)
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
     const mainContent = document.querySelector('.main-content');
@@ -24,35 +43,12 @@ function inicializarSidebar() {
         });
     }
 
-    // Lógica para ABRIR/FECHAR o submenu ao clicar no item pai ("Associações")
+    // Lógica para ABRIR/FECHAR o submenu
     document.querySelectorAll('.has-submenu > a').forEach(menu => {
         menu.addEventListener('click', function (e) {
-            e.preventDefault(); // Impede a navegação para '#'
-            e.stopPropagation(); // Impede que o clique se propague para elementos pais
-            
-            const parentLi = this.parentElement;
-            
-            // Fecha outros submenus que possam estar abertos
-            if (!parentLi.classList.contains('open')) {
-                document.querySelectorAll('.has-submenu.open').forEach(openMenu => {
-                    openMenu.classList.remove('open');
-                });
-            }
-            
-            // Abre ou fecha o submenu atual
-            parentLi.classList.toggle('open');
+            e.preventDefault();
+            this.parentElement.classList.toggle('open');
         });
-    });
-
-    // Lógica para manter o submenu aberto se a página atual for um de seus filhos
-    const currentPage = window.location.pathname;
-    document.querySelectorAll('.submenu a').forEach(link => {
-        if (currentPage.includes(link.getAttribute('href'))) {
-            const parentLi = link.closest('.has-submenu');
-            if (parentLi) {
-                parentLi.classList.add('open');
-            }
-        }
     });
 
     // Lógica para o botão de logout
@@ -64,18 +60,22 @@ function inicializarSidebar() {
         });
     }
 
-    // Lógica para o botão de mudar senha (agora usa a função local)
+    // Lógica para o botão e modal de mudar senha
     const btnMudarSenha = document.getElementById('btn-mudar-senha-sidebar');
     if (btnMudarSenha) {
         btnMudarSenha.addEventListener('click', abrirModalSenha);
     }
     
-    // Listeners para o formulário do modal de senha
+    const formMudarSenha = document.getElementById('form-mudar-senha');
+    if (formMudarSenha) {
+        formMudarSenha.addEventListener('submit', mudarSenha);
+    }
+
     const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
     if (btnSenhaCancelar) {
         btnSenhaCancelar.addEventListener('click', fecharModalSenha);
     }
 }
 
-// Garante que a inicialização ocorra após o carregamento completo da página
+// Inicializa a sidebar quando a página carregar
 document.addEventListener('DOMContentLoaded', inicializarSidebar);

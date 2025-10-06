@@ -1358,3 +1358,46 @@ grafico-setores,
 .has-submenu.open > a > .submenu-arrow {
     transform: rotate(-90deg);
 }
+
+
+/* Estilos para o Dropdown de Exportação */
+.export-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.export-dropdown .btn-exportar {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.export-dropdown .export-options {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 100;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.export-dropdown .export-options a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+.export-dropdown .export-options a:hover {
+    background-color: #f1f1f1;
+}
+
+.export-dropdown:hover .export-options {
+    display: block;
+}
