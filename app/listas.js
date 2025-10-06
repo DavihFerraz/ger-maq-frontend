@@ -88,12 +88,36 @@ function renderizarListaAssociada(tipo) {
     });
 }
 
-function popularFiltroDepartamentos(associacoes) {
-    const f = document.getElementById('filtro-departamento');
-    if (!f) return;
-    const d = [...new Set(associacoes.map(a => (a.pessoa_depto.split(' - ')[1] || '').trim()))].filter(Boolean).sort();
-    f.innerHTML = '<option value="">-- Todos os Departamentos --</option>';
-    d.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; f.appendChild(o); });
+async function popularFiltroDepartamentos() {
+    const filtroUI = document.getElementById('filtro-departamento');
+    if (!filtroUI) return;
+
+    try {
+        // Vamos usar a API para buscar todos os setores cadastrados
+        const response = await fetch('/api/setores', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+        });
+        if (!response.ok) throw new Error('Falha ao buscar setores da API');
+        
+        const setores = await response.json();
+        
+        // Limpa opções antigas, mantendo a primeira ("Todos os Departamentos")
+        const placeholder = filtroUI.querySelector('option');
+        filtroUI.innerHTML = '';
+        if (placeholder) filtroUI.appendChild(placeholder);
+
+        // Adiciona os setores recebidos da API
+        setores.forEach(setor => {
+            const option = document.createElement('option');
+            option.value = setor.nome; // O valor para filtrar será o NOME do setor
+            option.textContent = setor.nome;
+            filtroUI.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error("Erro ao popular filtro de departamentos:", error);
+        filtroUI.innerHTML = '<option value="">Erro ao carregar</option>';
+    }
 }
 
 // --- FUNÇÕES DE AÇÃO ---

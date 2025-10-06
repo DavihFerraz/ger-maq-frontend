@@ -1191,37 +1191,46 @@ function popularDropdownModelos() {
 }
 
 async function popularDropdownSetores() {
-    // Lista de todos os IDs de dropdowns de setor que usamos no sistema
+    // Lista COMPLETA de todos os IDs de dropdowns de setor
     const ids = [
-        'estoque-setor',        // Formulário de adicionar Ativo de TI
-        'mobiliario-setor',     // Formulário de adicionar Mobiliário
-        'outros-setor',         // Formulário de adicionar Outros Ativos
-        'filtro-setor-estoque',  // Filtro da lista de Ativos de TI
-        'filtro-setor-mobiliario', // Filtro da lista de Mobiliário
-        'filtro-setor-outros'    // Filtro da lista de Outros Ativos
+        // Formulários de ADIÇÃO
+        'estoque-setor',
+        'mobiliario-setor',
+        'outros-setor',
+
+        // Formulários de ASSOCIAÇÃO (os que estavam a faltar)
+        'departamento-pessoa-assoc',
+        'departamento-pessoa-mobiliario-assoc',
+
+        // FILTROS das listas
+        'filtro-setor-estoque',
+        'filtro-setor-mobiliario',
+        'filtro-setor-outros'
     ];
 
     const selects = ids.map(id => document.getElementById(id)).filter(Boolean);
     if (selects.length === 0) return;
 
     try {
-        const setores = await getSetores(); // Busca os setores da API (ex: [{id: 1, nome: 'TI'}, ...])
+        const setores = await getSetores();
 
         selects.forEach(selectElement => {
-            // Guarda a primeira opção existente (ex: "Todos os Setores" ou "-- Selecione --")
             const placeholder = selectElement.querySelector('option');
-            
-            // Limpa apenas as opções antigas, mantendo o placeholder
             selectElement.innerHTML = '';
             if (placeholder) {
                 selectElement.appendChild(placeholder);
             }
 
-            // Preenche com os novos setores
             setores.forEach(setor => {
                 const option = document.createElement('option');
-                option.value = setor.id; // <-- CORREÇÃO: O valor agora é o ID numérico
-                option.textContent = setor.nome; // O texto que o usuário vê continua a ser o nome
+                
+                // Lógica inteligente: verifica se o dropdown é um filtro ou um formulário
+                const isFilter = selectElement.id.startsWith('filtro-');
+
+                // Filtros usam o ID do setor como valor, formulários usam o NOME
+                option.value = isFilter ? setor.id : setor.nome;
+                option.textContent = setor.nome;
+                
                 selectElement.appendChild(option);
             });
         });
