@@ -130,6 +130,15 @@ function renderizarEstoque() {
     estoqueParaRenderizar.forEach(item => {
         const estaEmUso = item.status && item.status.toLowerCase() === 'em uso';
         let detalhesHtml = '';
+        let utilizadorHtml = '';
+
+        if (estaEmUso) {
+            const associacao = todasAssociacoes.find(emp => emp.item_id === item.id);
+            if (associacao) {
+                const nomePessoa = associacao.pessoa_depto.split(' - ')[0];
+                utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
+            }
+        }
         
         // Mostra detalhes específicos se for um computador
         if (item.categoria === 'COMPUTADOR') {
@@ -159,6 +168,7 @@ function renderizarEstoque() {
                     <br><small>Categoria: ${item.categoria}</small>
                     <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
                     ${detalhesHtml}
+                    ${utilizadorHtml}
                 </span>
                 <div class="status-badges-container">
                     <span class="status-badge status-${statusClass}">${item.status}</span>

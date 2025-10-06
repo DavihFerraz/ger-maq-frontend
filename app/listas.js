@@ -144,6 +144,66 @@ function exportarParaCSV(dados, nomeArquivo) {
     document.body.removeChild(link);
 }
 
+// Adicione estas duas funções ao listas.js
+
+function abrirModalEspecificacoes(itemId) {
+    // Encontra o item correspondente no nosso array de estoque
+    const item = todoEstoque.find(i => i.id === itemId);
+    if (!item) return;
+
+    const modal = document.getElementById('modal-especificacoes');
+    if(!modal) return;
+
+    // Preenche o título e a lista de especificações do modal
+    modal.querySelector('#spec-modelo').textContent = item.modelo_tipo;
+    const listaSpecs = modal.querySelector('#spec-lista');
+
+    listaSpecs.innerHTML = `
+        <li><strong>Património:</strong> ${item.patrimonio || 'N/P'}</li>
+        <li><strong>Categoria:</strong> ${item.categoria || 'N/P'}</li>
+        <li><strong>Setor:</strong> ${item.setor_nome || 'N/P'}</li>
+        <li><strong>Processador:</strong> ${item.espec_processador || 'N/A'}</li>
+        <li><strong>Memória RAM:</strong> ${item.espec_ram || 'N/A'}</li>
+        <li><strong>Armazenamento:</strong> ${item.espec_armazenamento || 'N/A'}</li>
+        ${item.observacoes ? `<li><strong>Observações:</strong> ${item.observacoes}</li>` : ''}
+    `;
+
+    // Torna o modal visível
+    modal.classList.add('visible');
+}
+
+function fecharModalEspecificacoes() {
+    const modal = document.getElementById('modal-especificacoes');
+    if (modal) modal.classList.remove('visible');
+}
+
+function abrirModalSpecMobiliario(itemId) {
+    const item = todoEstoque.find(i => i.id === itemId);
+    if (!item) return;
+
+    const modal = document.getElementById('modal-spec-mobiliario');
+    if(!modal) return;
+
+    modal.querySelector('#spec-mobiliario-modelo').textContent = item.modelo_tipo;
+    const listaSpecs = modal.querySelector('#spec-mobiliario-lista');
+
+    // Preenche com os campos relevantes para mobiliário
+    listaSpecs.innerHTML = `
+        <li><strong>Património:</strong> ${item.patrimonio || 'N/P'}</li>
+        <li><strong>Categoria:</strong> ${item.categoria || 'N/P'}</li>
+        <li><strong>Setor:</strong> ${item.setor_nome || 'N/P'}</li>
+        <li><strong>Estado de Conservação:</strong> ${item.estado_conservacao || 'N/A'}</li>
+        ${item.observacoes ? `<li><strong>Observações:</strong> ${item.observacoes}</li>` : ''}
+    `;
+
+    modal.classList.add('visible');
+}
+
+function fecharModalSpecMobiliario() {
+    const modal = document.getElementById('modal-spec-mobiliario');
+    if (modal) modal.classList.remove('visible');
+}
+
 // --- EVENT LISTENERS ---
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -167,6 +227,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const emprestimoId = parseInt(event.target.dataset.id, 10);
             if (emprestimoId) handleDevolverClick(emprestimoId);
         }
+
+        if (event.target.classList.contains('spec-link')) {
+        event.preventDefault(); // Impede que a página recarregue
+        const itemId = parseInt(event.target.dataset.id, 10);
+        if (itemId) {
+            abrirModalEspecificacoes(itemId);
+        }
+    }
+
+    if (event.target.classList.contains('spec-link')) {
+        event.preventDefault();
+        const itemId = parseInt(event.target.dataset.id, 10);
+        if (!itemId) return;
+
+        // Verifica em qual página estamos para abrir o modal correto
+        if (window.location.pathname.includes('lista_mobiliario.html')) {
+            abrirModalSpecMobiliario(itemId);
+        } else {
+            abrirModalEspecificacoes(itemId);
+        }
+    }
     });
 
     const btnExportarMaquinas = document.getElementById('btn-exportar');
@@ -177,5 +258,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExportarMobiliario = document.getElementById('btn-exportar-mobiliario');
     if (btnExportarMobiliario) {
         btnExportarMobiliario.addEventListener('click', () => exportarParaCSV(dadosFiltrados, 'associacoes_mobiliario.csv'));
+    }
+
+    const btnFecharSpec = document.getElementById('btn-spec-fechar');
+    if(btnFecharSpec) {
+        btnFecharSpec.addEventListener('click', fecharModalEspecificacoes);
+    }
+
+    const btnFecharSpecMobiliario = document.getElementById('btn-spec-mobiliario-fechar');
+    if(btnFecharSpecMobiliario) {
+        btnFecharSpecMobiliario.addEventListener('click', fecharModalSpecMobiliario);
     }
 });

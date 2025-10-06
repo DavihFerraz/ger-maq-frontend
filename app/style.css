@@ -596,7 +596,9 @@ ul li .botoes-item {
     margin-bottom: 20px;
 }
 
-#lista-estoque li {
+#lista-estoque li,
+#lista-mobiliario li,
+#lista-outros-ativos li {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -621,7 +623,9 @@ ul li .botoes-item {
 .status-disponivel {
     background-color: #27ae60; /* Verde */
 }
-#lista-estoque li.status-disponivel {
+#lista-estoque li.status-disponivel,
+#lista-mobiliario li.status-disponivel,
+#lista-outros-ativos li.status-disponivel {
     border-left-color: #27ae60;
 }
 
@@ -629,19 +633,28 @@ ul li .botoes-item {
 .status-em-uso {
     background-color: #e74c3c; /* Vermelho */
 }
-#lista-estoque li.status-em-uso {
+.status-badge.status-em-uso,
+.status-gas.cadastrado-sim {
+    color: white;
+}
+#lista-estoque li.status-em-uso,
+#lista-mobiliario li.status-em-uso,
+#lista-outros-ativos li.status-em-uso {
     border-left-color: #e74c3c;
+    background-color: #fef5f5;
 }
 
 .status-em-manutencao {
     background-color: #f39c12; /* Laranja */
 }
-#lista-estoque li.status-em-manutencao {
+#lista-estoque li.status-em-manutencao,
+#lista-mobiliario li.status-em-manutencao,
+#lista-outros-ativos li.status-em-manutencao {
     border-left-color: #f39c12;
 }
 
-.status-badge.status-em-uso {
-    color: var(--cor-texto); 
+.status-badge.status-disponivel {
+    color: var(--cor-container);
 }
 
 .btn-voltar, .btn-link-pagina {
@@ -799,14 +812,14 @@ button:disabled,
     background-color: var(--cor-perigo-hover);
 }
 #btn-exportar-dashboard-sidebar {
-    background-color: var(--cor-export); /* Vermelho para indicar uma ação de "saída" */
+    background-color: var(--cor-sucesso); /* Vermelho para indicar uma ação de "saída" */
     color: white;
     padding: 8px 16px;
     font-size: 14px;
 }
 
 #btn-exportar-dashboard-sidebar:hover {
-    background-color: var(--cor-export-hover);
+    background-color: var(--cor-sucesso-hover);
 }
 /* Estilos para os campos de input de e-mail e palavra-passe */
  #email,
@@ -995,33 +1008,10 @@ button:disabled,
     border-left: 5px solid;
 }
 
-.status-badge.status-disponivel {
-    color: var(--cor-container);
-}
-
-.status-badge.status-em-uso {
-    color: var(--cor-container); 
-}
-
-#lista-mobiliario li.status-em-uso {
-    background-color: var(--cor-perigo); /* Garante o fundo vermelho */
-    color: var(--cor-container);      /* Muda a cor principal do texto para branco */
-    border-left-color: #a12c21;       /* Uma borda um pouco mais escura para contraste */
-}
-
-/* Garante que todos os textos dentro do item (como 'Setor', 'Criado por', etc.) 
-  também fiquem brancos, sobrescrevendo outras regras.
-*/
-#lista-mobiliario li.status-em-uso small,
-#lista-mobiliario li.status-em-uso .patrimonio-info {
-    color: var(--cor-container);
-    opacity: 0.85; /* Deixa os textos secundários um pouco mais suaves */
-}
 #lista-estoque-monitores li.status-disponivel {
     border-left-color: #27ae60; /* Verde */
 }
 
-/* Define a cor da borda para VERMELHO quando o monitor está em uso */
 #lista-estoque-monitores li.status-em-uso {
     border-left-color: #e74c3c; /* Vermelho */
 }
