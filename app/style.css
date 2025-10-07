@@ -1459,3 +1459,13 @@ grafico-setores,
 #modal-historico .modal-content {
     max-width: 500px; /* Aumenta um pouco a largura máxima do modal */
 }
+
+.monitores-na-associacao {
+    list-style-type: disc;
+    margin-left: 20px;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+.monitores-na-associacao span {
+    font-weight: 500;
+}

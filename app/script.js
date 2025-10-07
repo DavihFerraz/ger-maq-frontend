@@ -29,6 +29,7 @@ let graficoPizza = null;
 let graficoBarras = null;
 let todosModelos = [];
 let monitoresSelecionadosIds = new Set();
+let mapaDeUso = {}; 
 
 // =================================================================
 // 3. LÓGICA DE AUTENTICAÇÃO E CARREGAMENTO DE DADOS
@@ -46,45 +47,36 @@ function checkAuth() {
     }
 }
 
+// Substitua a sua função carregarDados por esta versão de diagnóstico
 async function carregarDados() {
-    exibirInfoUtilizador();
     try {
-        const [itens, todosOsEmprestimos, modelos] = await Promise.all([
-            getItens(),
-            getEmprestimos(),
-            getModelos()
-        ]);
-
-        // DEBUG: Vamos ver exatamente o que a API de produção está a enviar
-        console.log("DADOS RECEBIDOS DA API DE PRODUÇÃO:", todosOsEmprestimos);
-
+        const [itens, emprestimos] = await Promise.all([getItens(), getEmprestimos()]);
         todoEstoque = itens;
-        todosModelos = modelos;
-        
-        const emprestimosAtivos = todosOsEmprestimos.filter(e => !e.data_devolucao);
-        
-        todasAssociacoes = emprestimosAtivos.filter(e => {
-            const item = todoEstoque.find(i => i.id == e.item_id);
-            return item && item.categoria && item.categoria.toUpperCase() === 'COMPUTADOR';
-        });
-        
-        todasAssociacoesMobiliario = emprestimosAtivos.filter(e => {
-            const item = todoEstoque.find(i => i.id == e.item_id);
-            return item && item.categoria && item.categoria.toUpperCase() === 'MOBILIARIO';
-        });
-        
-        todoHistorico = todosOsEmprestimos.filter(e => e.data_devolucao);
+        todasAssociacoes = emprestimos.filter(e => !e.data_devolucao);
 
-        renderizarTudo();
-        popularDropdownModelos();
+        // Cria um mapa de cada item em uso e quem o está a usar
+        mapaDeUso = {};
+        todasAssociacoes.forEach(emp => {
+            // Mapeia o item principal
+            if (emp.item_id) {
+                mapaDeUso[emp.item_id] = emp.pessoa_depto;
+            }
+            // Mapeia TODOS os monitores associados
+            if (Array.isArray(emp.monitores_associados_ids)) {
+                emp.monitores_associados_ids.forEach(monitorId => {
+                    mapaDeUso[monitorId] = emp.pessoa_depto;
+                });
+            }
+        });
 
+        renderizarEstoque();
+        renderizarMobiliario();
+        renderizarOutrosAtivos();
     } catch (error) {
-        console.error("Erro ao carregar dados da API:", error);
+        console.error("Erro ao carregar dados:", error);
     }
-
-   
-
 }
+
 // =================================================================
 // 4. FUNÇÕES DE RENDERIZAÇÃO
 // =================================================================
@@ -107,27 +99,21 @@ function renderizarEstoque() {
 
     const todoMaquinasMonitores = todoEstoque.filter(item => item.categoria === 'COMPUTADOR' || item.categoria === 'MONITOR');
     
-    // --- LÓGICA DOS FILTROS ---
     const termoBusca = (document.getElementById('campo-busca-estoque')?.value || '').toLowerCase();
     const filtroSetor = document.getElementById('filtro-setor-estoque')?.value;
     const filtroGPM = document.getElementById('filtro-gpm-estoque')?.value;
     const filtroStatus = document.getElementById('filtro-status-estoque')?.value;
 
     let estoqueParaRenderizar = todoMaquinasMonitores.filter(item => {
-        const associacao = todasAssociacoes.find(emp => emp.item_id === item.id);
-        const nomeUtilizador = (associacao ? associacao.pessoa_depto : '').toLowerCase();
-
-        const buscaOk = termoBusca === '' || 
-            `${item.modelo_tipo} ${item.patrimonio} ${item.categoria} ${nomeUtilizador}`.toLowerCase().includes(termoBusca);
+        const nomeUtilizador = (mapaDeUso[item.id] || '').toLowerCase();
+        const buscaOk = termoBusca === '' || `${item.modelo_tipo} ${item.patrimonio} ${item.categoria} ${nomeUtilizador}`.toLowerCase().includes(termoBusca);
         const setorOk = !filtroSetor || item.setor_id == filtroSetor;
         const gpmOk = !filtroGPM || (filtroGPM === 'sim' && item.cadastrado_gpm) || (filtroGPM === 'nao' && !item.cadastrado_gpm);
         const statusOk = !filtroStatus || item.status === filtroStatus;
-
         return buscaOk && setorOk && gpmOk && statusOk;
     });
 
     estoqueParaRenderizar.sort((a, b) => a.modelo_tipo.localeCompare(b.modelo_tipo));
-
     listaEstoqueUI.innerHTML = '';
     if (estoqueParaRenderizar.length === 0) {
         listaEstoqueUI.innerHTML = '<li>Nenhum item encontrado com os filtros aplicados.</li>';
@@ -137,53 +123,25 @@ function renderizarEstoque() {
     estoqueParaRenderizar.forEach(item => {
         const estaEmUso = item.status && item.status.toLowerCase() === 'em uso';
         let detalhesHtml = '';
-        let utilizadorHtml = ''; // Variável para o nome do utilizador
+        let utilizadorHtml = '';
 
-        // Se estiver em uso, busca o nome do utilizador (agora funciona para PC e Monitor)
-        if (estaEmUso) {
-            const associacao = todasAssociacoes.find(emp => emp.item_id === item.id);
-            if (associacao) {
-                const nomePessoa = associacao.pessoa_depto.split(' - ')[0];
-                utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
-            }
+        // LÓGICA SIMPLIFICADA: Apenas verifica se o ID do item está no mapa
+        if (mapaDeUso[item.id]) {
+            const nomePessoa = mapaDeUso[item.id].split(' - ')[0];
+            utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
         }
 
-        // Adiciona detalhes extras apenas se for um computador
         if (item.categoria === 'COMPUTADOR') {
-            detalhesHtml = `
-                <br><small>Processador: ${item.espec_processador || 'N/A'}</small>
-                <br><small>RAM: ${item.espec_ram || 'N/A'}</small>
-                <br><small>Armazenamento: ${item.espec_armazenamento || 'N/A'}</small>
-            `;
+            detalhesHtml = `<br><small>Processador: ${item.espec_processador || 'N/A'}</small><br><small>RAM: ${item.espec_ram || 'N/A'}</small><br><small>Armazenamento: ${item.espec_armazenamento || 'N/A'}</small>`;
         }
 
         const li = document.createElement('li');
         const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'desconhecido';
         li.classList.add(`status-${statusClass}`);
-
-        const botoesHTML = `
-            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
-            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>
-        `;
-        
+        const botoesHTML = `<button class="btn-item btn-historico" data-id="${item.id}">Histórico</button><button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button><button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>`;
         const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
         
-        li.innerHTML = `
-            <div class="info-item">
-                <span>
-                    <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
-                    <br><small>Categoria: ${item.categoria}</small>
-                    <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
-                    ${detalhesHtml}
-                    ${utilizadorHtml} 
-                </span>
-                <div class="status-badges-container">
-                    <span class="status-badge status-${statusClass}">${item.status}</span>
-                    ${statusGASCadastroHTML}
-                </div>
-            </div>
-            <div class="botoes-item">${botoesHTML}</div>`;
+        li.innerHTML = `<div class="info-item"><span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})<br><small>Categoria: ${item.categoria}</small><br><small>Setor: ${item.setor_nome || 'N/A'}</small>${detalhesHtml}${utilizadorHtml}</span><div class="status-badges-container"><span class="status-badge status-${statusClass}">${item.status}</span>${statusGASCadastroHTML}</div></div><div class="botoes-item">${botoesHTML}</div>`;
         listaEstoqueUI.appendChild(li);
     });
 }
@@ -802,51 +760,40 @@ function fecharModalHistorico() {
 }
 
 let tipoAssociacaoAtual = null;
-let monitoresSelecionadosParaAssociar = new Set();
 
 /**
  * Abre o modal unificado de associação, configurando-o para o tipo de ativo específico.
  * @param {'COMPUTADOR' | 'MONITOR' | 'MOBILIARIO'} tipo O tipo de ativo a ser associado.
  */
 async function abrirModalAssociacao(tipo) {
-    tipoAssociacaoAtual = tipo; // Guarda o tipo de ativo para a função de salvar
+    tipoAssociacaoAtual = tipo;
     const modal = document.getElementById('modal-associacao');
     if (!modal) return;
 
-    // Limpa o formulário de dados anteriores
     document.getElementById('form-associacao-unificado').reset();
-    document.getElementById('assoc-monitores-selecionados-container').innerHTML = '';
-    monitoresSelecionadosParaAssociar.clear();
 
-    // Elementos do formulário
     const titulo = modal.querySelector('#associacao-titulo');
     const labelAtivo = modal.querySelector('#assoc-busca-label');
     const buscaAtivoInput = modal.querySelector('#assoc-busca-ativo');
-    const camposExtras = modal.querySelector('#assoc-campos-extras');
 
-    // Configura o modal com base no tipo de ativo
     switch (tipo) {
         case 'COMPUTADOR':
             titulo.textContent = 'Associar Nova Máquina';
             labelAtivo.textContent = 'Máquina Disponível:';
-            buscaAtivoInput.placeholder = 'Digite o modelo ou património da máquina...';
-            camposExtras.style.display = 'block'; // Mostra a opção de adicionar monitores
+            buscaAtivoInput.placeholder = 'Digite o modelo ou patrimônio da máquina...';
             break;
         case 'MONITOR':
             titulo.textContent = 'Associar Novo Monitor';
             labelAtivo.textContent = 'Monitor Disponível:';
-            buscaAtivoInput.placeholder = 'Digite o modelo ou património do monitor...';
-            camposExtras.style.display = 'none';
+            buscaAtivoInput.placeholder = 'Digite o modelo ou patrimônio do monitor...';
             break;
         case 'MOBILIARIO':
             titulo.textContent = 'Associar Novo Mobiliário';
             labelAtivo.textContent = 'Mobiliário Disponível:';
-            buscaAtivoInput.placeholder = 'Digite o nome ou património do mobiliário...';
-            camposExtras.style.display = 'none';
+            buscaAtivoInput.placeholder = 'Digite o nome ou patrimônio do mobiliário...';
             break;
     }
 
-    // Popula o dropdown de departamentos (garante que está atualizado)
     await popularDropdownSetores();
     modal.classList.add('visible');
 }
@@ -876,18 +823,17 @@ async function salvarAssociacaoUnificada(event) {
 
     const pessoa_depto = `${nomePessoa} - ${departamento}`;
 
+    // A lógica agora é a mesma para todos os tipos de ativo
     const dadosEmprestimo = {
         item_id: parseInt(itemId),
         pessoa_depto: pessoa_depto,
-        // Inclui os IDs dos monitores extras apenas se for uma associação de computador
-        monitores_ids: tipoAssociacaoAtual === 'COMPUTADOR' ? Array.from(monitoresSelecionadosParaAssociar) : []
     };
 
     try {
         await createEmprestimo(dadosEmprestimo);
-        Toastify({ text: "Associação registada com sucesso!" }).showToast();
+        Toastify({ text: "Associação registrada com sucesso!" }).showToast();
         fecharModalAssociacao();
-        carregarDados(); // Atualiza as listas na página
+        carregarDados();
     } catch (error) {
         console.error("Erro ao salvar associação:", error);
         Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
@@ -1085,34 +1031,6 @@ function exibirModalConfirmacao(mensagem, onConfirm) {
 
     // Configura o clique no botão de cancelar
     btnCancelar.onclick = fecharModal;
-}
-
-
-// FUNÇÃO para adicionar uma etiqueta de monitor
-function adicionarMonitorTag(monitor) {
-    if (monitoresSelecionadosIds.has(monitor.id)) {
-        Toastify({ text: "Este monitor já foi adicionado." }).showToast();
-        return;
-    }
-
-    monitoresSelecionadosIds.add(monitor.id);
-
-    const container = document.getElementById('monitores-selecionados-container');
-    const tag = document.createElement('div');
-    tag.className = 'monitor-tag';
-    tag.dataset.id = monitor.id;
-    tag.innerHTML = `
-        <span>${monitor.modelo_tipo}</span>
-        <button class="remove-monitor" type="button">&times;</button>
-    `;
-    container.appendChild(tag);
-}
-
-//  FUNÇÃO para remover uma etiqueta de monitor
-function removerMonitorTag(tagElement) {
-    const id = parseInt(tagElement.dataset.id);
-    monitoresSelecionadosIds.delete(id);
-    tagElement.remove();
 }
 
 function mostrarResultados(resultados, resultadosDiv, inputBusca, inputId) {
@@ -1506,37 +1424,6 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         mostrarResultados(resultados, resultadosAtivoDiv, buscaAtivoInput, idAtivoInput);
     });
-
-// Lógica de Autocomplete para os monitores extras
-const buscaMonitorExtraInput = document.getElementById('assoc-busca-monitor');
-const resultadosMonitorExtraDiv = document.getElementById('assoc-monitor-resultados');
-
-buscaMonitorExtraInput?.addEventListener('input', () => {
-    // Lógica para adicionar monitores (reutiliza a função de adicionar tags)
-    const termo = buscaMonitorExtraInput.value.toLowerCase();
-    if (termo.length < 2) {
-        resultadosMonitorExtraDiv.style.display = 'none';
-        return;
-    }
-    const monitoresDisponiveis = todoEstoque.filter(item => 
-        item.categoria === 'MONITOR' && item.status === 'Disponível' && !monitoresSelecionadosParaAssociar.has(item.id)
-    );
-    const resultados = monitoresDisponiveis.filter(m => m.modelo_tipo.toLowerCase().includes(termo) || m.patrimonio.toLowerCase().includes(termo));
-
-    resultadosMonitorExtraDiv.innerHTML = '';
-    resultados.forEach(monitor => {
-        const div = document.createElement('div');
-        div.textContent = `${monitor.modelo_tipo} (P/N: ${monitor.patrimonio})`;
-        div.className = 'autocomplete-item';
-        div.onclick = () => {
-            adicionarMonitorTag(monitor, 'assoc-monitores-selecionados-container', monitoresSelecionadosParaAssociar);
-            buscaMonitorExtraInput.value = '';
-            resultadosMonitorExtraDiv.style.display = 'none';
-        };
-        resultadosMonitorExtraDiv.appendChild(div);
-    });
-    resultadosMonitorExtraDiv.style.display = resultados.length > 0 ? 'block' : 'none';
-});
 
 
     const buscaMonitorInput = document.getElementById('busca-monitor');
