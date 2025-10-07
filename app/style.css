@@ -936,6 +936,15 @@ button:disabled,
 #form-associar-mobiliario .form-buttons button:hover {
     background-color: var(--cor-primaria-hover); /* Efeito de escurecer ao passar o mouse */
 }
+
+#form-associar-monitor button[type="submit"] {
+    background-color: var(--cor-primaria);
+    color: white;
+}
+
+#form-associar-monitor button[type="submit"]:hover {
+    background-color: var(--cor-primaria-hover);
+}
 .status-gas {
     font-size: 0.8em;
     padding: 3px 8px;
@@ -1435,4 +1444,18 @@ grafico-setores,
     font-size: 0.9em;
     font-weight: 500;
     color: var(--cor-texto);
+}
+
+
+/* Permite que o texto quebre a linha dentro dos itens da lista */
+#historico-lista li {
+    word-wrap: break-word; /* Para navegadores mais antigos */
+    overflow-wrap: break-word; /* Padrão moderno para quebrar palavras longas */
+    white-space: normal; /* Garante que o texto possa quebrar em várias linhas */
+    line-height: 1.5; /* Melhora a legibilidade do texto quebrado */
+}
+
+/* Garante que o contêiner principal do modal se ajuste ao conteúdo */
+#modal-historico .modal-content {
+    max-width: 500px; /* Aumenta um pouco a largura máxima do modal */
 }

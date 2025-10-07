@@ -141,6 +141,32 @@
                         </div>
                     </form>
                 </div>
+                    <div class="form-container-stock">
+                    <h3>Associar Apenas Monitores</h3>
+                    <form id="form-associar-monitor">
+                        <div class="form-group">
+                            <label for="nome-pessoa-monitor-assoc">Nome da Pessoa:</label>
+                            <input type="text" id="nome-pessoa-monitor-assoc" placeholder="Ex: Maria Eduarda" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="departamento-pessoa-monitor-assoc">Departamento:</label>
+                            <select id="departamento-pessoa-monitor-assoc" required>
+                                <option value="" disabled selected>Carregando...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="busca-monitor-assoc">Monitor Disponível:</label>
+                            <div class="autocomplete-container">
+                                <input type="text" id="busca-monitor-assoc" placeholder="Digite o modelo ou património..." required>
+                                <div id="monitor-assoc-resultados" class="autocomplete-resultados"></div>
+                            </div>
+                            <input type="hidden" id="id-monitor-emprestimo">
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit">Adicionar Associação de Monitor</button>
+                        </div>
+                    </form>
+                </div>
                 <div class="list-container-stock">
                     <h3>Ativos de TI no Inventário</h3>
                     <div class="search-container">
@@ -406,7 +432,7 @@
             </div>
             <div class="form-group">
                 <label for="editar-maquina-setor">Setor:</label>
-                <input type="text" id="editar-maquina-setor">
+                <select id="editar-maquina-setor" required></select>
             </div>
             <div class="form-group">
                 <label for="editar-maquina-observacoes">Observações (Outras Specs):</label>
@@ -462,7 +488,7 @@
             </div>
             <div class="form-group">
                 <label for="editar-mobiliario-setor">Setor:</label>
-                <input type="text" id="editar-mobiliario-setor">
+                <select id="editar-mobiliario-setor" required></select>
             </div>
 
             <div class="form-group">
@@ -507,7 +533,7 @@
             </div>
             <div class="form-group">
                 <label for="editar-monitor-setor">Setor:</label>
-                <input type="text" id="editar-monitor-setor">
+                <select id="editar-monitor-setor" required></select>
             </div>
             <div class="form-group">
                 <label>
@@ -550,7 +576,7 @@
             </div>
             <div class="form-group">
                 <label for="editar-outro-setor">Setor:</label>
-                <input type="text" id="editar-outro-setor">
+                <select id="editar-outro-setor" required></select>
             </div>
             <div class="form-group">
                 <label for="editar-outro-observacoes">Observações:</label>
