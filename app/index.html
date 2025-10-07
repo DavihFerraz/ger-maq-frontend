@@ -43,47 +43,14 @@
             </div>
             <div id="info-utilizador"></div>
         </div>
-
-        <div class="form-container">
-            <h2 id="form-title">Nova Associação - Máquina</h2>
-            <form id="form-maquina">
-                <div class="form-group">
-                    <label for="nome-pessoa-assoc">Nome da Pessoa:</label>
-                    <input type="text" id="nome-pessoa-assoc" placeholder="Ex: João da Silva" required>
-                </div>
-                <div class="form-group">
-                    <label for="departamento-pessoa-assoc">Setor:</label>
-                    <select id="departamento-pessoa-assoc" required>
-                        <option value="" disabled selected>Selecione...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="busca-maquina">Máquina Disponível:</label>
-                    <div class="autocomplete-container">
-                        <input type="text" id="busca-maquina" placeholder="Digite o modelo ou património..." required>
-                        <div id="maquina-resultados" class="autocomplete-resultados"></div>
-                    </div>
-                    <input type="hidden" id="id-maquina-emprestimo">
-                </div>
-                <div class="form-group">
-                    <label for="busca-monitor">Associar Monitores:</label>
-                    <div class="autocomplete-container">
-                        <input type="text" id="busca-monitor" placeholder="Digite o modelo ou património do monitor...">
-                        <div id="monitor-resultados" class="autocomplete-resultados"></div>
-                    </div>
-                    <div id="monitores-selecionados-container"></div>
-                </div>
-                <div class="form-buttons">
-                    <button type="submit" id="btn-principal">Adicionar Associação</button>
-                    <button type="button" id="btn-cancelar" class="btn-cancelar">Cancelar Edição</button>
-                </div>
-            </form>
-        </div>
-
         <div class="stock-container">
             <details>
                 <summary>Gestão de Estoque de Ativos de TI</summary>
                 <div class="form-container-stock">
+                     <div class="form-buttons">
+                    <button id="btn-abrir-assoc-maquina" class="btn-adicionar-estoque">Associar Máquina</button>
+                    <button id="btn-abrir-assoc-monitor" class="btn-adicionar-estoque">Associar Monitor</button>
+                </div>
                     <h3 id="form-title-stock">Adicionar Novo Ativo ao Estoque</h3>
                     <form id="form-estoque">
                          <div class="form-group">
@@ -141,32 +108,7 @@
                         </div>
                     </form>
                 </div>
-                    <div class="form-container-stock">
-                    <h3>Associar Apenas Monitores</h3>
-                    <form id="form-associar-monitor">
-                        <div class="form-group">
-                            <label for="nome-pessoa-monitor-assoc">Nome da Pessoa:</label>
-                            <input type="text" id="nome-pessoa-monitor-assoc" placeholder="Ex: Maria Eduarda" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="departamento-pessoa-monitor-assoc">Departamento:</label>
-                            <select id="departamento-pessoa-monitor-assoc" required>
-                                <option value="" disabled selected>Carregando...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="busca-monitor-assoc">Monitor Disponível:</label>
-                            <div class="autocomplete-container">
-                                <input type="text" id="busca-monitor-assoc" placeholder="Digite o modelo ou património..." required>
-                                <div id="monitor-assoc-resultados" class="autocomplete-resultados"></div>
-                            </div>
-                            <input type="hidden" id="id-monitor-emprestimo">
-                        </div>
-                        <div class="form-buttons">
-                            <button type="submit">Adicionar Associação de Monitor</button>
-                        </div>
-                    </form>
-                </div>
+
                 <div class="list-container-stock">
                     <h3>Ativos de TI no Inventário</h3>
                     <div class="search-container">
@@ -206,32 +148,9 @@
             <details>
                 <summary>Gestão de Mobiliário</summary>
                 <div class="form-container-stock">
-                    <h3 id="form-title-furniture">Associar Mobiliário</h3>
-                    <form id="form-associar-mobiliario">
-                        <div class="form-group">
-                            <label for="nome-pessoa-mobiliario-assoc">Nome da Pessoa:</label>
-                            <input type="text" id="nome-pessoa-mobiliario-assoc" placeholder="Ex: Maria Eduarda" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="departamento-pessoa-mobiliario-assoc">Setor:</label>
-                            <select id="departamento-pessoa-mobiliario-assoc" required>
-                                <option value="" disabled selected>Selecione...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="busca-mobiliario">Mobiliário Disponível:</label>
-                            <div class="autocomplete-container">
-                                <input type="text" id="busca-mobiliario" placeholder="Digite o tipo ou património..." required>
-                                <div id="mobiliario-resultados" class="autocomplete-resultados"></div>
-                            </div>
-                            <input type="hidden" id="id-mobiliario-emprestimo">
-                        </div>
-                        <div class="form-buttons">
-                            <button type="submit">Adicionar Associação</button>
-                        </div>
-                    </form>
+                    <div class="form-buttons">
+                    <button id="btn-abrir-assoc-mobiliario" class="btn-adicionar-estoque">Associar Mobiliário</button>
                 </div>
-                <div class="form-container-stock">
                     <h3>Adicionar Novo Mobiliário ao Inventário</h3>
                     <form id="form-mobiliario">
                         <div class="form-group">
@@ -376,11 +295,6 @@
         </div>
     </details>
 </div>
-        
-        <div class="main-sections">
-            <a href="lista.html" class="btn-link-pagina">Lista de Associações (Máquinas)</a>
-            <a href="lista_mobiliario.html" class="btn-link-pagina">Lista de Associações (Mobiliário)</a>
-        </div>
     </main>
 
     <div id="modal-confirmacao" class="modal-overlay">
@@ -418,16 +332,16 @@
                 <label for="editar-maquina-patrimonio">Património:</label>
                 <input type="text" id="editar-maquina-patrimonio" required>
             </div>
-            <div class="form-group">
+            <div class="form-group spec-field">
                 <label for="editar-maquina-processador">Processador:</label>
                 <input type="text" id="editar-maquina-processador">
             </div>
-            <div class="form-group">
+            <div class="form-group spec-field">
                 <label for="editar-maquina-ram">Memória RAM:</label>
                 <input type="text" id="editar-maquina-ram">
             </div>
             <div class="form-group">
-                <label for="editar-maquina-armazenamento">Armazenamento:</label>
+                <label for="editar-maquina-armazenamento spec-field">Armazenamento:</label>
                 <input type="text" id="editar-maquina-armazenamento">
             </div>
             <div class="form-group">
@@ -591,6 +505,49 @@
             <div class="modal-buttons">
                 <button type="button" class="btn-modal" id="btn-editar-outros-cancelar">Cancelar</button>
                 <button type="submit" class="btn-modal btn-confirmar">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-associacao" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="associacao-titulo">Nova Associação</h3>
+        <form id="form-associacao-unificado">
+            <div class="form-group">
+                <label for="assoc-nome-pessoa">Nome da Pessoa:</label>
+                <input type="text" id="assoc-nome-pessoa" placeholder="Ex: João da Silva" required>
+            </div>
+            <div class="form-group">
+                <label for="assoc-departamento">Departamento:</label>
+                <select id="assoc-departamento" required>
+                    <option value="" disabled selected>Carregando...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="assoc-busca-ativo" id="assoc-busca-label">Ativo Disponível:</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="assoc-busca-ativo" placeholder="Digite o modelo ou património..." required>
+                    <div id="assoc-resultados" class="autocomplete-resultados"></div>
+                </div>
+                <input type="hidden" id="assoc-id-ativo">
+            </div>
+
+            <div id="assoc-campos-extras" style="display: none;">
+                <div class="form-group">
+                    <label for="assoc-busca-monitor">Associar Monitores (Opcional):</label>
+                    <div class="autocomplete-container">
+                        <input type="text" id="assoc-busca-monitor" placeholder="Digite o modelo ou património do monitor...">
+                        <div id="assoc-monitor-resultados" class="autocomplete-resultados"></div>
+                    </div>
+                    <div id="assoc-monitores-selecionados-container" class="monitores-selecionados-container"></div>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn-modal" id="assoc-btn-cancelar">Cancelar</button>
+                <button type="submit" class="btn-modal btn-confirmar">Salvar Associação</button>
             </div>
         </form>
     </div>

@@ -457,23 +457,38 @@ function exibirInfoUtilizador() {
 }
 
 // Abre o modal de edição e preenche com os dados da máquina
-function abrirModalEditarMaquina(maquinaId) {
-    const maquina = todoEstoque.find(m => m.id === maquinaId);
-    if (!maquina) return;
-
-    // Preenche o formulário com os dados atuais da máquina
-    document.getElementById('editar-maquina-id').value = maquina.id;
-    document.getElementById('editar-maquina-modelo').value = maquina.modelo_tipo || '';
-    document.getElementById('editar-maquina-patrimonio').value = maquina.patrimonio || '';
-    document.getElementById('editar-maquina-processador').value = maquina.espec_processador || '';
-    document.getElementById('editar-maquina-ram').value = maquina.espec_ram || '';
-    document.getElementById('editar-maquina-armazenamento').value = maquina.espec_armazenamento || '';
-    document.getElementById('editar-maquina-setor').value = maquina.setor_nome || ''; // <-- Correção importante aqui
-    document.getElementById('editar-maquina-observacoes').value = maquina.observacoes || '';
-    document.getElementById('editar-maquina-cadastrado-gpm').checked = maquina.cadastrado_gpm || false;
+function abrirModalEditarMaquina(itemId) {
+    const item = todoEstoque.find(i => i.id === itemId);
+    if (!item) return;
 
     const modal = document.getElementById('modal-maquina');
-    if(modal) modal.classList.add('visible');
+    if (!modal) return;
+
+    // Preenche os campos comuns
+    document.getElementById('editar-maquina-id').value = item.id;
+    document.getElementById('editar-maquina-modelo').value = item.modelo_tipo || '';
+    document.getElementById('editar-maquina-patrimonio').value = item.patrimonio || '';
+    document.getElementById('editar-maquina-setor').value = item.setor_nome || ''; 
+    document.getElementById('editar-maquina-observacoes').value = item.observacoes || '';
+    document.getElementById('editar-maquina-cadastrado-gpm').checked = item.cadastrado_gpm || false;
+
+    // Elementos dinâmicos
+    const tituloModal = document.getElementById('modal-maquina-titulo');
+    const specFields = modal.querySelectorAll('.spec-field');
+
+    // Verifica a categoria para personalizar o modal
+    if (item.categoria === 'COMPUTADOR') {
+        tituloModal.textContent = 'Editar Máquina';
+        document.getElementById('editar-maquina-processador').value = item.espec_processador || '';
+        document.getElementById('editar-maquina-ram').value = item.espec_ram || '';
+        document.getElementById('editar-maquina-armazenamento').value = item.espec_armazenamento || '';
+        specFields.forEach(field => field.style.display = 'block');
+    } else if (item.categoria === 'MONITOR') {
+        tituloModal.textContent = 'Editar Monitor';
+        specFields.forEach(field => field.style.display = 'none');
+    }
+    
+    modal.classList.add('visible');
 }
 
 function fecharModalEditarMaquina() {
@@ -786,6 +801,99 @@ function fecharModalHistorico() {
     if (modal) modal.classList.remove('visible');
 }
 
+let tipoAssociacaoAtual = null;
+let monitoresSelecionadosParaAssociar = new Set();
+
+/**
+ * Abre o modal unificado de associação, configurando-o para o tipo de ativo específico.
+ * @param {'COMPUTADOR' | 'MONITOR' | 'MOBILIARIO'} tipo O tipo de ativo a ser associado.
+ */
+async function abrirModalAssociacao(tipo) {
+    tipoAssociacaoAtual = tipo; // Guarda o tipo de ativo para a função de salvar
+    const modal = document.getElementById('modal-associacao');
+    if (!modal) return;
+
+    // Limpa o formulário de dados anteriores
+    document.getElementById('form-associacao-unificado').reset();
+    document.getElementById('assoc-monitores-selecionados-container').innerHTML = '';
+    monitoresSelecionadosParaAssociar.clear();
+
+    // Elementos do formulário
+    const titulo = modal.querySelector('#associacao-titulo');
+    const labelAtivo = modal.querySelector('#assoc-busca-label');
+    const buscaAtivoInput = modal.querySelector('#assoc-busca-ativo');
+    const camposExtras = modal.querySelector('#assoc-campos-extras');
+
+    // Configura o modal com base no tipo de ativo
+    switch (tipo) {
+        case 'COMPUTADOR':
+            titulo.textContent = 'Associar Nova Máquina';
+            labelAtivo.textContent = 'Máquina Disponível:';
+            buscaAtivoInput.placeholder = 'Digite o modelo ou património da máquina...';
+            camposExtras.style.display = 'block'; // Mostra a opção de adicionar monitores
+            break;
+        case 'MONITOR':
+            titulo.textContent = 'Associar Novo Monitor';
+            labelAtivo.textContent = 'Monitor Disponível:';
+            buscaAtivoInput.placeholder = 'Digite o modelo ou património do monitor...';
+            camposExtras.style.display = 'none';
+            break;
+        case 'MOBILIARIO':
+            titulo.textContent = 'Associar Novo Mobiliário';
+            labelAtivo.textContent = 'Mobiliário Disponível:';
+            buscaAtivoInput.placeholder = 'Digite o nome ou património do mobiliário...';
+            camposExtras.style.display = 'none';
+            break;
+    }
+
+    // Popula o dropdown de departamentos (garante que está atualizado)
+    await popularDropdownSetores();
+    modal.classList.add('visible');
+}
+
+/**
+ * Fecha o modal unificado de associação.
+ */
+function fecharModalAssociacao() {
+    const modal = document.getElementById('modal-associacao');
+    if (modal) modal.classList.remove('visible');
+}
+
+/**
+ * Salva a nova associação a partir do formulário unificado.
+ */
+async function salvarAssociacaoUnificada(event) {
+    event.preventDefault();
+
+    const nomePessoa = document.getElementById('assoc-nome-pessoa').value.trim();
+    const departamento = document.getElementById('assoc-departamento').value;
+    const itemId = document.getElementById('assoc-id-ativo').value;
+
+    if (!nomePessoa || !departamento || !itemId) {
+        Toastify({ text: "Pessoa, Departamento e Ativo são obrigatórios." }).showToast();
+        return;
+    }
+
+    const pessoa_depto = `${nomePessoa} - ${departamento}`;
+
+    const dadosEmprestimo = {
+        item_id: parseInt(itemId),
+        pessoa_depto: pessoa_depto,
+        // Inclui os IDs dos monitores extras apenas se for uma associação de computador
+        monitores_ids: tipoAssociacaoAtual === 'COMPUTADOR' ? Array.from(monitoresSelecionadosParaAssociar) : []
+    };
+
+    try {
+        await createEmprestimo(dadosEmprestimo);
+        Toastify({ text: "Associação registada com sucesso!" }).showToast();
+        fecharModalAssociacao();
+        carregarDados(); // Atualiza as listas na página
+    } catch (error) {
+        console.error("Erro ao salvar associação:", error);
+        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
+}
+
 // =================================================================
 // 5. FUNÇÕES DE MANIPULAÇÃO DE DADOS (CRUD)
 // =================================================================
@@ -847,128 +955,46 @@ async function salvarMobiliario(event) {
     }
 }
 
-async function salvarAssociacao(event) {
-    event.preventDefault();
-
-    // Pega os valores dos novos campos
-    const nomePessoa = document.getElementById('nome-pessoa-assoc').value.trim();
-    const departamento = document.getElementById('departamento-pessoa-assoc').value;
-    const itemId = document.getElementById('id-maquina-emprestimo').value;
-
-    if (!nomePessoa || !departamento || !itemId) {
-        alert("Pessoa, Departamento e Máquina são obrigatórios.");
-        return;
-    }
-
-    // Concatena o nome e o departamento no formato esperado
-    const pessoa_depto = `${nomePessoa} - ${departamento}`;
-
-    const dadosEmprestimo = {
-        item_id: parseInt(itemId),
-        pessoa_depto: pessoa_depto, // Usa a string combinada
-        monitores_ids: Array.from(monitoresSelecionadosIds)
-    };
-
-    try {
-        await createEmprestimo(dadosEmprestimo);
-        Toastify({ text: "Empréstimo registrado com sucesso!" }).showToast();
-        document.getElementById('form-maquina').reset();
-        document.getElementById('monitores-selecionados-container').innerHTML = '';
-        monitoresSelecionadosIds.clear();
-        carregarDados();
-    } catch (error) {
-        console.error("Erro ao salvar associação:", error);
-        Toastify({ text: `Erro: ${error.message}` }).showToast();
-    }
-}
-
-async function salvarAssociacaoMobiliario(event) {
-    event.preventDefault();
-    const form = document.getElementById('form-associar-mobiliario');
-
-    // Pega os valores dos novos campos
-    const nomePessoa = form.querySelector('#nome-pessoa-mobiliario-assoc').value.trim();
-    const departamento = form.querySelector('#departamento-pessoa-mobiliario-assoc').value;
-    const itemId = form.querySelector('#id-mobiliario-emprestimo').value;
-
-    if (!nomePessoa || !departamento || !itemId) {
-        Toastify({ text: "Pessoa, Departamento e Mobiliário são obrigatórios." }).showToast();
-        return;
-    }
-
-    // Concatena nome e departamento no formato que o backend espera
-    const pessoa_depto = `${nomePessoa} - ${departamento}`;
-
-    try {
-        await createEmprestimo({ item_id: parseInt(itemId), pessoa_depto: pessoa_depto });
-        Toastify({ text: "Associação de mobiliário registrada com sucesso!" }).showToast();
-        form.reset();
-        carregarDados(); // Recarrega os dados para atualizar as listas
-    } catch (error) {
-        console.error("Erro ao salvar associação de mobiliário:", error);
-        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
-    }
-}
-
-async function salvarAssociacaoMonitor(event) {
-    event.preventDefault();
-    const form = event.target;
-
-    const nomePessoa = form.querySelector('#nome-pessoa-monitor-assoc').value.trim();
-    const departamento = form.querySelector('#departamento-pessoa-monitor-assoc').value;
-    const itemId = form.querySelector('#id-monitor-emprestimo').value;
-
-    if (!nomePessoa || !departamento || !itemId) {
-        Toastify({ text: "Pessoa, Departamento e Monitor são obrigatórios." }).showToast();
-        return;
-    }
-
-    const pessoa_depto = `${nomePessoa} - ${departamento}`;
-
-    // Criamos o empréstimo apenas com o ID do monitor
-    const dadosEmprestimo = {
-        item_id: parseInt(itemId),
-        pessoa_depto: pessoa_depto,
-        monitores_ids: [] // Sem monitores extras, já que o principal é o monitor
-    };
-
-    try {
-        await createEmprestimo(dadosEmprestimo);
-        Toastify({ text: "Associação de monitor registada com sucesso!" }).showToast();
-        form.reset();
-        carregarDados();
-    } catch (error) {
-        console.error("Erro ao salvar associação de monitor:", error);
-        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
-    }
-}
-
 
 async function salvarAlteracoesMaquina(event) {
-    event.preventDefault();
+    event.preventDefault(); // Impede o recarregamento da página
+
     const form = event.target;
     const maquinaId = form.querySelector('#editar-maquina-id').value;
 
+    // Descobre qual é o item que estamos a editar para saber a sua categoria
+    const itemAtual = todoEstoque.find(i => i.id == maquinaId);
+    if (!itemAtual) {
+        Toastify({ text: "Erro: Item não encontrado.", backgroundColor: "red" }).showToast();
+        return;
+    }
+
+    // Começa com os dados que são comuns a ambos
     const dadosAtualizados = {
         modelo_tipo: form.querySelector('#editar-maquina-modelo').value.trim(),
         patrimonio: form.querySelector('#editar-maquina-patrimonio').value.trim(),
-        espec_processador: form.querySelector('#editar-maquina-processador').value.trim(),
-        espec_ram: form.querySelector('#editar-maquina-ram').value.trim(),
-        espec_armazenamento: form.querySelector('#editar-maquina-armazenamento').value.trim(),
-        setor: form.querySelector('#editar-maquina-setor').value.trim(),
+        setor: form.querySelector('#editar-maquina-setor').value,
         observacoes: form.querySelector('#editar-maquina-observacoes').value.trim(),
         cadastrado_gpm: form.querySelector('#editar-maquina-cadastrado-gpm').checked,
+        categoria: itemAtual.categoria // Envia a categoria correta
     };
+
+    // Se for um COMPUTADOR, adiciona os campos de especificações
+    if (itemAtual.categoria === 'COMPUTADOR') {
+        dadosAtualizados.espec_processador = form.querySelector('#editar-maquina-processador').value.trim();
+        dadosAtualizados.espec_ram = form.querySelector('#editar-maquina-ram').value.trim();
+        dadosAtualizados.espec_armazenamento = form.querySelector('#editar-maquina-armazenamento').value.trim();
+    }
 
     try {
         await updateItem(maquinaId, dadosAtualizados);
-
-        Toastify({ text: "Dados da máquina atualizados com sucesso!" }).showToast();
-
+        
+        Toastify({ text: "Dados do ativo atualizados com sucesso!" }).showToast();
+        
         fecharModalEditarMaquina();
         carregarDados();
     } catch (error) {
-        console.error("Erro ao atualizar máquina:", error);
+        console.error("Erro ao atualizar o ativo:", error);
         Toastify({ text: `Erro ao atualizar: ${error.message}`, backgroundColor: "red" }).showToast();
     }
 }
@@ -1229,6 +1255,7 @@ async function popularDropdownSetores() {
         // Formulários de ASSOCIAÇÃO (os que estavam a faltar)
         'departamento-pessoa-assoc',
         'departamento-pessoa-mobiliario-assoc',
+        'assoc-departamento',
 
         // FILTROS das listas
         'filtro-setor-estoque',
@@ -1345,6 +1372,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (formOutrosAtivos) {
         formOutrosAtivos.addEventListener('submit', salvarOutroAtivo);
     }
+    const formAssociacaoUnificado = document.getElementById('form-associacao-unificado');
+    if (formAssociacaoUnificado) formAssociacaoUnificado.addEventListener('submit', salvarAssociacaoUnificada);
 
     // 2. LÓGICA DO MENU LATERAL
     const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -1398,8 +1427,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. LISTENERS PARA FORMULÁRIOS E CAMPOS DE BUSCA
-    const formPrincipal = document.getElementById('form-maquina');
-    if (formPrincipal) formPrincipal.addEventListener('submit', salvarAssociacao);
+
+    const formNovoItem = document.getElementById('form-novo-item');
+    if (formNovoItem) formNovoItem.addEventListener('submit', salvarNovoItem);
+
+   
     
     const formEstoque = document.getElementById('form-estoque');
     if (formEstoque) formEstoque.addEventListener('submit', salvarAtivoEstoque);
@@ -1416,11 +1448,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (formMobiliario) {
         formMobiliario.addEventListener('submit', salvarMobiliario);
     }
-    const formAssociarMobiliario = document.getElementById('form-associar-mobiliario');
-    if (formAssociarMobiliario) {
-        formAssociarMobiliario.addEventListener('submit', salvarAssociacaoMobiliario);
-    }
-
+    
     const buscaMonitorAssocInput = document.getElementById('busca-monitor-assoc');
     const monitorAssocResultadosDiv = document.getElementById('monitor-assoc-resultados');
     const monitorIdInput = document.getElementById('id-monitor-emprestimo');
@@ -1445,11 +1473,71 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-// Ativa o envio do novo formulário de associação de monitor
-const formAssociarMonitor = document.getElementById('form-associar-monitor');
-if (formAssociarMonitor) {
-    formAssociarMonitor.addEventListener('submit', salvarAssociacaoMonitor);
-}
+
+    document.getElementById('btn-abrir-assoc-maquina')?.addEventListener('click', () => abrirModalAssociacao('COMPUTADOR'));
+    document.getElementById('btn-abrir-assoc-monitor')?.addEventListener('click', () => abrirModalAssociacao('MONITOR'));
+    document.getElementById('btn-abrir-assoc-mobiliario')?.addEventListener('click', () => abrirModalAssociacao('MOBILIARIO'));
+
+    // Botão para FECHAR o modal
+    document.getElementById('assoc-btn-cancelar')?.addEventListener('click', fecharModalAssociacao);
+
+    // Submissão do formulário unificado
+    document.getElementById('form-associacao-unificado')?.addEventListener('submit', salvarAssociacaoUnificada);
+
+    // Lógica de Autocomplete para o campo de ativo principal
+    const buscaAtivoInput = document.getElementById('assoc-busca-ativo');
+    const resultadosAtivoDiv = document.getElementById('assoc-resultados');
+    const idAtivoInput = document.getElementById('assoc-id-ativo');
+
+    buscaAtivoInput?.addEventListener('input', () => {
+        const termo = buscaAtivoInput.value.toLowerCase();
+        idAtivoInput.value = '';
+        if (termo.length < 2) {
+            resultadosAtivoDiv.style.display = 'none';
+            return;
+        }
+        // Filtra o estoque com base no tipo de associação que estamos a fazer
+        const ativosDisponiveis = todoEstoque.filter(item => 
+            item.categoria === tipoAssociacaoAtual && item.status === 'Disponível'
+        );
+        const resultados = ativosDisponiveis.filter(item => 
+            item.modelo_tipo.toLowerCase().includes(termo) || 
+            (item.patrimonio || '').toLowerCase().includes(termo)
+        );
+        mostrarResultados(resultados, resultadosAtivoDiv, buscaAtivoInput, idAtivoInput);
+    });
+
+// Lógica de Autocomplete para os monitores extras
+const buscaMonitorExtraInput = document.getElementById('assoc-busca-monitor');
+const resultadosMonitorExtraDiv = document.getElementById('assoc-monitor-resultados');
+
+buscaMonitorExtraInput?.addEventListener('input', () => {
+    // Lógica para adicionar monitores (reutiliza a função de adicionar tags)
+    const termo = buscaMonitorExtraInput.value.toLowerCase();
+    if (termo.length < 2) {
+        resultadosMonitorExtraDiv.style.display = 'none';
+        return;
+    }
+    const monitoresDisponiveis = todoEstoque.filter(item => 
+        item.categoria === 'MONITOR' && item.status === 'Disponível' && !monitoresSelecionadosParaAssociar.has(item.id)
+    );
+    const resultados = monitoresDisponiveis.filter(m => m.modelo_tipo.toLowerCase().includes(termo) || m.patrimonio.toLowerCase().includes(termo));
+
+    resultadosMonitorExtraDiv.innerHTML = '';
+    resultados.forEach(monitor => {
+        const div = document.createElement('div');
+        div.textContent = `${monitor.modelo_tipo} (P/N: ${monitor.patrimonio})`;
+        div.className = 'autocomplete-item';
+        div.onclick = () => {
+            adicionarMonitorTag(monitor, 'assoc-monitores-selecionados-container', monitoresSelecionadosParaAssociar);
+            buscaMonitorExtraInput.value = '';
+            resultadosMonitorExtraDiv.style.display = 'none';
+        };
+        resultadosMonitorExtraDiv.appendChild(div);
+    });
+    resultadosMonitorExtraDiv.style.display = resultados.length > 0 ? 'block' : 'none';
+});
+
 
     const buscaMonitorInput = document.getElementById('busca-monitor');
     const monitorResultadosDiv = document.getElementById('monitor-resultados');
@@ -1553,40 +1641,44 @@ if (formAssociarMonitor) {
 
 document.body.addEventListener('click', async (event) => {
     const target = event.target;
+    if (target.disabled) return;
+    
+    // Lógica para remover tags de monitor (mantida)
+    if (target.classList.contains('remove-monitor')) {
+        const tagElement = target.closest('.monitor-tag');
+        if (tagElement) removerMonitorTag(tagElement);
+        return;
+    }
 
     const id = target.dataset.id;
-    if (!id) return; // Sai se o elemento clicado não tiver um data-id
+    if (!id) return;
 
-
-    // Lógica do botão de exclusão (mantida como está)
-    if (target.classList.contains('btn-excluir-estoque')) {
-        excluirMaquinaEstoque(parseInt(id)); 
-        
-    } 
-    // Lógica do botão de edição
-    else if (target.classList.contains('btn-editar-estoque')) {
-        
+    // --- LÓGICA CORRIGIDA ---
+    if (target.classList.contains('btn-editar-estoque')) {
         const itemParaEditar = todoEstoque.find(i => i.id == id);
-
         if (itemParaEditar) {
+            const categoria = itemParaEditar.categoria.toUpperCase();
             
-            // Verifica a categoria do item e chama a função do modal correto
-            if (itemParaEditar.categoria.toUpperCase() === 'COMPUTADOR') {
+            // CORREÇÃO: Tanto COMPUTADOR quanto MONITOR chamam a mesma função
+            if (categoria === 'COMPUTADOR' || categoria === 'MONITOR') {
                 abrirModalEditarMaquina(parseInt(id));
-            } else if (itemParaEditar.categoria.toUpperCase() === 'MOBILIARIO') {
+            } 
+            // Outras categorias continuam a chamar as suas funções específicas
+            else if (categoria === 'MOBILIARIO') {
                 abrirModalEditarMobiliario(parseInt(id));
-            } else if (itemParaEditar.categoria.toUpperCase() === 'MONITOR') {
-              abrirModalEditarMonitor(parseInt(id));
-            } else if (itemParaEditar.categoria.toUpperCase() === 'OUTROS') {
+            } else if (categoria === 'OUTROS') {
                 abrirModalEditarOutro(parseInt(id));
             }
-        } else {
-            console.error("ERRO: Item não encontrado no array 'todoEstoque' com o id:", id); // PONTO 5: Avisa se o item não foi achado
         }
     } 
-    // Lógica do botão de histórico (mantida como está)
+    // Outras lógicas de clique (histórico, excluir, etc.)
     else if (target.classList.contains('btn-historico')) {
         abrirModalHistorico(parseInt(id));
+    } else if (target.classList.contains('spec-link')) {
+        event.preventDefault();
+        abrirModalEspecificacoes(parseInt(id));
+    } else if (target.classList.contains('btn-excluir-estoque')) {
+        excluirMaquinaEstoque(parseInt(id));
     }
 });
 });
