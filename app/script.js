@@ -49,6 +49,7 @@ function checkAuth() {
 
 // Substitua a sua função carregarDados por esta versão de diagnóstico
 async function carregarDados() {
+    exibirInfoUtilizador();
     try {
         const [itens, emprestimos] = await Promise.all([getItens(), getEmprestimos()]);
         todoEstoque = itens;
