@@ -135,7 +135,7 @@
                             <option value="">Todos</option>
                             <option value="Disponível">Disponível</option>
                             <option value="Em Uso">Em Uso</option>
-                            <option value="Em Manutenção">Em Manutenção</option>
+                            <option value="Inativo">Inativo</option>
                         </select>
                     </div>
                 </div>
@@ -214,6 +214,7 @@
                                 <option value="">Todos</option>
                                 <option value="Disponível">Disponível</option>
                                 <option value="Em Uso">Em Uso</option>
+                                <option value="Inativo">Inativo</option>
                             </select>
                         </div>
                     </div>
@@ -287,6 +288,7 @@
                     <option value="">Todos</option>
                     <option value="Disponível">Disponível</option>
                     <option value="Em Uso">Em Uso</option>
+                    <option value="Inativo">Inativo</option>
                 </select>
             </div>
         </div>
@@ -347,6 +349,15 @@
             <div class="form-group">
                 <label for="editar-maquina-setor">Setor:</label>
                 <select id="editar-maquina-setor" required></select>
+            </div>
+            <div class="form-group">
+                <label for="editar-maquina-estado">Estado de Conservação:</label>
+                <select id="editar-maquina-estado" required>
+                    <option value="Novo">Novo</option>
+                    <option value="Bom">Bom</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Inservível">Inservível</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="editar-maquina-observacoes">Observações (Outras Specs):</label>
@@ -491,6 +502,15 @@
             <div class="form-group">
                 <label for="editar-outro-setor">Setor:</label>
                 <select id="editar-outro-setor" required></select>
+            </div>
+            <div class="form-group">
+                <label for="editar-outro-estado">Estado de Conservação:</label>
+                <select id="editar-outro-estado" required>
+                    <option value="Novo">Novo</option>
+                    <option value="Bom">Bom</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Inservível">Inservível</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="editar-outro-observacoes">Observações:</label>

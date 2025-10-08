@@ -6,6 +6,7 @@ let todoEstoque = [];
 let todasAssociacoes = [];
 let todasAssociacoesMobiliario = [];
 let dadosFiltrados = []; // Mantém os dados atualmente exibidos na tela
+let todasAssociacoesMonitores = [];
 
 // --- FUNÇÕES DE LÓGICA E AUTENTICAÇÃO ---
 
@@ -16,74 +17,82 @@ async function carregarDados() {
         todoEstoque = itens;
         const emprestimosAtivos = todosOsEmprestimos.filter(e => !e.data_devolucao);
 
+        // Filtra e separa as associações por categoria
         todasAssociacoes = emprestimosAtivos
             .map(e => ({ ...e, item_info: todoEstoque.find(t => t.id == e.item_id) }))
             .filter(e => e.item_info && e.item_info.categoria === 'COMPUTADOR');
+
+        todasAssociacoesMonitores = emprestimosAtivos
+            .map(e => ({ ...e, item_info: todoEstoque.find(t => t.id == e.item_id) }))
+            .filter(e => e.item_info && e.item_info.categoria === 'MONITOR');
 
         todasAssociacoesMobiliario = emprestimosAtivos
             .map(e => ({ ...e, item_info: todoEstoque.find(t => t.id == e.item_id) }))
             .filter(e => e.item_info && e.item_info.categoria === 'MOBILIARIO');
 
+        // Renderiza a lista inicial com base na página atual
         if (document.getElementById('lista-associacoes')) {
-            renderizarListaAssociada('maquina');
-            popularFiltroDepartamentos(todasAssociacoes);
+            renderizarListaAssociada();
+            popularFiltroDepartamentos([...todasAssociacoes, ...todasAssociacoesMonitores]);
         }
         if (document.getElementById('lista-associacoes-mobiliario')) {
-            renderizarListaAssociada('mobiliario');
+            renderizarListaAssociada();
             popularFiltroDepartamentos(todasAssociacoesMobiliario);
         }
-    } catch (error) { console.error("Erro ao carregar dados da API:", error); }
+    } catch (error) { 
+        console.error("Erro ao carregar dados da API:", error); 
+    }
 }
 
 // --- FUNÇÕES DE RENDERIZAÇÃO ---
 
-function renderizarListaAssociada(tipo) {
-    const ehMaquina = tipo === 'maquina';
-    const listaUI = document.getElementById(ehMaquina ? 'lista-associacoes' : 'lista-associacoes-mobiliario');
-    const associacoesSource = ehMaquina ? todasAssociacoes : todasAssociacoesMobiliario;
+function renderizarListaAssociada() {
+    const tipoFiltro = document.getElementById('filtro-tipo-ativo-lista')?.value || 'MOBILIARIO'; // Usa MOBILIARIO como fallback
+
+    const ehPaginaMobiliario = window.location.pathname.includes('lista_mobiliario.html');
+    const listaUI = document.getElementById(ehPaginaMobiliario ? 'lista-associacoes-mobiliario' : 'lista-associacoes');
+
     if (!listaUI) return;
 
-    const termoBusca = document.getElementById('campo-busca').value.toLowerCase();
-    const filtroDepto = document.getElementById('filtro-departamento').value;
-
-    let associacoesFiltradas = associacoesSource;
-    if (filtroDepto) {
-        associacoesFiltradas = associacoesFiltradas.filter(a => {
-            const depto = a.pessoa_depto ? (a.pessoa_depto.split(' - ')[1] || '').trim() : '';
-            return depto === filtroDepto;
-        });
-    }
-    if (termoBusca) {
-        associacoesFiltradas = associacoesFiltradas.filter(a => {
-            const item = a.item_info;
-            if (!item) return false;
-            const searchString = `${a.pessoa_depto || ''} ${item.modelo_tipo || ''} ${item.patrimonio || ''}`.toLowerCase();
-            return searchString.includes(termoBusca);
-        });
+    let associacoesSource;
+    if (ehPaginaMobiliario) {
+        associacoesSource = todasAssociacoesMobiliario;
+    } else {
+        associacoesSource = tipoFiltro === 'COMPUTADOR' ? todasAssociacoes : todasAssociacoesMonitores;
     }
 
-    dadosFiltrados = associacoesFiltradas; // Atualiza a variável global com os dados filtrados
+    const termoBusca = (document.getElementById('campo-busca')?.value || '').toLowerCase();
+    const filtroDepto = document.getElementById('filtro-departamento')?.value;
+
+    let associacoesFiltradas = associacoesSource.filter(a => {
+        const depto = (a.pessoa_depto.split(' - ')[1] || '').trim();
+        const searchString = `${a.pessoa_depto || ''} ${a.item_info.modelo_tipo || ''} ${a.item_info.patrimonio || ''}`.toLowerCase();
+        const filtroDeptoOk = !filtroDepto || depto === filtroDepto;
+        const buscaOk = !termoBusca || searchString.includes(termoBusca);
+        return filtroDeptoOk && buscaOk;
+    });
+
     listaUI.innerHTML = '';
-
-    if (dadosFiltrados.length === 0) {
+    if (associacoesFiltradas.length === 0) {
         listaUI.innerHTML = `<li>Nenhuma associação encontrada.</li>`;
         return;
     }
 
-    dadosFiltrados.forEach(a => {
+    associacoesFiltradas.forEach(a => {
         const i = a.item_info;
+        let monitoresHtml = '';
+        if (tipoFiltro === 'COMPUTADOR' && Array.isArray(a.monitores_associados_ids) && a.monitores_associados_ids.length > 0) {
+            const monitoresAssociados = a.monitores_associados_ids.map(id => todoEstoque.find(item => item.id === id))
+                .filter(Boolean)
+                .map(info => `<li><small>${info.modelo_tipo} (P/N: ${info.patrimonio})</small></li>`)
+                .join('');
+            if (monitoresAssociados) {
+                monitoresHtml = `<ul class="monitores-na-associacao"><span>Monitores Associados:</span>${monitoresAssociados}</ul>`;
+            }
+        }
+
         const li = document.createElement('li');
-        li.innerHTML = `
-            <span>
-                <strong>${a.pessoa_depto}</strong> está com: 
-                <a href="#" class="spec-link" data-id="${i.id}">${i.modelo_tipo}</a>
-                <br>
-                <small class="patrimonio-info">Patrimônio: ${i.patrimonio}</small>
-            </span>
-            <div class="botoes-item">
-                <button class="btn-item btn-devolver" data-id="${a.id}">Devolver</button>
-            </div>
-        `;
+        li.innerHTML = `<div><span><strong>${a.pessoa_depto}</strong> está com: <a href="#" class="spec-link" data-id="${i.id}">${i.modelo_tipo}</a><br><small class="patrimonio-info">Património: ${i.patrimonio}</small></span>${monitoresHtml}</div><div class="botoes-item"><button class="btn-item btn-devolver" data-id="${a.id}">Devolver</button></div>`;
         listaUI.appendChild(li);
     });
 }
@@ -171,28 +180,40 @@ function exportarParaCSV(dados, nomeArquivo) {
 // Adicione estas duas funções ao listas.js
 
 function abrirModalEspecificacoes(itemId) {
-    // Encontra o item correspondente no nosso array de estoque
     const item = todoEstoque.find(i => i.id === itemId);
     if (!item) return;
 
     const modal = document.getElementById('modal-especificacoes');
     if(!modal) return;
 
-    // Preenche o título e a lista de especificações do modal
     modal.querySelector('#spec-modelo').textContent = item.modelo_tipo;
     const listaSpecs = modal.querySelector('#spec-lista');
-
-    listaSpecs.innerHTML = `
+    
+    // Começa a lista de HTML com as informações comuns a todos os ativos
+    let specsHtml = `
         <li><strong>Património:</strong> ${item.patrimonio || 'N/P'}</li>
         <li><strong>Categoria:</strong> ${item.categoria || 'N/P'}</li>
         <li><strong>Setor:</strong> ${item.setor_nome || 'N/P'}</li>
-        <li><strong>Processador:</strong> ${item.espec_processador || 'N/A'}</li>
-        <li><strong>Memória RAM:</strong> ${item.espec_ram || 'N/A'}</li>
-        <li><strong>Armazenamento:</strong> ${item.espec_armazenamento || 'N/A'}</li>
-        ${item.observacoes ? `<li><strong>Observações:</strong> ${item.observacoes}</li>` : ''}
     `;
 
-    // Torna o modal visível
+    // Adiciona os campos de especificações APENAS se a categoria for COMPUTADOR
+    if (item.categoria === 'COMPUTADOR') {
+        specsHtml += `
+            <li><strong>Processador:</strong> ${item.espec_processador || 'N/A'}</li>
+            <li><strong>Memória RAM:</strong> ${item.espec_ram || 'N/A'}</li>
+            <li><strong>Armazenamento:</strong> ${item.espec_armazenamento || 'N/A'}</li>
+        `;
+    }
+    
+    // Adiciona as observações no final, se existirem
+    if (item.observacoes) {
+        specsHtml += `<li><strong>Observações:</strong> ${item.observacoes}</li>`;
+    }
+
+    // Insere o HTML gerado na lista do modal
+    listaSpecs.innerHTML = specsHtml;
+    
+    // Mostra o modal
     modal.classList.add('visible');
 }
 
@@ -292,5 +313,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnFecharSpecMobiliario = document.getElementById('btn-spec-mobiliario-fechar');
     if(btnFecharSpecMobiliario) {
         btnFecharSpecMobiliario.addEventListener('click', fecharModalSpecMobiliario);
+    }
+
+    const filtroTipoAtivo = document.getElementById('filtro-tipo-ativo-lista');
+    if (filtroTipoAtivo) {
+        filtroTipoAtivo.addEventListener('change', renderizarListaAssociada);
     }
 });

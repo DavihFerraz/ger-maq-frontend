@@ -1469,3 +1469,33 @@ grafico-setores,
 .monitores-na-associacao span {
     font-weight: 500;
 }
+
+.status-badge.status-inativo {
+    background-color: #7f8c8d; /* Cinzento */
+    color: white;
+}
+
+/* Cor da borda para o item da lista quando estiver inativo */
+.list-container-stock li.status-inativo {
+    border-left-color: #7f8c8d; /* Cinzento */
+    opacity: 0.7; /* Deixa o item ligeiramente desvanecido */
+}
+
+/* Estilo para o novo botão de Inativar/Reativar */
+.btn-inativar {
+    background-color: #f39c12; /* Laranja/Amarelo, cor de aviso */
+    color: white;
+}
+
+.btn-inativar:hover {
+    background-color: #e67e22;
+}
+
+.btn-reativar {
+    background-color: #16a085; /* Um tom de verde-água */
+    color: white;
+}
+
+.btn-reativar:hover {
+    background-color: #1abc9c;
+}

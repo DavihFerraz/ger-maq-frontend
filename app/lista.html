@@ -38,22 +38,25 @@
                 <button id="sidebar-toggle" class="sidebar-toggle-btn">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1>Máquinas Associadas</h1>
+                <h1>Ativos de TI Associados</h1>
             </div>
             <div id="info-utilizador"></div>
         </div>
 
         <div class="list-container">
-            <div class="list-controls"> 
-                <button id="btn-exportar" class="btn-exportar">Exportar para CSV</button>
-                <div class="filter-container">
+            <div class="filtros-container">
+                <div class="filtro-item">
+                    <label for="filtro-tipo-ativo-lista">Filtrar por Tipo de Ativo:</label>
+                    <select id="filtro-tipo-ativo-lista">
+                        <option value="COMPUTADOR" selected>Máquinas</option>
+                        <option value="MONITOR">Monitores</option>
+                    </select>
+                </div>
+                <div class="filtro-item">
                     <label for="filtro-departamento">Filtrar por Departamento:</label>
                     <select id="filtro-departamento">
                         <option value="">-- Todos os Departamentos --</option>
                     </select>
-                </div>
-                <div class="search-container">
-                    <input type="text" id="campo-busca" placeholder="Buscar por pessoa, máquina ou departamento">
                 </div>
             </div>
 

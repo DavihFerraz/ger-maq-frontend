@@ -121,11 +121,11 @@ function renderizarEstoque() {
     }
 
     estoqueParaRenderizar.forEach(item => {
-        const estaEmUso = item.status && item.status.toLowerCase() === 'em uso';
+        const estaEmUso = item.status === 'Em Uso';
         let detalhesHtml = '';
         let utilizadorHtml = '';
+        let botaoInativarHtml = '';
 
-        // LÓGICA SIMPLIFICADA: Apenas verifica se o ID do item está no mapa
         if (mapaDeUso[item.id]) {
             const nomePessoa = mapaDeUso[item.id].split(' - ')[0];
             utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
@@ -134,14 +134,41 @@ function renderizarEstoque() {
         if (item.categoria === 'COMPUTADOR') {
             detalhesHtml = `<br><small>Processador: ${item.espec_processador || 'N/A'}</small><br><small>RAM: ${item.espec_ram || 'N/A'}</small><br><small>Armazenamento: ${item.espec_armazenamento || 'N/A'}</small>`;
         }
+        
+        if (item.status === 'Inativo') {
+            botaoInativarHtml = `<button class="btn-item btn-reativar" data-id="${item.id}">Reativar</button>`;
+        } else {
+            botaoInativarHtml = `<button class="btn-item btn-inativar" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Inativar</button>`;
+        }
 
         const li = document.createElement('li');
-        const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'desconhecido';
+        const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'desconhecido';
         li.classList.add(`status-${statusClass}`);
-        const botoesHTML = `<button class="btn-item btn-historico" data-id="${item.id}">Histórico</button><button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button><button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>`;
+        
+        const botoesHTML = `
+            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
+            ${botaoInativarHtml}
+            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso || item.status === 'Inativo' ? 'disabled' : ''}>Excluir</button>
+        `;
+        
         const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
         
-        li.innerHTML = `<div class="info-item"><span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})<br><small>Categoria: ${item.categoria}</small><br><small>Setor: ${item.setor_nome || 'N/A'}</small>${detalhesHtml}${utilizadorHtml}</span><div class="status-badges-container"><span class="status-badge status-${statusClass}">${item.status}</span>${statusGASCadastroHTML}</div></div><div class="botoes-item">${botoesHTML}</div>`;
+        li.innerHTML = `
+    <div class="info-item">
+        <span>
+            <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
+            <br><small>Categoria: ${item.categoria}</small>
+            <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
+            <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
+            ${utilizadorHtml} 
+        </span>
+        <div class="status-badges-container">
+            <span class="status-badge status-${statusClass}">${item.status}</span>
+            ${statusGASCadastroHTML}
+        </div>
+    </div>
+    <div class="botoes-item">${botoesHTML}</div>`;
         listaEstoqueUI.appendChild(li);
     });
 }
@@ -152,7 +179,6 @@ function renderizarMobiliario() {
 
     const todoMobiliario = todoEstoque.filter(item => item.categoria === 'MOBILIARIO');
 
-    // --- LÓGICA DOS FILTROS ---
     const termoBusca = (document.getElementById('campo-busca-mobiliario')?.value || '').toLowerCase();
     const filtroSetor = document.getElementById('filtro-setor-mobiliario')?.value;
     const filtroGPM = document.getElementById('filtro-gpm-mobiliario')?.value;
@@ -173,28 +199,40 @@ function renderizarMobiliario() {
     }
 
     mobiliarioParaRenderizar.sort((a, b) => a.modelo_tipo.localeCompare(b.modelo_tipo));
-
+    
     mobiliarioParaRenderizar.forEach(item => {
-        // ... (toda a lógica para criar e adicionar o 'li' continua aqui, sem alterações)
-        const estaEmUso = item.status && item.status.toLowerCase() === 'em uso';
+        const estaEmUso = item.status === 'Em Uso';
         let utilizadorHtml = '';
-        if (estaEmUso) {
-            const associacao = todasAssociacoes.find(emp => emp.item_id === item.id);
-            if (associacao) {
-                const nomePessoa = associacao.pessoa_depto.split(' - ')[0];
-                utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
-            }
+        let botaoInativarHtml = '';
+
+        if (mapaDeUso[item.id]) {
+            const nomePessoa = mapaDeUso[item.id].split(' - ')[0];
+            utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
         }
+
+        if (item.status === 'Inativo') {
+            botaoInativarHtml = `<button class="btn-item btn-reativar" data-id="${item.id}">Reativar</button>`;
+        } else {
+            botaoInativarHtml = `<button class="btn-item btn-inativar" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Inativar</button>`;
+        }
+
         const li = document.createElement('li');
-        const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'status-desconhecido';
+        const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
-        const botoesHTML = `<button class="btn-item btn-historico" data-id="${item.id}">Histórico</button><button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button><button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>`;
+
+        const botoesHTML = `
+            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
+            ${botaoInativarHtml}
+            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso || item.status === 'Inativo' ? 'disabled' : ''}>Excluir</button>
+        `;
+        
         const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
+        
         li.innerHTML = `<div class="info-item"><span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})<br><small>Setor: ${item.setor_nome || 'N/A'}</small><br><small>Categoria: ${item.categoria || 'N/A'}</small><br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>${item.observacoes ? `<br><small>${item.observacoes}</small>` : ''}${utilizadorHtml}</span><div class="status-badges-container"><span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>${statusGASCadastroHTML}</div></div><div class="botoes-item">${botoesHTML}</div>`;
         listaMobiliarioUI.appendChild(li);
     });
 }
-
 
 
 function renderizarOutrosAtivos() {
@@ -202,8 +240,7 @@ function renderizarOutrosAtivos() {
     if (!listaUI) return;
 
     const todoOutros = todoEstoque.filter(item => item.categoria === 'OUTROS');
-
-    // --- LÓGICA DOS FILTROS ---
+    
     const termoBusca = (document.getElementById('campo-busca-outros')?.value || '').toLowerCase();
     const filtroSetor = document.getElementById('filtro-setor-outros')?.value;
     const filtroGPM = document.getElementById('filtro-gpm-outros')?.value;
@@ -226,14 +263,49 @@ function renderizarOutrosAtivos() {
     filtrados.sort((a, b) => (a.modelo_tipo || '').localeCompare(b.modelo_tipo || ''));
 
     filtrados.forEach(item => {
-        // ... (toda a lógica para criar e adicionar o 'li' continua aqui, sem alterações)
         const estaEmUso = item.status === 'Em Uso';
+        let utilizadorHtml = '';
+        let botaoInativarHtml = '';
+        
+        if (mapaDeUso[item.id]) {
+            const nomePessoa = mapaDeUso[item.id].split(' - ')[0];
+            utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
+        }
+        
+        if (item.status === 'Inativo') {
+            botaoInativarHtml = `<button class="btn-item btn-reativar" data-id="${item.id}">Reativar</button>`;
+        } else {
+            botaoInativarHtml = `<button class="btn-item btn-inativar" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Inativar</button>`;
+        }
+
         const li = document.createElement('li');
-        const statusClass = item.status ? item.status.toLowerCase().replace(' ', '-') : 'desconhecido';
+        const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'desconhecido';
         li.classList.add(`status-${statusClass}`);
-        const botoesHTML = `<button class="btn-item btn-historico" data-id="${item.id}">Histórico</button><button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button><button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Excluir</button>`;
+
+        const botoesHTML = `
+            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
+            ${botaoInativarHtml}
+            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso || item.status === 'Inativo' ? 'disabled' : ''}>Excluir</button>
+        `;
+        
         const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
-        li.innerHTML = `<div class="info-item"><span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})<br><small>Setor: ${item.setor_nome || 'N/A'}</small><br><small>Categoria: ${item.categoria || 'N/A'}</small><br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>${item.observacoes ? `<br><small>Observações: ${item.observacoes}</small>` : ''}</span><div class="status-badges-container"><span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>${statusGASCadastroHTML}</div></div><div class="botoes-item">${botoesHTML}</div>`;
+        
+        li.innerHTML = `
+    <div class="info-item">
+        <span>
+            <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
+            <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
+            <br><small>Categoria: ${item.categoria || 'N/A'}</small>
+            <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small> ${item.observacoes ? `<br><small>Observações: ${item.observacoes}</small>` : ''}
+            ${utilizadorHtml}
+        </span>
+        <div class="status-badges-container">
+            <span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>
+            ${statusGASCadastroHTML}
+        </div>
+    </div>
+    <div class="botoes-item">${botoesHTML}</div>`;
         listaUI.appendChild(li);
     });
 }
@@ -429,6 +501,8 @@ function abrirModalEditarMaquina(itemId) {
     document.getElementById('editar-maquina-setor').value = item.setor_nome || ''; 
     document.getElementById('editar-maquina-observacoes').value = item.observacoes || '';
     document.getElementById('editar-maquina-cadastrado-gpm').checked = item.cadastrado_gpm || false;
+    document.getElementById('editar-maquina-estado').value = item.estado_conservacao || 'Regular';
+
 
     // Elementos dinâmicos
     const tituloModal = document.getElementById('modal-maquina-titulo');
@@ -614,6 +688,8 @@ function abrirModalEditarOutro(outroId) {
         document.getElementById('editar-outro-setor').value = outro.setor_nome || '';
         document.getElementById('editar-outro-observacoes').value = outro.observacoes || '';
         document.getElementById('editar-outro-cadastrado-gpm').checked = outro.cadastrado_gpm || false;
+        document.getElementById('editar-outro-estado').value = outro.estado_conservacao || 'Regular';
+
         console.log("Campos do formulário preenchidos com sucesso."); // VERIFICAÇÃO 2
     } catch (e) {
         console.error("ERRO ao tentar preencher os campos do formulário!", e);
@@ -649,6 +725,8 @@ async function salvarEdicaoOutro(event) {
         setor: form.querySelector('#editar-outro-setor').value.trim(),
         observacoes: form.querySelector('#editar-outro-observacoes').value.trim(),
         cadastrado_gpm: form.querySelector('#editar-outro-cadastrado-gpm').checked,
+        estado_conservacao: form.querySelector('#editar-outro-estado').value,
+
     };
 
     try {
@@ -908,7 +986,6 @@ async function salvarAlteracoesMaquina(event) {
     const form = event.target;
     const maquinaId = form.querySelector('#editar-maquina-id').value;
 
-    // Descobre qual é o item que estamos a editar para saber a sua categoria
     const itemAtual = todoEstoque.find(i => i.id == maquinaId);
     if (!itemAtual) {
         Toastify({ text: "Erro: Item não encontrado.", backgroundColor: "red" }).showToast();
@@ -920,9 +997,10 @@ async function salvarAlteracoesMaquina(event) {
         modelo_tipo: form.querySelector('#editar-maquina-modelo').value.trim(),
         patrimonio: form.querySelector('#editar-maquina-patrimonio').value.trim(),
         setor: form.querySelector('#editar-maquina-setor').value,
+        estado_conservacao: form.querySelector('#editar-maquina-estado').value, // <-- A LINHA QUE FALTAVA
         observacoes: form.querySelector('#editar-maquina-observacoes').value.trim(),
         cadastrado_gpm: form.querySelector('#editar-maquina-cadastrado-gpm').checked,
-        categoria: itemAtual.categoria // Envia a categoria correta
+        categoria: itemAtual.categoria
     };
 
     // Se for um COMPUTADOR, adiciona os campos de especificações
@@ -1005,6 +1083,25 @@ async function excluirMaquinaEstoque(itemId) {
             carregarDados();
         } catch (error) {
             console.error("Erro ao excluir:", error);
+            Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+        }
+    });
+}
+
+async function alternarStatusAtivo(itemId) {
+    const item = todoEstoque.find(i => i.id === itemId);
+    if (!item) return;
+
+    const novoStatus = item.status === 'Inativo' ? 'Disponível' : 'Inativo';
+    const acao = novoStatus === 'Inativo' ? 'inativar' : 'reativar';
+
+    exibirModalConfirmacao(`Tem a certeza que deseja ${acao} o item "${item.modelo_tipo}"?`, async () => {
+        try {
+            await updateItem(itemId, { status: novoStatus });
+            Toastify({ text: `Item ${acao} com sucesso!` }).showToast();
+            carregarDados(); // Recarrega os dados para atualizar a lista e os botões
+        } catch (error) {
+            console.error(`Erro ao ${acao} o item:`, error);
             Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
         }
     });
@@ -1557,6 +1654,9 @@ document.body.addEventListener('click', async (event) => {
                 abrirModalEditarOutro(parseInt(id));
             }
         }
+    } 
+    else if (target.classList.contains('btn-inativar') || target.classList.contains('btn-reativar')) {
+        alternarStatusAtivo(parseInt(id));
     } 
     // Outras lógicas de clique (histórico, excluir, etc.)
     else if (target.classList.contains('btn-historico')) {
