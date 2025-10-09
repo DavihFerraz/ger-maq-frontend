@@ -27,7 +27,7 @@
         </li>
         </ul>
         <ul class="sidebar-actions">
-            <li><a href="#" id="btn-exportar-dashboard-sidebar"><i class="fas fa-file-excel"></i> <span class="nav-text">Exportar Relatório</span></a></li>
+            <li><a href="#" id="btn-abrir-modal-exportar"><i class="fas fa-download"></i> <span class="nav-text">Exportar Relatório</span></a></li>
             <li><a href="#" id="btn-mudar-senha-sidebar"><i class="fas fa-key"></i> <span class="nav-text">Mudar Senha</span></a></li>
             <li><a href="#" id="btn-logout-sidebar"><i class="fas fa-sign-out-alt"></i> <span class="nav-text">Sair</span></a></li>
         </ul>
@@ -112,10 +112,30 @@
         </form>
     </div>
 </div>
-    </main>
 
+
+
+<div id="modal-exportar" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Exportar Relatório do Dashboard</h3>
+        <p>Escolha o formato desejado para o seu relatório.</p>
+        <div class="export-modal-buttons">
+            <button id="btn-exportar-dashboard-csv" class="btn-modal">
+                <i class="fas fa-file-csv"></i> Exportar como CSV
+            </button>
+            <button id="btn-exportar-dashboard-pdf" class="btn-modal">
+                <i class="fas fa-file-pdf"></i> Exportar como PDF
+            </button>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-modal" id="btn-fechar-modal-exportar">Cancelar</button>
+        </div>
+    </div>
+</div>
+    </main>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="api.js" type="module"></script>
+    <script src="sidebar.js" type="module"></script> <script src="dashboard.js" type="module"></script>
     <script src="dashboard.js" type="module"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>

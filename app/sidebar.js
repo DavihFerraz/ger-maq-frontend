@@ -44,45 +44,37 @@ function fecharModalSenha() {
     if (modal) modal.classList.remove('visible');
 }
 
-async function mudarSenha(event) {
-    event.preventDefault();
-    const form = event.target;
-    const senhaAtual = form.querySelector('#senha-atual').value;
-    const novaSenha = form.querySelector('#nova-senha').value;
-    
-    try {
-        const response = await apiChangePassword(senhaAtual, novaSenha);
-        Toastify({ text: response.message || "Senha alterada com sucesso!" }).showToast();
-        fecharModalSenha();
-        form.reset();
-    } catch (error) {
-        Toastify({ text: "Erro: " + error.message, backgroundColor: "red" }).showToast();
-    }
-}
-
-// --- Função Principal de Inicialização ---
-
+// Função principal que organiza toda a lógica da barra lateral
 function inicializarSidebar() {
-    exibirInfoUsuario();
-
+    // Lógica para o botão de expandir/colapsar (hamburguer)
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
     const mainContent = document.querySelector('.main-content');
-
-    if (sidebarToggle && sidebar && mainContent) {
+    if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded'); // A linha que empurra o conteúdo
+            mainContent.classList.toggle('expanded');
         });
     }
 
+    // Lógica para abrir/fechar o submenu "Associações"
     document.querySelectorAll('.has-submenu > a').forEach(menu => {
         menu.addEventListener('click', function (e) {
             e.preventDefault();
             this.parentElement.classList.toggle('open');
         });
     });
-    
+
+    // Mantém o submenu aberto na página correta
+    const currentPage = window.location.pathname;
+    document.querySelectorAll('.submenu a').forEach(link => {
+        if (currentPage.includes(link.getAttribute('href'))) {
+            const parentLi = link.closest('.has-submenu');
+            if (parentLi) parentLi.classList.add('open');
+        }
+    });
+
+    // Lógica para o botão de logout
     const btnLogout = document.getElementById('btn-logout-sidebar');
     if (btnLogout) {
         btnLogout.addEventListener('click', () => {
@@ -91,16 +83,35 @@ function inicializarSidebar() {
         });
     }
 
+    // Lógica para o botão de mudar senha
     const btnMudarSenha = document.getElementById('btn-mudar-senha-sidebar');
     if (btnMudarSenha) {
         btnMudarSenha.addEventListener('click', abrirModalSenha);
     }
     
-    const formMudarSenha = document.getElementById('form-mudar-senha');
-    if (formMudarSenha) formMudarSenha.addEventListener('submit', mudarSenha);
-
     const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
-    if (btnSenhaCancelar) btnSenhaCancelar.addEventListener('click', fecharModalSenha);
-}
+    if (btnSenhaCancelar) {
+        btnSenhaCancelar.addEventListener('click', fecharModalSenha);
+    }
 
+    // --- CÓDIGO NOVO ADICIONADO ---
+    // Lógica para ABRIR o novo modal de exportação
+    const btnAbrirModalExportar = document.getElementById('btn-abrir-modal-exportar');
+    if (btnAbrirModalExportar) {
+        btnAbrirModalExportar.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modal = document.getElementById('modal-exportar');
+            if (modal) modal.classList.add('visible');
+        });
+    }
+
+    // Lógica para FECHAR o novo modal de exportação (botão "Cancelar")
+    const btnFecharModalExportar = document.getElementById('btn-fechar-modal-exportar');
+    if (btnFecharModalExportar) {
+        btnFecharModalExportar.addEventListener('click', () => {
+            const modal = document.getElementById('modal-exportar');
+            if (modal) modal.classList.remove('visible');
+        });
+    }
+}
 document.addEventListener('DOMContentLoaded', inicializarSidebar);

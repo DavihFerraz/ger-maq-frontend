@@ -81,6 +81,119 @@ function renderizarAtividadeRecente(atividades) {
     atividades.forEach(item => { const li = document.createElement('li'); const acao = item.data_devolucao ? 'devolveu' : 'recebeu'; li.innerHTML = `<strong>${item.pessoa_depto}</strong> ${acao} <em>${item.modelo_tipo}</em>`; listaUI.appendChild(li); });
 }
 
+function exportDashboardToCSV() {
+    if (!dadosCompletosDashboard) {
+        alert('Os dados do dashboard ainda não foram carregados.');
+        return;
+    }
+
+    const delimiter = ';';
+    let csvContent = '\uFEFF';
+
+    csvContent += 'Resumo Geral\n';
+    csvContent += ['Categoria', 'Total', 'Disponivel', 'Em Uso'].join(delimiter) + '\n';
+    const { resumoComputadores, resumoMonitores, resumoMobiliario, resumoOutros } = dadosCompletosDashboard;
+    [
+        ['Computadores', resumoComputadores.total, resumoComputadores.disponivel, resumoComputadores.em_uso],
+        ['Monitores', resumoMonitores.total, resumoMonitores.disponivel, resumoMonitores.em_uso],
+        ['Mobiliario', resumoMobiliario.total, resumoMobiliario.disponivel, resumoMobiliario.em_uso],
+        ['Outros', resumoOutros.total, resumoOutros.disponivel, resumoOutros.em_uso]
+    ].forEach(row => { csvContent += row.join(delimiter) + '\n'; });
+
+    csvContent += '\nAtivos por Setor\n';
+    csvContent += ['Setor', 'Categoria', 'Quantidade'].join(delimiter) + '\n';
+    dadosCompletosDashboard.ativosPorSetor.forEach(row => {
+        csvContent += `"${row.setor}";"${row.categoria}";"${row.quantidade}"\n`; 
+    });
+
+    csvContent += '\nAtivos por Estado de Conservacao\n';
+    csvContent += ['Estado', 'Quantidade'].join(delimiter) + '\n';
+    dadosCompletosDashboard.ativosPorEstado.forEach(row => {
+        csvContent += `"${row.estado_conservacao}";"${row.quantidade}"\n`; // Usa 'count'
+    });
+
+    csvContent += '\nEmprestimos por Departamento\n';
+    csvContent += ['Departamento', 'Quantidade'].join(delimiter) + '\n';
+    dadosCompletosDashboard.emprestimosPorDepto.forEach(row => {
+        csvContent += `"${row.departamento}";"${row.total}"\n`; // CORRIGIDO AQUI: Usa 'count'
+    });
+
+    csvContent += '\nAtivos Nao Localizados (sem setor definido)\n';
+    csvContent += ['Categoria', 'Quantidade'].join(delimiter) + '\n';
+    dadosCompletosDashboard.ativosNaoLocalizados.forEach(row => {
+        csvContent += `"${row.categoria}";"${row.quantidade}"\n`; // Usa 'count'
+    });
+
+    const link = document.createElement("a");
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURI(csvContent);
+    link.download = "Relatorio_Dashboard_Completo.csv";
+    link.click();
+}
+/**
+ * Gera um relatório HTML do dashboard numa nova aba.
+ */
+function exportToPDF() {
+    if (!dadosCompletosDashboard) {
+        alert('Os dados do dashboard ainda não foram carregados.');
+        return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("Não foi possível abrir a nova aba. Por favor, desative o bloqueador de pop-ups.");
+        return;
+    }
+
+    const { 
+        resumoComputadores, resumoMonitores, resumoMobiliario, resumoOutros, 
+        ativosPorSetor, ativosPorEstado, emprestimosPorDepto, ativosNaoLocalizados 
+    } = dadosCompletosDashboard;
+
+    let relatorioHtml = `
+        <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório do Dashboard</title>
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; padding: 20px; }
+            .container { max-width: 800px; margin: 0 auto; } h1 { font-size: 24px; text-align: center; }
+            h2 { font-size: 18px; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-top: 40px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10pt; } th { background-color: #f2f2f2; }
+        </style></head><body><div class="container"><h1>Relatório do Dashboard de Ativos</h1>
+
+        <h2>Resumo Geral do Inventário</h2>
+        <table><thead><tr><th>Categoria</th><th>Total</th><th>Disponível</th><th>Em Uso</th></tr></thead><tbody>
+            <tr><td>Computadores</td><td>${resumoComputadores.total}</td><td>${resumoComputadores.disponivel}</td><td>${resumoComputadores.em_uso}</td></tr>
+            <tr><td>Monitores</td><td>${resumoMonitores.total}</td><td>${resumoMonitores.disponivel}</td><td>${resumoMonitores.em_uso}</td></tr>
+            <tr><td>Mobiliário</td><td>${resumoMobiliario.total}</td><td>${resumoMobiliario.disponivel}</td><td>${resumoMobiliario.em_uso}</td></tr>
+            <tr><td>Outros</td><td>${resumoOutros.total}</td><td>${resumoOutros.disponivel}</td><td>${resumoOutros.em_uso}</td></tr>
+        </tbody></table>
+
+        <h2>Ativos por Setor</h2>
+        <table><thead><tr><th>Setor</th><th>Categoria</th><th>Quantidade</th></tr></thead><tbody>
+        ${ativosPorSetor.map(row => `<tr><td>${row.setor}</td><td>${row.categoria}</td><td>${row.quantidade}</td></tr>`).join('')}
+        </tbody></table>
+
+        <h2>Ativos por Estado de Conservação</h2>
+        <table><thead><tr><th>Estado</th><th>Quantidade</th></tr></thead><tbody>
+        ${ativosPorEstado.map(row => `<tr><td>${row.estado_conservacao}</td><td>${row.quantidade}</td></tr>`).join('')}
+        </tbody></table>
+
+        <h2>Empréstimos Ativos por Departamento</h2>
+        <table><thead><tr><th>Departamento</th><th>Quantidade</th></tr></thead><tbody>
+        ${emprestimosPorDepto.map(row => `<tr><td>${row.departamento}</td><td>${row.total}</td></tr>`).join('')}
+        </tbody></table>
+
+        <h2>Ativos Não Localizados (sem setor)</h2>
+        <table><thead><tr><th>Categoria</th><th>Quantidade</th></tr></thead><tbody>
+        ${ativosNaoLocalizados.map(row => `<tr><td>${row.categoria}</td><td>${row.quantidade}</td></tr>`).join('')}
+        </tbody></table>
+
+        </div></body></html>`;
+
+    printWindow.document.open();
+    printWindow.document.write(relatorioHtml);
+    printWindow.document.close();
+}
+
 function abrirModalSenha() {
     const modal = document.getElementById('modal-senha');
     if (modal) modal.classList.add('visible');
@@ -156,6 +269,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     carregarDashboard();
+
+    const fecharModalExport = () => {
+        const modal = document.getElementById('modal-exportar');
+        if (modal) modal.classList.remove('visible');
+    };
+
+    const btnExportCSV = document.getElementById('btn-exportar-dashboard-csv');
+    if (btnExportCSV) {
+        btnExportCSV.addEventListener('click', (e) => {
+            e.preventDefault();
+            exportDashboardToCSV();
+            fecharModalExport();
+        });
+    }
+
+    const btnExportPDF = document.getElementById('btn-exportar-dashboard-pdf');
+    if (btnExportPDF) {
+        btnExportPDF.addEventListener('click', (e) => {
+            e.preventDefault();
+            exportToPDF();
+            fecharModalExport();
+        });
+    }
     
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
@@ -170,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'login.html';
     });
     
-    document.getElementById('btn-exportar-dashboard-sidebar').addEventListener('click', exportarRelatorioDashboard);
     
   const btnMudarSenha = document.getElementById('btn-mudar-senha-sidebar');
     if (btnMudarSenha) {
