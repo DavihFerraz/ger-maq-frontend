@@ -1499,3 +1499,13 @@ grafico-setores,
 .btn-reativar:hover {
     background-color: #1abc9c;
 }
+
+#btn-abrir-modal-exportar-inventario {
+    width: 100%;
+    margin-bottom: 20px; /* Adiciona espaço abaixo do botão */
+    margin-left: 0; /* Remove a margem esquerda que ele tinha antes */
+}
+
+.export-container {
+    margin-top: 40px; /* Ajuste este valor conforme necessário */
+}

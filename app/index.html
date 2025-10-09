@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -297,6 +298,13 @@
         </div>
     </details>
 </div>
+
+    <div class="export-container">
+        <button id="btn-abrir-modal-exportar-inventario" class="btn-exportar">
+            <i class="fas fa-download"></i> Exportar Inventário Completo
+        </button>
+    </div>
+                    
     </main>
 
     <div id="modal-confirmacao" class="modal-overlay">
@@ -560,6 +568,28 @@
         </form>
     </div>
 </div>
+
+<div id="modal-exportar-inventario" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Exportar Inventário Completo</h3>
+        <p>Escolha o formato para exportar todos os itens do inventário (Máquinas, Monitores, Mobiliário e Outros).</p>
+        <div class="export-modal-buttons">
+            <button id="btn-exportar-inventario-csv" class="btn-modal">
+                <i class="fas fa-file-csv"></i> Exportar como CSV
+            </button>
+            <button id="btn-exportar-inventario-pdf" class="btn-modal">
+                <i class="fas fa-file-pdf"></i> Exportar como PDF
+            </button>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-modal" id="btn-fechar-modal-exportar-inventario">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="print-area" style="position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;"></div>
+
 
     <script src="api.js" type="module"></script>
     <script src="script.js" type="module"></script>

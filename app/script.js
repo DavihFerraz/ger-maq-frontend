@@ -1351,6 +1351,111 @@ function formatarPatrimonio(numero) {
     return numeroLimpo.replace(/(\d{3})(?=\d)/g, '$1.');
 }
 
+function exportarInventarioCSV() {
+    if (!todoEstoque || todoEstoque.length === 0) {
+        alert("Não há itens no inventário para exportar.");
+        return;
+    }
+
+    const delimiter = ';';
+    const cabecalhos = [
+        'Patrimonio', 'Modelo/Tipo', 'Categoria', 'Status', 'Setor', 
+        'Estado de Conservacao', 'Cadastrado GPM', 'Utilizador Atual'
+    ];
+
+    const linhas = todoEstoque.map(item => {
+        const utilizador = mapaDeUso[item.id] ? mapaDeUso[item.id].split(' - ')[0] : 'N/A';
+        const cleanValue = (value) => `"${String(value || '').replace(/"/g, '""')}"`;
+
+        return [
+            // --- CORREÇÃO APLICADA AQUI ---
+            cleanValue(formatarPatrimonio(item.patrimonio)), // Usa a função para formatar o património
+            
+            cleanValue(item.modelo_tipo),
+            cleanValue(item.categoria),
+            cleanValue(item.status),
+            cleanValue(item.setor_nome),
+            cleanValue(item.estado_conservacao),
+            cleanValue(item.cadastrado_gpm ? 'Sim' : 'Nao'),
+            cleanValue(utilizador)
+        ].join(delimiter);
+    });
+
+    const conteudoCSV = [cabecalhos.join(delimiter), ...linhas].join('\n');
+    
+    const bom = '\uFEFF';
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURI(bom + conteudoCSV);
+    link.download = 'inventario_completo.csv';
+    link.click();
+}
+
+/**
+ * Gera e baixa um relatório PDF de todo o inventário.
+ */
+function exportarInventarioPDF() {
+    if (!todoEstoque || todoEstoque.length === 0) {
+        alert("Não há itens no inventário para gerar o relatório.");
+        return;
+    }
+
+    // 1. Abre uma nova janela/aba em branco
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("Não foi possível abrir a nova aba. Por favor, desative o bloqueador de pop-ups e tente novamente.");
+        return;
+    }
+
+    // 2. Constrói o HTML completo do relatório
+    let tabelaHtml = `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatório de Inventário Completo</title>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.5; }
+                table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+                th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+                th { background-color: #f7f7f7; font-weight: 600; }
+                h1 { font-size: 24px; text-align: center; margin-bottom: 20px; }
+                @media print {
+                    body { -webkit-print-color-adjust: exact; } /* Garante que as cores de fundo sejam impressas */
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Relatório de Inventário Completo</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Património</th><th>Modelo/Tipo</th><th>Categoria</th><th>Status</th>
+                        <th>Setor</th><th>Estado</th><th>Utilizador Atual</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    const estoqueOrdenado = [...todoEstoque].sort((a, b) => a.categoria.localeCompare(b.categoria));
+
+    estoqueOrdenado.forEach(item => {
+        const utilizador = mapaDeUso[item.id] ? mapaDeUso[item.id].split(' - ')[0] : 'N/A';
+        tabelaHtml += `
+            <tr>
+                <td>${item.patrimonio || ''}</td><td>${item.modelo_tipo || ''}</td><td>${item.categoria || ''}</td>
+                <td>${item.status || ''}</td><td>${item.setor_nome || ''}</td><td>${item.estado_conservacao || ''}</td>
+                <td>${utilizador}</td>
+            </tr>
+        `;
+    });
+
+    tabelaHtml += '</tbody></table></body></html>';
+
+    // 3. Escreve o HTML na nova janela e deixa-a aberta
+    printWindow.document.open();
+    printWindow.document.write(tabelaHtml);
+    printWindow.document.close();
+}
 // =================================================================
 // 7. CÓDIGO EXECUTADO QUANDO A PÁGINA CARREGA
 // =================================================================
@@ -1623,6 +1728,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (campoBuscaOutros) {
         campoBuscaOutros.addEventListener('input', renderizarOutrosAtivos);
     }
+
+    const fecharModalInventario = () => {
+    const modal = document.getElementById('modal-exportar-inventario');
+    if (modal) modal.classList.remove('visible');
+    };
+
+    // Botão para ABRIR o modal
+    document.getElementById('btn-abrir-modal-exportar-inventario')?.addEventListener('click', () => {
+        const modal = document.getElementById('modal-exportar-inventario');
+        if (modal) modal.classList.add('visible');
+    });
+
+    // Botão para FECHAR o modal
+    document.getElementById('btn-fechar-modal-exportar-inventario')?.addEventListener('click', fecharModalInventario);
+
+    // Botão para exportar como CSV
+    document.getElementById('btn-exportar-inventario-csv')?.addEventListener('click', () => {
+        exportarInventarioCSV();
+        fecharModalInventario();
+    });
+
+    // Botão para exportar como PDF
+    document.getElementById('btn-exportar-inventario-pdf')?.addEventListener('click', () => {
+        exportarInventarioPDF();
+        fecharModalInventario();
+    });
 
 document.body.addEventListener('click', async (event) => {
     const target = event.target;
