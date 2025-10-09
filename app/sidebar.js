@@ -1,7 +1,9 @@
-// Importa a função da API para mudar a senha
+// app/sidebar.js - VERSÃO COMPLETA E FINAL
+
 import { apiChangePassword } from './api.js';
 
-// --- Funções de Autenticação e UI ---
+// --- Funções Auxiliares ---
+
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
@@ -10,26 +12,28 @@ function parseJwt(token) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
         return JSON.parse(jsonPayload);
-    } catch (e) {
-        return null;
-    }
+    } catch (e) { return null; }
 }
 
 function exibirInfoUsuario() {
-    const infoUsuarioUI = document.getElementById('info-usuario');
+    const infoUsuarioUI = document.getElementById('info-utilizador');
     const token = localStorage.getItem('authToken');
     if (!infoUsuarioUI || !token) return;
 
     const decoded = parseJwt(token);
     if (decoded) {
-        const nome = decoded.nome || 'Usuário';
+        const nome = decoded.nome || 'Utilizador';
         const depto = decoded.departamento || 'N/D';
-        infoUsuarioUI.innerHTML = `<span>Olá, <strong>${nome}</strong> (${depto})</span>`;
+        const deptoColors = {
+            'TI': { icon: '#3498db', bg: '#eaf4fc', text: '#2980b9' },
+            'GAS': { icon: '#27ae60', bg: '#e9f7ef', text: '#229954' },
+            'default': { icon: '#8e8e8e', bg: '#f0f0f0', text: '#5e5e5e' }
+        };
+        const colors = deptoColors[depto.toUpperCase()] || deptoColors['default'];
+        infoUsuarioUI.innerHTML = `<span><i class="fas fa-user-circle" style="color: ${colors.icon};"></i> Olá, <strong style="background-color: ${colors.bg}; color: ${colors.text};">${nome}</strong> (${depto})</span>`;
     }
 }
 
-
-// --- Funções do Modal de Senha ---
 function abrirModalSenha() {
     const modal = document.getElementById('modal-senha');
     if (modal) modal.classList.add('visible');
@@ -56,30 +60,30 @@ async function mudarSenha(event) {
     }
 }
 
-// --- Função Principal de Inicialização da Sidebar ---
+// --- Função Principal de Inicialização ---
+
 function inicializarSidebar() {
-    // Exibe as informações do usuário logado
     exibirInfoUsuario();
 
-    // Lógica para o botão de expandir/colapsar (hamburguer)
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
-    if (sidebarToggle && sidebar) {
+    const mainContent = document.querySelector('.main-content');
+
+    if (sidebarToggle && sidebar && mainContent) {
         sidebarToggle.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded'); // A linha que empurra o conteúdo
         });
     }
 
-    // Lógica para ABRIR/FECHAR o submenu
     document.querySelectorAll('.has-submenu > a').forEach(menu => {
         menu.addEventListener('click', function (e) {
             e.preventDefault();
             this.parentElement.classList.toggle('open');
         });
     });
-
-    // Lógica para o botão de logout
-    const btnLogout = document.getElementById('btn-logout');
+    
+    const btnLogout = document.getElementById('btn-logout-sidebar');
     if (btnLogout) {
         btnLogout.addEventListener('click', () => {
             localStorage.removeItem('authToken');
@@ -87,22 +91,16 @@ function inicializarSidebar() {
         });
     }
 
-    // Lógica para o botão e modal de mudar senha
-    const btnMudarSenha = document.getElementById('btn-mudar-senha');
+    const btnMudarSenha = document.getElementById('btn-mudar-senha-sidebar');
     if (btnMudarSenha) {
         btnMudarSenha.addEventListener('click', abrirModalSenha);
     }
     
     const formMudarSenha = document.getElementById('form-mudar-senha');
-    if (formMudarSenha) {
-        formMudarSenha.addEventListener('submit', mudarSenha);
-    }
+    if (formMudarSenha) formMudarSenha.addEventListener('submit', mudarSenha);
 
     const btnSenhaCancelar = document.getElementById('btn-senha-cancelar');
-    if (btnSenhaCancelar) {
-        btnSenhaCancelar.addEventListener('click', fecharModalSenha);
-    }
+    if (btnSenhaCancelar) btnSenhaCancelar.addEventListener('click', fecharModalSenha);
 }
 
-// Inicializa a sidebar quando a página carregar
 document.addEventListener('DOMContentLoaded', inicializarSidebar);
