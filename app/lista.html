@@ -41,7 +41,9 @@
         </div>
 
         <div class="list-container">
-            <button id="btn-exportar" class="btn-exportar">Exportar para CSV</button>
+            <button id="btn-abrir-modal-exportar-lista" class="btn-exportar">
+                <i class="fas fa-download"></i> Exportar Lista
+            </button>
             <div class="filtros-container">
                 <div class="filtro-item">
                     <label for="filtro-tipo-ativo-lista">Filtrar por Tipo de Ativo:</label>
@@ -106,6 +108,24 @@
         <button type="submit" class="btn-modal btn-confirmar">Salvar Nova Senha</button>
     </div>
 </form>
+    </div>
+</div>
+
+<div id="modal-exportar-lista" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Exportar Lista de Associações</h3>
+        <p>Escolha o formato desejado para o seu relatório.</p>
+        <div class="export-modal-buttons">
+            <button id="btn-exportar-lista-csv" class="btn-modal">
+                <i class="fas fa-file-csv"></i> Exportar como CSV
+            </button>
+            <button id="btn-exportar-lista-pdf" class="btn-modal">
+                <i class="fas fa-file-pdf"></i> Visualizar PDF
+            </button>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-modal" id="btn-fechar-modal-exportar-lista">Cancelar</button>
+        </div>
     </div>
 </div>
 

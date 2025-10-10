@@ -190,56 +190,93 @@ async function handleDevolverClick(emprestimoId) {
     });
 }
 
-/**
- * Converte um array de dados em CSV e inicia o download.
- * @param {Array<Object>} dados - A lista de associações a ser exportada.
- * @param {string} nomeArquivo - O nome do arquivo a ser gerado.
- */
-function gerarCSV(dados, nomeArquivo) {
-    if (!dados || dados.length === 0) {
-        // A mensagem de "Não há dados" agora é mostrada pelo alert
-        return;
-    }
-
-    const cabecalhos = ['Pessoa', 'Departamento', 'Ativo', 'Património', 'Data de Associação'];
-    
-    const linhas = dados.map(assoc => {
-        const [nome, departamento = 'N/D'] = assoc.pessoa_depto.split(' - ');
-        const dataFormatada = new Date(assoc.data_emprestimo).toLocaleDateString();
-
-        return [
-            `"${nome.trim()}"`,
-            `"${departamento.trim()}"`,
-            `"${assoc.item_info.modelo_tipo}"`,
-            `"${assoc.item_info.patrimonio}"`,
-            `"${dataFormatada}"`
-        ].join(',');
-    }).join('\n');
-
-    const conteudoCSV = [cabecalhos.join(','), linhas].join('\n');
-    
-    const link = document.createElement('a');
-    link.href = 'data:text/csv;charset=utf-8,' + encodeURI(conteudoCSV);
-    link.target = '_blank';
-    link.download = nomeArquivo;
-    link.click();
-}
-
-/**
- * Função chamada pelo botão "Exportar". Ela verifica qual filtro está ativo
- * e chama a função de gerar CSV com os dados corretos.
- */
-function handleExportarLista() {
-    const tipoFiltro = document.getElementById('filtro-tipo-ativo-lista')?.value;
-    const nomeArquivo = tipoFiltro === 'COMPUTADOR' ? 'associacoes_maquinas.csv' : 'associacoes_monitores.csv';
-
-    // Agora, em vez de usar as listas completas, usamos os dados que estão na tela
+function exportarListaCSV() {
     if (!dadosAtualmenteExibidos || dadosAtualmenteExibidos.length === 0) {
         alert("Não há dados na lista para exportar.");
         return;
     }
 
-    gerarCSV(dadosAtualmenteExibidos, nomeArquivo);
+    const ehMobiliario = window.location.pathname.includes('lista_mobiliario.html');
+    const nomeArquivo = ehMobiliario ? 'associacoes_mobiliario.csv' : 'associacoes_ativos_ti.csv';
+    
+    const delimiter = ';'; 
+    const cabecalhos = ['Pessoa', 'Departamento', 'Ativo', 'Patrimônio', 'Data de Associação'];
+
+    let csvContent = '\uFEFF'; // Adiciona o BOM logo no início
+    csvContent += cabecalhos.join(delimiter) + '\n';
+
+    dadosAtualmenteExibidos.forEach(assoc => {
+        const [nome = '', departamento = 'N/D'] = assoc.pessoa_depto.split(' - ');
+        const dataFormatada = new Date(assoc.data_emprestimo).toLocaleDateString('pt-BR');
+
+        // Função para garantir que os valores estejam entre aspas
+        const cleanValue = (value) => `"${String(value || '').replace(/"/g, '""')}"`;
+
+        // Força o patrimônio a ser tratado como texto pelo Excel
+        const patrimonio = assoc.item_info?.patrimonio ? `'${assoc.item_info.patrimonio}` : '';
+
+        const linha = [
+            cleanValue(nome.trim()),
+            cleanValue(departamento.trim()),
+            cleanValue(assoc.item_info?.modelo_tipo || ''),
+            cleanValue(patrimonio),
+            cleanValue(dataFormatada)
+        ].join(delimiter);
+
+        csvContent += linha + '\n';
+    });
+
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURI(csvContent);
+    link.download = nomeArquivo;
+    link.click();
+}
+
+/**
+ * Gera um relatório HTML dos dados da lista numa nova aba.
+ */
+function exportarListaPDF() {
+    if (!dadosAtualmenteExibidos || dadosAtualmenteExibidos.length === 0) {
+        alert("Não há dados na lista para gerar o relatório.");
+        return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("Não foi possível abrir a nova aba. Por favor, desative o bloqueador de pop-ups.");
+        return;
+    }
+
+    const titulo = document.querySelector('h1').textContent;
+
+    let relatorioHtml = `
+        <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title>
+        <style>
+            body { font-family: sans-serif; line-height: 1.5; color: #333; }
+            table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+            th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+            th { background-color: #f7f7f7; } h1 { text-align: center; }
+        </style></head><body><h1>${titulo}</h1>
+        <table><thead><tr>
+            <th>Pessoa</th><th>Departamento</th><th>Ativo</th><th>Património</th><th>Data de Associação</th>
+        </tr></thead><tbody>`;
+
+    dadosAtualmenteExibidos.forEach(assoc => {
+        const [nome, departamento = 'N/D'] = assoc.pessoa_depto.split(' - ');
+        const dataFormatada = new Date(assoc.data_emprestimo).toLocaleDateString();
+        relatorioHtml += `
+            <tr>
+                <td>${nome.trim()}</td><td>${departamento.trim()}</td><td>${assoc.item_info.modelo_tipo}</td>
+                <td>${assoc.item_info.patrimonio}</td><td>${dataFormatada}</td>
+            </tr>
+        `;
+    });
+
+    relatorioHtml += '</tbody></table></body></html>';
+
+    printWindow.document.open();
+    printWindow.document.write(relatorioHtml);
+    printWindow.document.close();
 }
 
 // Adicione estas duas funções ao listas.js
@@ -358,23 +395,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const btnExportarMaquinas = document.getElementById('btn-exportar');
-    if (btnExportarMaquinas) {
-        btnExportarMaquinas.addEventListener('click', handleExportarLista);
-    }
+    // --- Lógica para o Modal de Exportação das Listas ---
+    const fecharModalExportLista = () => {
+        const modal = document.getElementById('modal-exportar-lista');
+        if (modal) modal.classList.remove('visible');
+    };
 
-    const btnExportarMobiliario = document.getElementById('btn-exportar-mobiliario');
-    if (btnExportarMobiliario) {
-        btnExportarMobiliario.addEventListener('click', () => {
-            // Para mobiliário, a lógica é mais direta
-            if (!todasAssociacoesMobiliario || todasAssociacoesMobiliario.length === 0) {
-                alert("Não há dados de mobiliário para exportar.");
-                return;
-            }
-            gerarCSV(todasAssociacoesMobiliario, 'associacoes_mobiliario.csv');
-        });
-    }
+    document.getElementById('btn-abrir-modal-exportar-lista')?.addEventListener('click', () => {
+        const modal = document.getElementById('modal-exportar-lista');
+        if (modal) modal.classList.add('visible');
+    });
 
+    document.getElementById('btn-fechar-modal-exportar-lista')?.addEventListener('click', fecharModalExportLista);
+
+    document.getElementById('btn-exportar-lista-csv')?.addEventListener('click', () => {
+        exportarListaCSV();
+        fecharModalExportLista();
+    });
+
+    document.getElementById('btn-exportar-lista-pdf')?.addEventListener('click', () => {
+        exportarListaPDF();
+        fecharModalExportLista();
+    });
+ 
     const btnFecharSpec = document.getElementById('btn-spec-fechar');
     if(btnFecharSpec) {
         btnFecharSpec.addEventListener('click', fecharModalEspecificacoes);
