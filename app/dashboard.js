@@ -292,6 +292,21 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalExport();
         });
     }
+
+    // Lógica para ABRIR o modal de exportação ao clicar no botão da sidebar
+    const btnAbrirModalExportar = document.getElementById('btn-abrir-modal-exportar');
+    if (btnAbrirModalExportar) {
+        btnAbrirModalExportar.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modal = document.getElementById('modal-exportar');
+            if (modal) modal.classList.add('visible');
+        });
+    }
+
+    const btnFecharModalExportar = document.getElementById('btn-fechar-modal-exportar');
+    if (btnFecharModalExportar) {
+        btnFecharModalExportar.addEventListener('click', fecharModalExport);
+    }
     
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');

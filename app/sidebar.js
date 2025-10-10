@@ -65,15 +65,6 @@ function inicializarSidebar() {
         });
     });
 
-    // Mantém o submenu aberto na página correta
-    const currentPage = window.location.pathname;
-    document.querySelectorAll('.submenu a').forEach(link => {
-        if (currentPage.includes(link.getAttribute('href'))) {
-            const parentLi = link.closest('.has-submenu');
-            if (parentLi) parentLi.classList.add('open');
-        }
-    });
-
     // Lógica para o botão de logout
     const btnLogout = document.getElementById('btn-logout-sidebar');
     if (btnLogout) {
