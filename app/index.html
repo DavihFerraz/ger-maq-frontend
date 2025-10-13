@@ -299,6 +299,47 @@
     </details>
 </div>
 
+<div class="almoxarifado-container">
+            <details>
+                <summary>Gestão de Almoxarifado</summary>
+
+                <div class="form-container-stock">
+                    <h3>Adicionar Novo Item ao Almoxarifado</h3>
+                    <form id="form-almoxarifado">
+                        <div class="form-group">
+                            <label for="almox-nome">Nome do Item:</label>
+                            <input type="text" id="almox-nome" placeholder="Ex: Mouse sem fio Logitech" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="almox-sku">Património (Opcional):</label>
+                            <input type="text" id="almox-sku" placeholder="Ex: M170-LOGI">
+                        </div>
+                        <div class="form-group">
+                            <label for="almox-quantidade">Quantidade em Estoque:</label>
+                            <input type="number" id="almox-quantidade" placeholder="Ex: 25" required min="0">
+                        </div>
+                         <div class="form-group">
+                            <label for="almox-observacoes">Observações:</label>
+                            <input type="text" id="almox-observacoes" placeholder="Qualquer detalhe adicional">
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn-adicionar-estoque">Adicionar ao Almoxarifado</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="list-container-stock">
+                    <h3>Itens no Almoxarifado</h3>
+                    <div class="search-container">
+                        <input type="text" id="campo-busca-almoxarifado" placeholder="Buscar por nome ou código...">
+                    </div>
+                    <ul id="lista-almoxarifado">
+                        </ul>
+                </div>
+            </details>
+        </div>
+        <div class="export-container">
+
     <div class="export-container">
         <button id="btn-abrir-modal-exportar-inventario" class="btn-exportar">
             <i class="fas fa-download"></i> Exportar Inventário Completo
@@ -583,6 +624,75 @@
         </div>
         <div class="modal-buttons">
             <button type="button" class="btn-modal" id="btn-fechar-modal-exportar-inventario">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-saida-almoxarifado" class="modal-container" style="display:none;">
+    <div class="modal-content">
+        <span class="modal-close-btn">&times;</span>
+        <h3 id="modal-saida-titulo">Registrar Saída</h3>
+        <p>Item: <strong id="modal-saida-nome-item"></strong></p>
+        <p>Quantidade em estoque: <strong id="modal-saida-estoque-atual"></strong></p>
+
+        <form id="form-saida-almoxarifado">
+            <input type="hidden" id="modal-saida-item-id">
+            
+            <div class="form-group">
+                <label for="modal-saida-quantidade">Quantidade a Retirar:</label>
+                <input type="number" id="modal-saida-quantidade" required min="1">
+            </div>
+            
+
+            <div class="form-group">
+                <label for="modal-saida-pessoa">Retirado por (Pessoa):</label>
+                <input type="text" id="modal-saida-pessoa" placeholder="Nome do colaborador">
+            </div>
+
+            <div class="form-group">
+                <label for="modal-saida-setor">Destino (Setor):</label>
+                <select id="modal-saida-setor">
+                    <option value="">Nenhum (retirada pessoal)</option>
+                    </select>
+            </div>
+
+            <div class="form-group">
+                <label for="modal-saida-observacoes">Observações:</label>
+                <textarea id="modal-saida-observacoes" rows="2"></textarea>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="modal-saida-devolucao">
+                <label for="modal-saida-devolucao">É um item que será devolvido? (Ex: ferramenta)</label>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-confirmar">Confirmar Saída</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-historico-almoxarifado" class="modal-container" style="display:none;">
+    <div class="modal-content wide">
+        <span class="modal-close-btn">&times;</span>
+        <h3 id="modal-historico-titulo">Histórico do Item</h3>
+        <p>Item: <strong id="modal-historico-nome-item"></strong></p>
+        <div class="table-container">
+            <table id="tabela-historico-almoxarifado">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Qtd.</th>
+                        <th>Destino</th>
+                        <th>Registrado por</th>
+                        <th>Obs.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
         </div>
     </div>
 </div>

@@ -128,3 +128,15 @@ export const getItemHistory = (itemId) => {
 export const getSetores = () => {
     return fetchAPI('/setores');
 };
+
+export const registrarSaidaAlmoxarifado = (dados) => {
+    return fetchAPI('/almoxarifado/saida', {
+        method: 'POST',
+        body: JSON.stringify(dados),
+    });
+}
+
+// Função para buscar o histórico de movimentações de um item
+export const getHistoricoItemAlmoxarifado = (itemId) => {
+    return fetchAPI(`/almoxarifado/historico/${itemId}`);
+}

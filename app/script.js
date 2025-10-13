@@ -15,7 +15,9 @@ import {
     getModelos, 
     createModelo,
     getItemHistory,
-    getSetores 
+    getSetores,
+    registrarSaidaAlmoxarifado,
+    getHistoricoItemAlmoxarifado 
 } from './api.js';
 
 // 2. ESTADO LOCAL DA APLICAÇÃO
@@ -73,6 +75,7 @@ async function carregarDados() {
         renderizarEstoque();
         renderizarMobiliario();
         renderizarOutrosAtivos();
+        renderizarAlmoxarifado();
     } catch (error) {
         console.error("Erro ao carregar dados:", error);
     }
@@ -307,6 +310,52 @@ function renderizarOutrosAtivos() {
         </div>
     </div>
     <div class="botoes-item">${botoesHTML}</div>`;
+        listaUI.appendChild(li);
+    });
+}
+
+function renderizarAlmoxarifado() {
+    const listaUI = document.getElementById('lista-almoxarifado');
+    if (!listaUI) return;
+
+    const todoAlmoxarifado = todoEstoque.filter(item => item.categoria === 'ALMOXARIFADO');
+    const termoBusca = (document.getElementById('campo-busca-almoxarifado')?.value || '').toLowerCase();
+
+    const itensFiltrados = todoAlmoxarifado.filter(item => {
+        const buscaOk = termoBusca === '' || 
+                        `${item.modelo_tipo} ${item.patrimonio}`.toLowerCase().includes(termoBusca);
+        return buscaOk;
+    });
+
+    listaUI.innerHTML = '';
+    if (itensFiltrados.length === 0) {
+        listaUI.innerHTML = '<li>Nenhum item de almoxarifado encontrado.</li>';
+        return;
+    }
+
+    itensFiltrados.sort((a, b) => a.modelo_tipo.localeCompare(b.modelo_tipo));
+
+    itensFiltrados.forEach(item => {
+        const li = document.createElement('li');
+        li.classList.add('status-disponivel'); 
+
+        // NOVOS BOTÕES AQUI!
+        const botoesHTML = `
+            <button class="btn-item btn-retirada" data-id="${item.id}" data-nome="${item.modelo_tipo}" data-qtd="${item.quantidade}">Registrar Saída</button>
+            <button class="btn-item btn-historico" data-id="${item.id}" data-nome="${item.modelo_tipo}">Histórico</button>
+            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>
+        `;
+
+        li.innerHTML = `
+            <div class="info-item">
+                <span>
+                    <strong>${item.modelo_tipo}</strong> (Código: ${item.patrimonio || 'N/A'})
+                    <br><small>Quantidade: <strong>${item.quantidade || 0}</strong></small>
+                    <br><small>Local: Almoxarifado</small>
+                </span>
+            </div>
+            <div class="botoes-item">${botoesHTML}</div>`;
         listaUI.appendChild(li);
     });
 }
@@ -741,6 +790,35 @@ async function salvarEdicaoOutro(event) {
     } catch (error) {
         console.error("Erro ao atualizar o ativo:", error);
         Toastify({ text: `Erro ao atualizar: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
+}
+
+async function salvarItemAlmoxarifado(event) {
+    event.preventDefault();
+    const form = event.target;
+    const dados = {
+        modelo_tipo: form.querySelector('#almox-nome').value.trim(),
+        patrimonio: form.querySelector('#almox-sku').value.trim(),
+        quantidade: parseInt(form.querySelector('#almox-quantidade').value, 10),
+        setor: 'Almoxarifado', 
+        observacoes: form.querySelector('#almox-observacoes').value.trim(),
+        categoria: 'ALMOXARIFADO', 
+        status: 'Disponível' 
+    };
+
+    if (isNaN(dados.quantidade) || dados.quantidade < 0) {
+        Toastify({ text: 'Por favor, insira uma quantidade válida.', backgroundColor: "red" }).showToast();
+        return;
+    }
+
+    try {
+        await createItem(dados);
+        Toastify({ text: "Item adicionado ao almoxarifado!" }).showToast();
+        form.reset();
+        carregarDados();
+    } catch (error) {
+        console.error("Erro ao adicionar item de almoxarifado:", error);
+        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
     }
 }
 
@@ -1267,6 +1345,7 @@ async function popularDropdownSetores() {
         'estoque-setor',
         'mobiliario-setor',
         'outros-setor',
+        'modal-saida-setor',
 
         // Formulários de ASSOCIAÇÃO (os que estavam a faltar)
         'departamento-pessoa-assoc',
@@ -1456,6 +1535,83 @@ function exportarInventarioPDF() {
     printWindow.document.write(tabelaHtml);
     printWindow.document.close();
 }
+
+
+// Função para abrir o modal de registro de saída
+function abrirModalSaida(itemId, itemName, itemQuantidade) {
+    document.getElementById('modal-saida-item-id').value = itemId;
+    document.getElementById('modal-saida-nome-item').textContent = itemName;
+    document.getElementById('modal-saida-estoque-atual').textContent = itemQuantidade;
+    document.getElementById('modal-saida-quantidade').max = itemQuantidade; // Define o máximo que pode ser retirado
+    
+    document.getElementById('form-saida-almoxarifado').reset(); // Limpa o formulário
+    document.getElementById('modal-saida-almoxarifado').style.display = 'flex';
+}
+
+// Função para abrir o modal de histórico
+async function abrirModalHistoricoAlmoxarifado(itemId, itemName) {
+    document.getElementById('modal-historico-nome-item').textContent = itemName;
+    const modal = document.getElementById('modal-historico-almoxarifado');
+    const tabelaBody = modal.querySelector('tbody');
+    tabelaBody.innerHTML = '<tr><td colspan="6">Carregando histórico...</td></tr>';
+    modal.style.display = 'flex';
+
+    try {
+        const historico = await getHistoricoItemAlmoxarifado(itemId); // Função que criaremos na API
+        tabelaBody.innerHTML = '';
+        if (historico.length === 0) {
+            tabelaBody.innerHTML = '<tr><td colspan="6">Nenhuma movimentação registrada para este item.</td></tr>';
+            return;
+        }
+
+        historico.forEach(mov => {
+            const tr = document.createElement('tr');
+            const destino = mov.pessoa_nome || mov.setor_nome || 'N/A';
+            
+            tr.innerHTML = `
+                <td>${new Date(mov.data_movimentacao).toLocaleString('pt-BR')}</td>
+                <td>${mov.tipo_movimentacao}</td>
+                <td>${mov.quantidade_movimentada}</td>
+                <td>${destino}</td>
+                <td>${mov.usuario_nome || 'Sistema'}</td>
+                <td>${mov.observacoes || ''}</td>
+            `;
+            tabelaBody.appendChild(tr);
+        });
+
+    } catch (error) {
+        tabelaBody.innerHTML = `<tr><td colspan="6">Erro ao carregar histórico: ${error.message}</td></tr>`;
+    }
+}
+
+// Função para lidar com a submissão do formulário de saída
+async function handleSubmissaoSaida(event) {
+    event.preventDefault();
+    const form = event.target;
+    const dados = {
+        itemId: form.querySelector('#modal-saida-item-id').value,
+        quantidade: parseInt(form.querySelector('#modal-saida-quantidade').value, 10),
+        pessoaNome: form.querySelector('#modal-saida-pessoa').value.trim() || null,
+        setor: form.querySelector('#modal-saida-setor').value || null,
+        observacoes: form.querySelector('#modal-saida-observacoes').value.trim(),
+        ehDevolucao: form.querySelector('#modal-saida-devolucao').checked
+    };
+
+    if (!dados.pessoaNome && !dados.setor) {
+        Toastify({ text: 'Preencha o nome da pessoa ou selecione um setor.', backgroundColor: "orange" }).showToast();
+        return;
+    }
+
+    try {
+        const response = await registrarSaidaAlmoxarifado(dados); // Função que criaremos na API
+        Toastify({ text: "Saída registrada com sucesso!" }).showToast();
+        document.getElementById('modal-saida-almoxarifado').style.display = 'none';
+        carregarDados(); // Recarrega os dados para atualizar a quantidade em estoque
+    } catch (error) {
+        console.error("Erro ao registrar saída:", error);
+        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
+}
 // =================================================================
 // 7. CÓDIGO EXECUTADO QUANDO A PÁGINA CARREGA
 // =================================================================
@@ -1495,6 +1651,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const formAssociacaoUnificado = document.getElementById('form-associacao-unificado');
     if (formAssociacaoUnificado) formAssociacaoUnificado.addEventListener('submit', salvarAssociacaoUnificada);
+
+
+    // Listener para o novo formulário de almoxarifado
+    const formAlmoxarifado = document.getElementById('form-almoxarifado');
+    if (formAlmoxarifado) {
+        formAlmoxarifado.addEventListener('submit', salvarItemAlmoxarifado);
+    }
+
+    // Listener para o campo de busca do almoxarifado
+    const campoBuscaAlmoxarifado = document.getElementById('campo-busca-almoxarifado');
+    if (campoBuscaAlmoxarifado) {
+        campoBuscaAlmoxarifado.addEventListener('input', renderizarAlmoxarifado);
+    }
+
+
+    // Listener para os botões da lista do almoxarifado (retirada e histórico)
+    const listaAlmoxarifado = document.getElementById('lista-almoxarifado');
+    if (listaAlmoxarifado) {
+        listaAlmoxarifado.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('btn-retirada')) {
+                const itemId = target.dataset.id;
+                const itemName = target.dataset.nome;
+                const itemQtd = target.dataset.qtd;
+                abrirModalSaida(itemId, itemName, itemQtd);
+            }
+            if (target.classList.contains('btn-historico')) {
+                const itemId = target.dataset.id;
+                const itemName = target.dataset.nome;
+                abrirModalHistoricoAlmoxarifado(itemId, itemName);
+            }
+        });
+    }
+
+    // Listener para o formulário de saída do modal
+    const formSaida = document.getElementById('form-saida-almoxarifado');
+    if (formSaida) {
+        formSaida.addEventListener('submit', handleSubmissaoSaida);
+    }
+    
+    // Listeners para fechar os modais
+    document.querySelectorAll('.modal-close-btn').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            event.target.closest('.modal-container').style.display = 'none';
+        });
+    });
+
+    // Popular o dropdown de setores no modal de saída
+    popularDropdownSetores();
 
     // 2. LÓGICA DO MENU LATERAL
     const sidebarToggle = document.getElementById('sidebar-toggle');
