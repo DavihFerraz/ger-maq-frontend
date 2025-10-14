@@ -528,13 +528,12 @@ function exibirInfoUtilizador() {
             const nome = dadosUtilizador.nome || 'Utilizador';
             const depto = dadosUtilizador.departamento || 'N/D';
 
-            // Mapa de cores por departamento
+            // Mapa de cores (lógica existente)
             const deptoColors = {
                 'TI': { icon: '#3498db', bg: '#eaf4fc', text: '#2980b9' },
                 'GAS': { icon: '#27ae60', bg: '#e9f7ef', text: '#229954' },
                 'default': { icon: '#8e8e8e', bg: '#f0f0f0', text: '#5e5e5e' }
             };
-
             const colors = deptoColors[depto.toUpperCase()] || deptoColors['default'];
 
             infoUtilizadorUI.innerHTML = `
@@ -543,6 +542,18 @@ function exibirInfoUtilizador() {
                     <strong style="background-color: ${colors.bg}; color: ${colors.text};">${nome}</strong>
                     (${depto})
                 </span>`;
+            
+            // --- NOVA LÓGICA DE PERMISSÃO AQUI ---
+            const containerAlmoxarifado = document.querySelector('.almoxarifado-container');
+            if (containerAlmoxarifado) {
+                // Se o departamento do usuário NÃO for 'GAS', esconde o container
+                if (depto.toUpperCase() !== 'GAS') {
+                    containerAlmoxarifado.style.display = 'none';
+                } else {
+                    // Garante que ele apareça se o usuário for do GAS (caso estivesse escondido por algum motivo)
+                    containerAlmoxarifado.style.display = 'block';
+                }
+            }
         }
     }
 }
@@ -1589,6 +1600,75 @@ function exportarInventarioPDF() {
     printWindow.document.close();
 }
 
+function exportarAlmoxarifadoPDF() {
+    const itensAlmoxarifado = todoEstoque.filter(item => item.categoria === 'ALMOXARIFADO');
+    if (itensAlmoxarifado.length === 0) {
+        alert("Não há itens no almoxarifado para gerar o PDF.");
+        return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    let tabelaHtml = `
+        <!DOCTYPE html><html><head><title>Relatório de Almoxarifado</title>
+        <style>body{font-family:sans-serif} table{width:100%; border-collapse:collapse} th,td{border:1px solid #ddd; padding:8px} th{background-color:#f2f2f2}</style>
+        </head><body><h1>Inventário do Almoxarifado</h1>
+        <table><thead><tr><th>Item</th><th>Patrimonio</th><th>Status</th><th>Quantidade</th><th>Observações</th></tr></thead><tbody>
+    `;
+    itensAlmoxarifado.forEach(item => {
+        tabelaHtml += `
+            <tr>
+                <td>${item.modelo_tipo || ''}</td>
+                <td>${item.patrimonio || 'N/A'}</td>
+                <td>${item.status || ''}</td>
+                <td>${item.quantidade || 0}</td>
+                <td>${item.observacoes || ''}</td>
+            </tr>
+        `;
+    });
+    tabelaHtml += '</tbody></table></body></html>';
+    printWindow.document.open();
+    printWindow.document.write(tabelaHtml);
+    printWindow.document.close();
+}
+
+function exportarAlmoxarifadoCSV() {
+    const itensAlmoxarifado = todoEstoque.filter(item => item.categoria === 'ALMOXARIFADO');
+    if (itensAlmoxarifado.length === 0) {
+        alert("Não há itens no almoxarifado para exportar.");
+        return;
+    }
+
+    const delimiter = ';';
+    let csvContent = '\uFEFF'; // BOM para garantir a codificação correta no Excel
+
+    // Seção 1: Inventário Atual
+    csvContent += 'Inventario Atual do Almoxarifado\n';
+    const cabecalhosInventario = ['Item', 'Codigo/SKU', 'Status', 'Quantidade', 'Observacoes'];
+    csvContent += cabecalhosInventario.join(delimiter) + '\n';
+
+    itensAlmoxarifado.forEach(item => {
+        const linha = [
+            `"${item.modelo_tipo || ''}"`,
+            `"${item.patrimonio || ''}"`,
+            `"${item.status || ''}"`,
+            item.quantidade || 0,
+            `"${item.observacoes || ''}"`
+        ].join(delimiter);
+        csvContent += linha + '\n';
+    });
+
+    // Adiciona uma linha em branco para separar as seções
+    csvContent += '\n';
+
+    // Se você quiser adicionar o histórico de movimentações também, precisaremos de uma nova função na API.
+    // Por enquanto, vamos manter simples, exportando apenas o inventário atual.
+
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURI(csvContent);
+    link.download = 'relatorio_almoxarifado.csv';
+    link.click();
+}
+
 
 // Função para abrir o modal de registro de saída
 function abrirModalSaida(itemId, itemName, itemQuantidade) {
@@ -1720,6 +1800,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const formAssociacaoUnificado = document.getElementById('form-associacao-unificado');
     if (formAssociacaoUnificado) formAssociacaoUnificado.addEventListener('submit', salvarAssociacaoUnificada);
+
+    const fecharModalExportAlmoxarifado = () => {
+        const modal = document.getElementById('modal-exportar-almoxarifado');
+        if (modal) {
+            // A classe 'visible' que usamos nos outros modais controla a visibilidade.
+            // Se o seu CSS usa 'display', mude para: modal.style.display = 'none';
+            modal.classList.remove('visible');
+        }
+    };
+
+    // Listener para ABRIR o modal ao clicar no botão "Exportar Dados do Almoxarifado"
+    document.getElementById('btn-abrir-modal-exportar-almoxarifado')?.addEventListener('click', () => {
+        const modal = document.getElementById('modal-exportar-almoxarifado');
+        if (modal) {
+            modal.classList.add('visible');
+        }
+    });
+
+    // Listener para FECHAR o modal com o botão "Cancelar"
+    document.getElementById('btn-fechar-modal-exportar-almoxarifado')?.addEventListener('click', fecharModalExportAlmoxarifado);
+
+    // Listener para o botão de exportar para CSV
+    document.getElementById('btn-exportar-almoxarifado-csv')?.addEventListener('click', () => {
+        exportarAlmoxarifadoCSV();
+        fecharModalExportAlmoxarifado(); // Fecha o modal após a ação
+    });
+
+    // Listener para o botão de visualizar PDF
+    document.getElementById('btn-exportar-almoxarifado-pdf')?.addEventListener('click', () => {
+        exportarAlmoxarifadoPDF();
+        fecharModalExportAlmoxarifado(); // Fecha o modal após a ação
+    });
 
 
     // Listener para o novo formulário de almoxarifado

@@ -336,6 +336,12 @@
                     <ul id="lista-almoxarifado">
                         </ul>
                 </div>
+
+                <div class="export-container" style="padding: 20px;">
+                    <button id="btn-abrir-modal-exportar-almoxarifado" class="btn-exportar">
+                        <i class="fas fa-download"></i> Exportar Dados do Almoxarifado
+                    </button>
+                </div>
             </details>
         </div>
         <div class="export-container">
@@ -347,6 +353,24 @@
     </div>
                     
     </main>
+
+    <div id="modal-exportar-almoxarifado" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Exportar Relatório do Almoxarifado</h3>
+        <p>Escolha o formato para exportar o inventário e o histórico de movimentações do almoxarifado.</p>
+        <div class="export-modal-buttons">
+            <button id="btn-exportar-almoxarifado-csv" class="btn-modal">
+                <i class="fas fa-file-csv"></i> Exportar para CSV
+            </button>
+            <button id="btn-exportar-almoxarifado-pdf" class="btn-modal">
+                <i class="fas fa-file-pdf"></i> Visualizar PDF
+            </button>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-modal" id="btn-fechar-modal-exportar-almoxarifado">Cancelar</button>
+        </div>
+    </div>
+</div>
 
     <div id="modal-confirmacao" class="modal-overlay">
         <div class="modal-content">
