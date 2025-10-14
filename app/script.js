@@ -315,22 +315,45 @@ function renderizarOutrosAtivos() {
     });
 }
 
-function renderizarAlmoxarifado() {
+async function renderizarAlmoxarifado() {
     const listaUI = document.getElementById('lista-almoxarifado');
     if (!listaUI) return;
 
-    const todoAlmoxarifado = todoEstoque.filter(item => item.categoria === 'ALMOXARIFADO');
-    const termoBusca = (document.getElementById('campo-busca-almoxarifado')?.value || '').toLowerCase();
+    // --- Lógica Otimizada ---
+    // 1. Filtra os itens de almoxarifado do estoque principal
+    const todosItensAlmoxarifado = todoEstoque.filter(item => item.categoria === 'ALMOXARIFADO');
+    
+    // 2. Busca o histórico de TODOS os itens de almoxarifado de uma vez (se houver algum)
+    const historicoCompleto = [];
+    if (todosItensAlmoxarifado.length > 0) {
+        // Cria uma lista de promises para buscar o histórico de cada item
+        const promisesHistorico = todosItensAlmoxarifado.map(item => getHistoricoItemAlmoxarifado(item.id));
+        // Executa todas as buscas em paralelo
+        const resultadosHistorico = await Promise.all(promisesHistorico);
+        // Junta todos os resultados em uma única array
+        resultadosHistorico.forEach(hist => historicoCompleto.push(...hist));
+    }
 
-    const itensFiltrados = todoAlmoxarifado.filter(item => {
-        const buscaOk = termoBusca === '' || 
-                        `${item.modelo_tipo} ${item.patrimonio}`.toLowerCase().includes(termoBusca);
-        return buscaOk;
+    const emprestimosAtivos = historicoCompleto.filter(mov => mov.tipo_movimentacao === 'SAIDA' && !mov.data_devolucao);
+
+    const contagemEmprestimos = emprestimosAtivos.reduce((acc, mov) => {
+        acc[mov.item_id] = (acc[mov.item_id] || 0) + mov.quantidade_movimentada;
+        return acc;
+    }, {});
+    
+    // --- Lógica de Filtro e Renderização (igual à anterior) ---
+    const termoBusca = (document.getElementById('campo-busca-almoxarifado')?.value || '').toLowerCase();
+    const mostrarApenasEmprestimo = document.getElementById('filtro-em-emprestimo')?.checked;
+
+    let itensFiltrados = todosItensAlmoxarifado.filter(item => {
+        const buscaOk = termoBusca === '' || `${item.modelo_tipo} ${item.patrimonio}`.toLowerCase().includes(termoBusca);
+        const emprestimoOk = !mostrarApenasEmprestimo || (contagemEmprestimos[item.id] > 0);
+        return buscaOk && emprestimoOk;
     });
 
     listaUI.innerHTML = '';
     if (itensFiltrados.length === 0) {
-        listaUI.innerHTML = '<li>Nenhum item de almoxarifado encontrado.</li>';
+        listaUI.innerHTML = '<li>Nenhum item encontrado.</li>';
         return;
     }
 
@@ -338,32 +361,31 @@ function renderizarAlmoxarifado() {
 
     itensFiltrados.forEach(item => {
         const li = document.createElement('li');
-        
-        // --- LÓGICA DE STATUS ALTERADA AQUI ---
-        const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'disponivel';
-        li.classList.add(`status-${statusClass}`);
+        li.classList.add('status-disponivel'); 
 
-        const estaEmprestado = item.status === 'Em Empréstimo';
-        
+        const qtdEmprestada = contagemEmprestimos[item.id] || 0;
+        const podeRetirar = item.quantidade > 0;
+
         const botoesHTML = `
-            <button class="btn-item btn-retirada" data-id="${item.id}" data-nome="${item.modelo_tipo}" data-qtd="${item.quantidade}" ${estaEmprestado ? 'disabled' : ''}>Registrar Saída</button>
+            <button class="btn-item btn-retirada" data-id="${item.id}" data-nome="${item.modelo_tipo}" data-qtd="${item.quantidade}" ${!podeRetirar ? 'disabled' : ''}>Registrar Saída</button>
             <button class="btn-item btn-historico" data-id="${item.id}" data-nome="${item.modelo_tipo}">Histórico</button>
             <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmprestado ? 'disabled' : ''}>Excluir</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>
         `;
         
-        const statusBadgeHTML = `<span class="status-badge status-${statusClass}">${item.status || 'Disponível'}</span>`;
-        const quantidadeHTML = !estaEmprestado ? `<br><small>Quantidade: <strong>${item.quantidade || 0}</strong></small>` : '';
+        // TAG "EM EMPRÉSTIMO" DE VOLTA
+        const emprestimoBadgeHTML = qtdEmprestada > 0
+            ? `<span class="status-badge status-em-emprestimo">${qtdEmprestada} em Empréstimo</span>`
+            : '';
 
         li.innerHTML = `
             <div class="info-item">
                 <span>
                     <strong>${item.modelo_tipo}</strong> (Código: ${item.patrimonio || 'N/A'})
-                    ${quantidadeHTML}
-                    <br><small>Local: Almoxarifado</small>
+                    <br><small>Quantidade em Estoque: <strong>${item.quantidade || 0}</strong></small>
                 </span>
                 <div class="status-badges-container">
-                    ${statusBadgeHTML}
+                    ${emprestimoBadgeHTML}
                 </div>
             </div>
             <div class="botoes-item">${botoesHTML}</div>`;
@@ -1743,7 +1765,7 @@ async function handleSubmissaoSaida(event) {
         pessoaNome: form.querySelector('#modal-saida-pessoa').value.trim() || null,
         setor: form.querySelector('#modal-saida-setor').value || null,
         observacoes: form.querySelector('#modal-saida-observacoes').value.trim(),
-        ehDevolucao: form.querySelector('#modal-saida-devolucao').checked
+        ehDevolucao: form.querySelector('input[name="tipoSaida"]:checked').value === 'emprestimo'
     };
 
     if (!dados.pessoaNome && !dados.setor) {
@@ -1849,6 +1871,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const formEditarAlmoxarifado = document.getElementById('form-editar-almoxarifado');
     if (formEditarAlmoxarifado) {
         formEditarAlmoxarifado.addEventListener('submit', salvarEdicaoAlmoxarifado);
+    }
+
+     const filtroEmprestimo = document.getElementById('filtro-em-emprestimo');
+    if (filtroEmprestimo) {
+        filtroEmprestimo.addEventListener('change', renderizarAlmoxarifado);
     }
 
     const btnCancelarEdicaoAlmox = document.getElementById('btn-editar-almox-cancelar');

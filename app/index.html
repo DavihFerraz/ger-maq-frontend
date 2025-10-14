@@ -333,6 +333,12 @@
                     <div class="search-container">
                         <input type="text" id="campo-busca-almoxarifado" placeholder="Buscar por nome ou código...">
                     </div>
+                    <div class="filtros-container" style="padding: 10px; justify-content: flex-end;">
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="filtro-em-emprestimo">
+                            <label for="filtro-em-emprestimo">Mostrar apenas itens com empréstimos ativos</label>
+                        </div>
+                    </div>
                     <ul id="lista-almoxarifado">
                         </ul>
                 </div>
@@ -685,9 +691,16 @@
                 <textarea id="modal-saida-observacoes" rows="2"></textarea>
             </div>
 
-            <div class="form-group checkbox-group">
-                <input type="checkbox" id="modal-saida-devolucao">
-                <label for="modal-saida-devolucao">É um item que será devolvido? (Ex: ferramenta)</label>
+            <div class="form-group tipo-saida-group">
+                <label>Tipo de Saída:</label>
+                <div>
+                    <input type="radio" id="tipo-saida-consumo" name="tipoSaida" value="consumo" checked>
+                    <label for="tipo-saida-consumo">Consumo (Não será devolvido)</label>
+                </div>
+                <div>
+                    <input type="radio" id="tipo-saida-emprestimo" name="tipoSaida" value="emprestimo">
+                    <label for="tipo-saida-emprestimo">Empréstimo (Será devolvido)</label>
+                </div>
             </div>
 
             <div class="modal-buttons">

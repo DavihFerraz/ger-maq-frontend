@@ -1663,3 +1663,14 @@ grafico-setores,
 .btn-devolver:hover {
     background-color: var(--cor-sucesso-hover);
 }
+
+.tipo-saida-group div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.tipo-saida-group input[type="radio"] {
+    width: auto;
+    margin-right: 10px;
+}
