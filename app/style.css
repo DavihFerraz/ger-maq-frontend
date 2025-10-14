@@ -1674,3 +1674,10 @@ grafico-setores,
     width: auto;
     margin-right: 10px;
 }
+.status-badge.status-aviso {
+    background-color: #e67e22; /* Laranja mais escuro */
+}
+
+.status-badge.status-atrasado {
+    background-color: #c0392b; /* Vermelho */
+}

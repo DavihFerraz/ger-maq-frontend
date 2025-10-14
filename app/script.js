@@ -378,6 +378,29 @@ async function renderizarAlmoxarifado() {
             ? `<span class="status-badge status-em-emprestimo">${qtdEmprestada} em Empréstimo</span>`
             : '';
 
+             let alertaDataHTML = '';
+            if (qtdEmprestada > 0) {
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0); // Zera o horário para comparar apenas a data
+
+                // Encontra a data de retorno mais próxima para este item
+                const dataMaisProxima = emprestimosAtivos
+                    .filter(mov => mov.item_id === item.id && mov.data_prevista_devolucao)
+                    .map(mov => new Date(mov.data_prevista_devolucao))
+                    .sort((a, b) => a - b)[0];
+
+                if (dataMaisProxima) {
+                    const diffTime = dataMaisProxima - hoje;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays < 0) {
+                        alertaDataHTML = `<span class="status-badge status-atrasado">Atrasado</span>`;
+                    } else if (diffDays <= 7) {
+                        alertaDataHTML = `<span class="status-badge status-aviso">Devolver em ${diffDays} dias</span>`;
+                    }
+                }
+            }
+
         li.innerHTML = `
             <div class="info-item">
                 <span>
@@ -1704,68 +1727,81 @@ function abrirModalSaida(itemId, itemName, itemQuantidade) {
 }
 
 // Função para abrir o modal de histórico
-async function abrirModalHistoricoAlmoxarifado(itemId, itemName) { // Confirme se o nome da sua função é este
+async function abrirModalHistoricoAlmoxarifado(itemId, itemName) {
     document.getElementById('modal-historico-nome-item').textContent = itemName;
     const modal = document.getElementById('modal-historico-almoxarifado');
     const tabelaBody = modal.querySelector('tbody');
-    // Ajusta o colspan para 7 por causa da nova coluna
-    tabelaBody.innerHTML = '<tr><td colspan="7">Carregando histórico...</td></tr>';
+    // Ajusta o colspan para 8 por causa da nova coluna
+    tabelaBody.innerHTML = '<tr><td colspan="8">Carregando histórico...</td></tr>';
     modal.style.display = 'flex';
 
     try {
         const historico = await getHistoricoItemAlmoxarifado(itemId);
         tabelaBody.innerHTML = '';
         if (historico.length === 0) {
-            tabelaBody.innerHTML = '<tr><td colspan="7">Nenhuma movimentação registrada para este item.</td></tr>';
+            tabelaBody.innerHTML = '<tr><td colspan="8">Nenhuma movimentação registrada.</td></tr>';
             return;
         }
 
         historico.forEach(mov => {
             const tr = document.createElement('tr');
-
-            // --- LÓGICA ATUALIZADA AQUI ---
+            
             const destino = mov.pessoa_nome || mov.setor_nome || 'N/A';
-            // Se houver um nome de pessoa, o departamento será o nome do setor. Se não, fica vazio.
             const departamento = mov.pessoa_nome ? mov.setor_nome || 'Pessoal' : '---';
             
+            // --- NOVA LÓGICA PARA FORMATAR A DATA PREVISTA ---
+            let dataPrevistaFormatada = 'N/A';
+            if (mov.data_prevista_devolucao) {
+                // new Date() corrige o fuso horário que o PostgreSQL pode adicionar
+                dataPrevistaFormatada = new Date(mov.data_prevista_devolucao).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            }
+
             const ehEmprestimoAtivo = mov.tipo_movimentacao === 'SAIDA' && !mov.data_devolucao;
-
-            // MUDANÇA: Usa toLocaleString() para incluir o horário
-            const dataHoraDevolucao = mov.data_devolucao 
-                ? `Devolvido em ${new Date(mov.data_devolucao).toLocaleString('pt-BR')}` 
-                : 'Consumido';
+            let acaoHTML = '';
             
-            const acaoHTML = ehEmprestimoAtivo
-                ? `<button class="btn-item btn-devolver" data-mov-id="${mov.id}">Devolver</button>`
-                : dataHoraDevolucao;
+            if (ehEmprestimoAtivo) {
+                // Se for um empréstimo que ainda não foi devolvido, mostra o botão
+                acaoHTML = `<button class="btn-item btn-devolver" data-mov-id="${mov.id}">Devolver</button>`;
+            } else if (mov.data_devolucao && mov.tipo_movimentacao === 'DEVOLUCAO') {
+                // Se já foi devolvido (e o tipo é DEVOLUCAO), mostra a data e hora
+                acaoHTML = `Devolvido em ${new Date(mov.data_devolucao).toLocaleString('pt-BR')}`;
+            } else {
+                // Para todos os outros casos (item de consumo), mostra 'N/A'
+                acaoHTML = 'N/A';
+            }
 
-            // Adiciona a nova célula <td> para o departamento
+
             tr.innerHTML = `
                 <td>${new Date(mov.data_movimentacao).toLocaleString('pt-BR')}</td>
                 <td>${mov.tipo_movimentacao}</td>
                 <td>${mov.quantidade_movimentada}</td>
                 <td>${destino}</td>
-                <td>${departamento}</td> <td>${mov.usuario_nome || 'Sistema'}</td>
+                <td>${departamento}</td>
+                <td>${dataPrevistaFormatada}</td> <td>${mov.usuario_nome || 'Sistema'}</td>
                 <td>${acaoHTML}</td>
             `;
             tabelaBody.appendChild(tr);
         });
 
     } catch (error) {
-        tabelaBody.innerHTML = `<tr><td colspan="7">Erro ao carregar histórico: ${error.message}</td></tr>`;
+        tabelaBody.innerHTML = `<tr><td colspan="8">Erro ao carregar histórico: ${error.message}</td></tr>`;
     }
 }
 // Função para lidar com a submissão do formulário de saída
 async function handleSubmissaoSaida(event) {
     event.preventDefault();
     const form = event.target;
+    const tipoSaida = form.querySelector('input[name="tipoSaida"]:checked').value;
+    const dataRetorno = form.querySelector('#modal-saida-data-retorno').value;
+
     const dados = {
         itemId: form.querySelector('#modal-saida-item-id').value,
         quantidade: parseInt(form.querySelector('#modal-saida-quantidade').value, 10),
         pessoaNome: form.querySelector('#modal-saida-pessoa').value.trim() || null,
-        setor: form.querySelector('#modal-saida-setor').value || null,
+        setor: form.querySelector('#modal-saida-setor').value || null, // Enviando o nome
         observacoes: form.querySelector('#modal-saida-observacoes').value.trim(),
-        ehDevolucao: form.querySelector('input[name="tipoSaida"]:checked').value === 'emprestimo'
+        ehDevolucao: tipoSaida === 'emprestimo',
+        data_prevista_devolucao: (tipoSaida === 'emprestimo' && dataRetorno) ? dataRetorno : null
     };
 
     if (!dados.pessoaNome && !dados.setor) {
@@ -1838,6 +1874,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) {
             modal.classList.add('visible');
         }
+    });
+
+     document.querySelectorAll('input[name="tipoSaida"]').forEach(radio => {
+        radio.addEventListener('change', (event) => {
+            const containerData = document.getElementById('container-data-retorno');
+            if (event.target.value === 'emprestimo') {
+                containerData.style.display = 'block';
+            } else {
+                containerData.style.display = 'none';
+            }
+        });
     });
 
     // Listener para FECHAR o modal com o botão "Cancelar"
