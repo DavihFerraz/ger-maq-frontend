@@ -140,3 +140,9 @@ export const registrarSaidaAlmoxarifado = (dados) => {
 export const getHistoricoItemAlmoxarifado = (itemId) => {
     return fetchAPI(`/almoxarifado/historico/${itemId}`);
 }
+
+export const devolverItemAlmoxarifado = (movimentacaoId) => {
+    return fetchAPI(`/almoxarifado/devolucao/${movimentacaoId}`, {
+        method: 'POST',
+    });
+};

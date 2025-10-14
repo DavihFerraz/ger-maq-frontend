@@ -686,14 +686,44 @@
                         <th>Tipo</th>
                         <th>Qtd.</th>
                         <th>Destino</th>
-                        <th>Registrado por</th>
-                        <th>Obs.</th>
-                    </tr>
+                        <th>Departamento</th> <th>Registrado por</th>
+                        <th>Obs./Ação</th> </tr>
                 </thead>
                 <tbody>
                     </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<div id="modal-almoxarifado-editar" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Editar Item do Almoxarifado</h3>
+        <form id="form-editar-almoxarifado">
+            <input type="hidden" id="editar-almox-id">
+            
+            <div class="form-group">
+                <label for="editar-almox-nome">Nome do Item:</label>
+                <input type="text" id="editar-almox-nome" required>
+            </div>
+            <div class="form-group">
+                <label for="editar-almox-sku">Código/SKU (Opcional):</label>
+                <input type="text" id="editar-almox-sku">
+            </div>
+            <div class="form-group">
+                <label for="editar-almox-quantidade">Quantidade em Estoque:</label>
+                <input type="number" id="editar-almox-quantidade" required min="0">
+            </div>
+            <div class="form-group">
+                <label for="editar-almox-observacoes">Observações:</label>
+                <input type="text" id="editar-almox-observacoes">
+            </div>
+            
+            <div class="modal-buttons">
+                <button type="button" class="btn-modal" id="btn-editar-almox-cancelar">Cancelar</button>
+                <button type="submit" class="btn-modal btn-confirmar">Salvar Alterações</button>
+            </div>
+        </form>
     </div>
 </div>
 

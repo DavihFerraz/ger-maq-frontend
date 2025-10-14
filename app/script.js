@@ -17,7 +17,8 @@ import {
     getItemHistory,
     getSetores,
     registrarSaidaAlmoxarifado,
-    getHistoricoItemAlmoxarifado 
+    getHistoricoItemAlmoxarifado,
+    devolverItemAlmoxarifado
 } from './api.js';
 
 // 2. ESTADO LOCAL DA APLICAÇÃO
@@ -337,23 +338,33 @@ function renderizarAlmoxarifado() {
 
     itensFiltrados.forEach(item => {
         const li = document.createElement('li');
-        li.classList.add('status-disponivel'); 
+        
+        // --- LÓGICA DE STATUS ALTERADA AQUI ---
+        const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'disponivel';
+        li.classList.add(`status-${statusClass}`);
 
-        // NOVOS BOTÕES AQUI!
+        const estaEmprestado = item.status === 'Em Empréstimo';
+        
         const botoesHTML = `
-            <button class="btn-item btn-retirada" data-id="${item.id}" data-nome="${item.modelo_tipo}" data-qtd="${item.quantidade}">Registrar Saída</button>
+            <button class="btn-item btn-retirada" data-id="${item.id}" data-nome="${item.modelo_tipo}" data-qtd="${item.quantidade}" ${estaEmprestado ? 'disabled' : ''}>Registrar Saída</button>
             <button class="btn-item btn-historico" data-id="${item.id}" data-nome="${item.modelo_tipo}">Histórico</button>
             <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmprestado ? 'disabled' : ''}>Excluir</button>
         `;
+        
+        const statusBadgeHTML = `<span class="status-badge status-${statusClass}">${item.status || 'Disponível'}</span>`;
+        const quantidadeHTML = !estaEmprestado ? `<br><small>Quantidade: <strong>${item.quantidade || 0}</strong></small>` : '';
 
         li.innerHTML = `
             <div class="info-item">
                 <span>
                     <strong>${item.modelo_tipo}</strong> (Código: ${item.patrimonio || 'N/A'})
-                    <br><small>Quantidade: <strong>${item.quantidade || 0}</strong></small>
+                    ${quantidadeHTML}
                     <br><small>Local: Almoxarifado</small>
                 </span>
+                <div class="status-badges-container">
+                    ${statusBadgeHTML}
+                </div>
             </div>
             <div class="botoes-item">${botoesHTML}</div>`;
         listaUI.appendChild(li);
@@ -790,6 +801,48 @@ async function salvarEdicaoOutro(event) {
     } catch (error) {
         console.error("Erro ao atualizar o ativo:", error);
         Toastify({ text: `Erro ao atualizar: ${error.message}`, backgroundColor: "red" }).showToast();
+    }
+}
+
+function abrirModalEditarAlmoxarifado(itemId) {
+    const item = todoEstoque.find(i => i.id === itemId);
+    if (!item) return;
+
+    // Preenche os campos do novo modal
+    document.getElementById('editar-almox-id').value = item.id;
+    document.getElementById('editar-almox-nome').value = item.modelo_tipo || '';
+    document.getElementById('editar-almox-sku').value = item.patrimonio || '';
+    document.getElementById('editar-almox-quantidade').value = item.quantidade || 0;
+    document.getElementById('editar-almox-observacoes').value = item.observacoes || '';
+
+    // Mostra o modal
+    document.getElementById('modal-almoxarifado-editar').classList.add('visible');
+}
+
+function fecharModalEditarAlmoxarifado() {
+    document.getElementById('modal-almoxarifado-editar').classList.remove('visible');
+}
+
+async function salvarEdicaoAlmoxarifado(event) {
+    event.preventDefault();
+    const form = event.target;
+    const itemId = form.querySelector('#editar-almox-id').value;
+
+    const dadosAtualizados = {
+        modelo_tipo: form.querySelector('#editar-almox-nome').value.trim(),
+        patrimonio: form.querySelector('#editar-almox-sku').value.trim(),
+        quantidade: parseInt(form.querySelector('#editar-almox-quantidade').value, 10),
+        observacoes: form.querySelector('#editar-almox-observacoes').value.trim(),
+    };
+
+    try {
+        await updateItem(itemId, dadosAtualizados);
+        Toastify({ text: "Item do almoxarifado atualizado!" }).showToast();
+        fecharModalEditarAlmoxarifado();
+        carregarDados();
+    } catch (error) {
+        console.error("Erro ao atualizar item do almoxarifado:", error);
+        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
     }
 }
 
@@ -1549,41 +1602,57 @@ function abrirModalSaida(itemId, itemName, itemQuantidade) {
 }
 
 // Função para abrir o modal de histórico
-async function abrirModalHistoricoAlmoxarifado(itemId, itemName) {
+async function abrirModalHistoricoAlmoxarifado(itemId, itemName) { // Confirme se o nome da sua função é este
     document.getElementById('modal-historico-nome-item').textContent = itemName;
     const modal = document.getElementById('modal-historico-almoxarifado');
     const tabelaBody = modal.querySelector('tbody');
-    tabelaBody.innerHTML = '<tr><td colspan="6">Carregando histórico...</td></tr>';
+    // Ajusta o colspan para 7 por causa da nova coluna
+    tabelaBody.innerHTML = '<tr><td colspan="7">Carregando histórico...</td></tr>';
     modal.style.display = 'flex';
 
     try {
-        const historico = await getHistoricoItemAlmoxarifado(itemId); // Função que criaremos na API
+        const historico = await getHistoricoItemAlmoxarifado(itemId);
         tabelaBody.innerHTML = '';
         if (historico.length === 0) {
-            tabelaBody.innerHTML = '<tr><td colspan="6">Nenhuma movimentação registrada para este item.</td></tr>';
+            tabelaBody.innerHTML = '<tr><td colspan="7">Nenhuma movimentação registrada para este item.</td></tr>';
             return;
         }
 
         historico.forEach(mov => {
             const tr = document.createElement('tr');
+
+            // --- LÓGICA ATUALIZADA AQUI ---
             const destino = mov.pessoa_nome || mov.setor_nome || 'N/A';
+            // Se houver um nome de pessoa, o departamento será o nome do setor. Se não, fica vazio.
+            const departamento = mov.pessoa_nome ? mov.setor_nome || 'Pessoal' : '---';
             
+            const ehEmprestimoAtivo = mov.tipo_movimentacao === 'SAIDA' && !mov.data_devolucao;
+
+            // MUDANÇA: Usa toLocaleString() para incluir o horário
+            const dataHoraDevolucao = mov.data_devolucao 
+                ? `Devolvido em ${new Date(mov.data_devolucao).toLocaleString('pt-BR')}` 
+                : 'Consumido';
+            
+            const acaoHTML = ehEmprestimoAtivo
+                ? `<button class="btn-item btn-devolver" data-mov-id="${mov.id}">Devolver</button>`
+                : dataHoraDevolucao;
+
+            // Adiciona a nova célula <td> para o departamento
             tr.innerHTML = `
                 <td>${new Date(mov.data_movimentacao).toLocaleString('pt-BR')}</td>
                 <td>${mov.tipo_movimentacao}</td>
                 <td>${mov.quantidade_movimentada}</td>
                 <td>${destino}</td>
-                <td>${mov.usuario_nome || 'Sistema'}</td>
-                <td>${mov.observacoes || ''}</td>
+                <td>${departamento}</td> <td>${mov.usuario_nome || 'Sistema'}</td>
+                <td>${acaoHTML}</td>
             `;
             tabelaBody.appendChild(tr);
         });
 
     } catch (error) {
-        tabelaBody.innerHTML = `<tr><td colspan="6">Erro ao carregar histórico: ${error.message}</td></tr>`;
+        tabelaBody.innerHTML = `<tr><td colspan="7">Erro ao carregar histórico: ${error.message}</td></tr>`;
     }
 }
-
 // Função para lidar com a submissão do formulário de saída
 async function handleSubmissaoSaida(event) {
     event.preventDefault();
@@ -1663,6 +1732,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const campoBuscaAlmoxarifado = document.getElementById('campo-busca-almoxarifado');
     if (campoBuscaAlmoxarifado) {
         campoBuscaAlmoxarifado.addEventListener('input', renderizarAlmoxarifado);
+    }
+
+    const formEditarAlmoxarifado = document.getElementById('form-editar-almoxarifado');
+    if (formEditarAlmoxarifado) {
+        formEditarAlmoxarifado.addEventListener('submit', salvarEdicaoAlmoxarifado);
+    }
+
+    const btnCancelarEdicaoAlmox = document.getElementById('btn-editar-almox-cancelar');
+    if(btnCancelarEdicaoAlmox) {
+        btnCancelarEdicaoAlmox.addEventListener('click', fecharModalEditarAlmoxarifado);
+    }
+
+    const modalHistorico = document.getElementById('modal-historico-almoxarifado');
+    if (modalHistorico) {
+        modalHistorico.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('btn-devolver')) {
+                const movId = event.target.dataset.movId;
+                
+                if (confirm('Deseja realmente registrar a devolução deste item?')) {
+                    try {
+                        await devolverItemAlmoxarifado(movId);
+                        Toastify({ text: "Item devolvido com sucesso!" }).showToast();
+                        modalHistorico.style.display = 'none';
+                        carregarDados(); // Recarrega a lista principal
+                    } catch (error) {
+                        Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
+                    }
+                }
+            }
+        });
     }
 
 
@@ -1974,17 +2073,19 @@ document.body.addEventListener('click', async (event) => {
     const id = target.dataset.id;
     if (!id) return;
 
-    // --- LÓGICA CORRIGIDA ---
+    
     if (target.classList.contains('btn-editar-estoque')) {
         const itemParaEditar = todoEstoque.find(i => i.id == id);
         if (itemParaEditar) {
             const categoria = itemParaEditar.categoria.toUpperCase();
             
-            // CORREÇÃO: Tanto COMPUTADOR quanto MONITOR chamam a mesma função
-            if (categoria === 'COMPUTADOR' || categoria === 'MONITOR') {
+            // Lógica de decisão
+            if (categoria === 'ALMOXARIFADO') {
+                abrirModalEditarAlmoxarifado(parseInt(id)); // <-- Chama o novo modal
+            }
+            else if (categoria === 'COMPUTADOR' || categoria === 'MONITOR') {
                 abrirModalEditarMaquina(parseInt(id));
             } 
-            // Outras categorias continuam a chamar as suas funções específicas
             else if (categoria === 'MOBILIARIO') {
                 abrirModalEditarMobiliario(parseInt(id));
             } else if (categoria === 'OUTROS') {
@@ -1997,7 +2098,14 @@ document.body.addEventListener('click', async (event) => {
     } 
     // Outras lógicas de clique (histórico, excluir, etc.)
     else if (target.classList.contains('btn-historico')) {
-        abrirModalHistorico(parseInt(id));
+        // CONDIÇÃO ADICIONADA:
+        // Verifica se o botão clicado NÃO está dentro da lista do almoxarifado.
+        if (!target.closest('#lista-almoxarifado')) {
+            // Se não for do almoxarifado, chama a função do modal antigo.
+            abrirModalHistorico(parseInt(id));
+        }
+        // Se o clique veio da lista do almoxarifado, este código é ignorado,
+        // e apenas o outro EventListener (o específico da lista) será executado.
     } else if (target.classList.contains('spec-link')) {
         event.preventDefault();
         abrirModalEspecificacoes(parseInt(id));

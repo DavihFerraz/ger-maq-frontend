@@ -1644,3 +1644,22 @@ grafico-setores,
 .btn-historico:hover {
     background-color: #8e44ad;
 }
+
+#lista-almoxarifado li.status-em-emprestimo {
+    border-left-color: #f39c12; /* Laranja */
+    background-color: #fef9e7; /* Um fundo amarelo bem claro */
+}
+
+.status-badge.status-em-emprestimo {
+    background-color: #f39c12; /* Laranja */
+    color: white;
+}
+
+.btn-devolver {
+    background-color: var(--cor-sucesso); /* Verde */
+    padding: 5px 10px;
+    font-size: 0.9em;
+}
+.btn-devolver:hover {
+    background-color: var(--cor-sucesso-hover);
+}
