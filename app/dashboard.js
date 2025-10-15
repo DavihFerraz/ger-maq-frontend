@@ -29,6 +29,13 @@ function exibirInfoUtilizador() {
             };
             const colors = deptoColors[depto.toUpperCase()] || deptoColors['default'];
             infoUtilizadorUI.innerHTML = `<span><i class="fas fa-user-circle" style="color: ${colors.icon};"></i> Olá, <strong style="background-color: ${colors.bg}; color: ${colors.text};">${nome}</strong> (${depto})</span>`;
+
+            if (dadosUtilizador.permissao === 'admin'){
+                const navAdmin = document.getElementById('nav-admin');
+                if(navAdmin){
+                    navAdmin.style.display = 'block';
+                }
+            }
         }
     }
 }

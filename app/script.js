@@ -587,8 +587,14 @@ function exibirInfoUtilizador() {
                     <strong style="background-color: ${colors.bg}; color: ${colors.text};">${nome}</strong>
                     (${depto})
                 </span>`;
+
+
             
-            // --- NOVA LÓGICA DE PERMISSÃO AQUI ---
+            if (dadosUtilizador.permissao === 'admin'){
+                const navAdmin = document.getElementById('nav-admin');
+                if (navAdmin) navAdmin.style.display = 'block';
+            }
+            
             const containerAlmoxarifado = document.querySelector('.almoxarifado-container');
             if (containerAlmoxarifado) {
                 // Se o departamento do usuário NÃO for 'GAS', esconde o container

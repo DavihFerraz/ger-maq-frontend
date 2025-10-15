@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administração - Usuários</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+<body>
+
+    <aside class="sidebar collapsed">
+        <!-- O seu menu lateral padrão será inserido aqui pelo sidebar.js -->
+    </aside>
+
+    <main class="main-content expanded">
+        <div class="header-container">
+            <div style="display: flex; align-items: center;">
+                <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fas fa-bars"></i></button>
+                <h1>Painel de Administração</h1>
+            </div>
+            <div id="info-utilizador"></div>
+        </div>
+
+        <div class="stock-container">
+            <details open>
+                <summary>Gerenciamento de Usuários</summary>
+                <div class="form-container-stock">
+                    <h3 id="form-usuario-titulo">Adicionar Novo Usuário</h3>
+                    <form id="form-usuario">
+                        <input type="hidden" id="usuario-id">
+                        <div class="form-group"><label for="usuario-nome">Username:</label><input type="text" id="usuario-nome" required></div>
+                        <div class="form-group"><label for="usuario-email">Email:</label><input type="email" id="usuario-email" required></div>
+                        <div class="form-group"><label for="usuario-senha">Senha (mín. 6 caracteres):</label><input type="password" id="usuario-senha" required minlength="6"></div>
+                        <div class="form-group"><label for="usuario-departamento">Departamento:</label><input type="text" id="usuario-departamento" required></div>
+                        <div class="form-group">
+                            <label for="usuario-permissao">Permissão:</label>
+                            <select id="usuario-permissao" required>
+                                <option value="leitor">Leitor</option>
+                                <option value="editor">Editor</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn-adicionar-estoque">Salvar Usuário</button>
+                            <button type="button" class="btn-cancelar" id="btn-cancelar-edicao">Cancelar Edição</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="list-container-stock">
+                    <h3>Usuários Cadastrados</h3>
+                    <ul id="lista-usuarios">
+                        <li class="loading-indicator-item"><i class="fas fa-spinner fa-spin"></i> Carregando...</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+    </main>
+
+    <!-- Modal de Confirmação -->
+    <div id="modal-confirmacao" class="modal-overlay">
+        <div class="modal-content">
+            <p id="modal-texto">Tem certeza?</p>
+            <div class="modal-buttons">
+                <button id="btn-modal-cancelar" class="btn-modal">Cancelar</button>
+                <button id="btn-modal-confirmar" class="btn-modal btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js" type="module"></script>
+    <script src="usuarios.js" type="module"></script>
+    <script src="sidebar.js" type="module"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</body>
+</html>

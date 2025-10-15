@@ -146,3 +146,19 @@ export const devolverItemAlmoxarifado = (movimentacaoId) => {
         method: 'POST',
     });
 };
+
+export const getUsers = () => fetchAPI('/users');
+
+export const createUser = (userData) => fetchAPI('/users', {
+    method: 'POST',
+    body: JSON.stringify(userData),
+});
+
+export const updateUser = (userId, userData) => fetchAPI(`/users/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify(userData),
+});
+
+export const deleteUser = (userId) => fetchAPI(`/users/${userId}`, {
+    method: 'DELETE',
+});
