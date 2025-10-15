@@ -814,6 +814,7 @@ function abrirModalEditarOutro(outroId) {
         document.getElementById('editar-outro-patrimonio').value = outro.patrimonio || '';
         document.getElementById('editar-outro-setor').value = outro.setor_nome || '';
         document.getElementById('editar-outro-observacoes').value = outro.observacoes || '';
+        document.getElementById('editar-outro-categoria').value = outro.categoria || 'OUTROS';
         document.getElementById('editar-outro-cadastrado-gpm').checked = outro.cadastrado_gpm || false;
         document.getElementById('editar-outro-estado').value = outro.estado_conservacao || 'Regular';
 
@@ -851,6 +852,7 @@ async function salvarEdicaoOutro(event) {
         patrimonio: form.querySelector('#editar-outro-patrimonio').value.trim(),
         setor: form.querySelector('#editar-outro-setor').value.trim(),
         observacoes: form.querySelector('#editar-outro-observacoes').value.trim(),
+        categoria: form.querySelector('#editar-outro-categoria').value,
         cadastrado_gpm: form.querySelector('#editar-outro-cadastrado-gpm').checked,
         estado_conservacao: form.querySelector('#editar-outro-estado').value,
 
