@@ -605,6 +605,10 @@ function exibirInfoUtilizador() {
                     containerAlmoxarifado.style.display = 'block';
                 }
             }
+
+            if (dadosUtilizador.permissao === 'leitor'){
+                document.body.classList.add('role-leitor');
+            }
         }
     }
 }

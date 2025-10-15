@@ -1681,3 +1681,46 @@ grafico-setores,
 .status-badge.status-atrasado {
     background-color: #c0392b; /* Vermelho */
 }
+
+/* --- PERMISSÕES DE LEITOR (READ-ONLY) --- */
+
+/* Esconde todos os botões de ação primária */
+.role-leitor .btn-adicionar-estoque,
+.role-leitor .btn-salvar-associacao,
+.role-leitor .btn-confirmar {
+    display: none !important;
+}
+
+/* Esconde os botões de ação dentro das listas de itens */
+.role-leitor .botoes-item .btn-editar-estoque,
+.role-leitor .botoes-item .btn-excluir-estoque,
+.role-leitor .botoes-item .btn-retirada,
+.role-leitor .botoes-item .btn-devolver,
+.role-leitor .botoes-item .btn-desassociar,
+.role-leitor .botoes-item .btn-associar-monitor,
+.role-leitor .botoes-item .btn-inativar,
+.role-leitor .botoes-item .btn-reativar {
+    display: none !important;
+}
+
+/* Em alguns casos, o botão de histórico pode ser o único que resta.
+   Vamos garantir que ele ocupe o espaço corretamente. */
+.role-leitor .botoes-item {
+    justify-content: flex-end;
+}
+
+.role-leitor .form-container-stock,
+.role-leitor .form-buttons,
+.role-leitor #form-associar {
+    display: none !important;
+}
+
+/* Garante que o botão de exportar principal continue visível */
+.role-leitor .export-container {
+    display: block !important;
+}
+
+/* Esconde o botão de "Cancelar Edição" no painel de admin */
+.role-leitor #btn-cancelar-edicao {
+    display: none !important;
+}

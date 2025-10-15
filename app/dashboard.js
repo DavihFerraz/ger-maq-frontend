@@ -36,6 +36,10 @@ function exibirInfoUtilizador() {
                     navAdmin.style.display = 'block';
                 }
             }
+
+             if (dadosUtilizador.permissao === 'leitor') {
+                document.body.classList.add('role-leitor');
+            }
         }
     }
 }

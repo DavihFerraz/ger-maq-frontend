@@ -111,6 +111,10 @@ function inicializarSidebar() {
                 navAdmin.style.display = 'block';
             }
         }
+
+         if (decoded && decoded.permissao === 'leitor') {
+            document.body.classList.add('role-leitor');
+        }
     }
 
     // 6. Marca o link da página atual como 'ativo'
