@@ -111,6 +111,16 @@ async function carregarUsuarios() {
     }
 }
 
+
+function fecharModalSenha() {
+    const modal = document.getElementById('modal-senha');
+    if (modal) {
+        // Usamos classList para manter o padrão dos outros modais
+        modal.classList.remove('visible');
+    }
+}
+
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     carregarUsuarios();
@@ -119,4 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-modal-cancelar').addEventListener('click', () => {
         document.getElementById('modal-confirmacao').classList.remove('visible');
     });
+
+
+    const btnFecharSenha = document.getElementById('btn-senha-cancelar');
+    if (btnFecharSenha) {
+        btnFecharSenha.addEventListener('click', fecharModalSenha);
+    }
 });

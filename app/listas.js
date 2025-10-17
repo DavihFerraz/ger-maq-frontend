@@ -351,6 +351,14 @@ function fecharModalSpecMobiliario() {
     if (modal) modal.classList.remove('visible');
 }
 
+function fecharModalSenha() {
+    const modal = document.getElementById('modal-senha');
+    if (modal) {
+        // Usamos classList para manter o padrão dos outros modais
+        modal.classList.remove('visible');
+    }
+}
+
 // --- EVENT LISTENERS ---
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -400,6 +408,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('modal-exportar-lista');
         if (modal) modal.classList.remove('visible');
     };
+
+    const btnFecharSenha = document.getElementById('btn-senha-cancelar');
+    if (btnFecharSenha) {
+        btnFecharSenha.addEventListener('click', fecharModalSenha);
+    }
 
     document.getElementById('btn-abrir-modal-exportar-lista')?.addEventListener('click', () => {
         const modal = document.getElementById('modal-exportar-lista');

@@ -92,24 +92,24 @@
     </div>
 
     <div id="modal-senha" class="modal-overlay">
-    <div class="modal-content">
-        <h3>Mudar Palavra-passe</h3>
-        <form id="form-mudar-senha">
-    <div class="form-group">
-        <label for="senha-atual">Palavra-passe Atual:</label>
-        <input type="password" id="senha-atual" required>
+        <div class="modal-content">
+            <h3>Mudar Palavra-passe</h3>
+            <form id="form-mudar-senha">
+                <div class="form-group">
+                    <label for="senha-atual">Palavra-passe Atual:</label>
+                    <input type="password" id="senha-atual" required>
+                </div>
+                <div class="form-group">
+                    <label for="nova-senha">Nova Palavra-passe:</label>
+                    <input type="password" id="nova-senha" required minlength="6">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-modal" id="btn-senha-cancelar">Cancelar</button>
+                    <button type="submit" class="btn-modal btn-confirmar">Salvar Nova Senha</button>
+                </div>
+             </form>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="nova-senha">Nova Palavra-passe:</label>
-        <input type="password" id="nova-senha" required minlength="6">
-    </div>
-    <div class="modal-buttons">
-        <button type="button" class="btn-modal" id="btn-senha-cancelar">Cancelar</button>
-        <button type="submit" class="btn-modal btn-confirmar">Salvar Nova Senha</button>
-    </div>
-</form>
-    </div>
-</div>
 
 <div id="modal-exportar-lista" class="modal-overlay">
     <div class="modal-content">

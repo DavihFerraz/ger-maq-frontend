@@ -1,4 +1,4 @@
-import { getDashboardData } from './api.js';
+import { getDashboardData, apiChangePassword } from './api.js';
 
 let dadosCompletosDashboard = null;
 let graficoSetoresInstance = null;

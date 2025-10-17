@@ -39,6 +39,23 @@ function abrirModalSenha() {
     if (modal) modal.classList.add('visible');
 }
 
+
+async function mudarSenha(event) {
+    event.preventDefault();
+    const senhaAtual = document.getElementById('senha-atual').value;
+    const novaSenha = document.getElementById('nova-senha').value;
+    try {
+        // A importação de 'apiChangePassword' foi adicionada no topo do ficheiro
+        const response = await apiChangePassword(senhaAtual, novaSenha);
+        alert(response.message); // Usamos um alerta simples para a confirmação
+        fecharModalSenha();
+        document.getElementById('form-mudar-senha').reset();
+    } catch (error) {
+        alert("Erro: " + error.message);
+    }
+}
+
+
 function fecharModalSenha() {
     const modal = document.getElementById('modal-senha');
     if (modal) modal.classList.remove('visible');
@@ -126,4 +143,11 @@ function inicializarSidebar() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', inicializarSidebar);
+document.addEventListener('DOMContentLoaded', () =>{
+    inicializarSidebar();
+
+    document.getElementById('form-mudar-senha')?.addEventListener('submit', mudarSenha);
+    document.getElementById('btn-fechar-modal-senha')?.addEventListener('click', fecharModalSenha);
+    document.getElementById('btn-mudar-senha-sidebar')?.addEventListener('click', abrirModalSenha);
+
+} );
