@@ -40,6 +40,11 @@ function exibirInfoUtilizador() {
              if (dadosUtilizador.permissao === 'leitor') {
                 document.body.classList.add('role-leitor');
             }
+
+            const navAlmoxarifado = document.getElementById('nav-almoxarifado');
+            if (navAlmoxarifado && depto.toUpperCase() === 'GAS') {
+                navAlmoxarifado.style.display = 'block';
+            }
         }
     }
 }

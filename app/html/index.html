@@ -20,6 +20,7 @@
         <ul class="sidebar-nav">
             <li><a href="../html/dashboard.html"><i class="fas fa-chart-pie"></i> <span class="nav-text">Dashboard</span></a></li>
             <li><a href="../html/index.html"><i class="fas fa-tasks"></i> <span class="nav-text">Inventário</span></a></li>
+            <li id="nav-almoxarifado" style="display: none;"><a href="../html/almoxarifado.html"><i class="fas fa-box-open"></i> <span class="nav-text">Almoxarifado</span></a></li>
             <li class="has-submenu">
                 <a href="#"><i class="fas fa-clipboard-list"></i> <span class="nav-text">Associações</span> <i class="fas fa-chevron-down submenu-arrow"></i></a>
                 <ul class="submenu">
@@ -298,107 +299,6 @@
             </ul>
         </div>
     </details>
-</div>
-
-<div class="almoxarifado-container">
-            <details>
-                <summary>Gestão de Almoxarifado</summary>
-
-                <div class="form-container-stock">
-                    <h3>Adicionar Novo Item ao Almoxarifado</h3>
-                    <form id="form-almoxarifado">
-                        <div class="form-group">
-                            <label for="almox-nome">Nome do Item:</label>
-                            <input type="text" id="almox-nome" placeholder="Ex: Mouse sem fio Logitech" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="almox-sku">Património (Opcional):</label>
-                            <input type="text" id="almox-sku" placeholder="Ex: M170-LOGI">
-                        </div>
-                        <div class="form-group">
-                            <label for="almox-quantidade">Quantidade em Estoque:</label>
-                            <input type="number" id="almox-quantidade" placeholder="Ex: 25" required min="0">
-                        </div>
-                         <div class="form-group">
-                            <label for="almox-observacoes">Observações:</label>
-                            <input type="text" id="almox-observacoes" placeholder="Qualquer detalhe adicional">
-                        </div>
-                        <div class="form-buttons">
-                            <button type="submit" class="btn-adicionar-estoque">Adicionar ao Almoxarifado</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="list-container-stock">
-                    <h3>Itens no Almoxarifado</h3>
-                    <div class="search-container">
-                        <input type="text" id="campo-busca-almoxarifado" placeholder="Buscar por nome ou código...">
-                    </div>
-                    <div class="filtros-container" style="padding: 10px; justify-content: flex-end;">
-                        <div class="form-group checkbox-group">
-                            <input type="checkbox" id="filtro-em-emprestimo">
-                            <label for="filtro-em-emprestimo">Mostrar apenas itens com empréstimos ativos</label>
-                        </div>
-                    </div>
-                    <ul id="lista-almoxarifado">
-                        </ul>
-                </div>
-
-                <div class="export-container" style="padding: 20px;">
-                    <button id="btn-abrir-modal-exportar-almoxarifado" class="btn-exportar">
-                        <i class="fas fa-download"></i> Exportar Dados do Almoxarifado
-                    </button>
-                </div>
-            </details>
-        </div>
-        <div class="export-container">
-
-    <div class="export-container">
-        <button id="btn-abrir-modal-exportar-inventario" class="btn-exportar">
-            <i class="fas fa-download"></i> Exportar Inventário Completo
-        </button>
-    </div>
-                    
-    </main>
-
-    <div id="modal-exportar-almoxarifado" class="modal-overlay">
-    <div class="modal-content">
-        <h3>Exportar Relatório do Almoxarifado</h3>
-        <p>Escolha o formato para exportar o inventário e o histórico de movimentações do almoxarifado.</p>
-        <div class="export-modal-buttons">
-            <button id="btn-exportar-almoxarifado-csv" class="btn-modal">
-                <i class="fas fa-file-csv"></i> Exportar para CSV
-            </button>
-            <button id="btn-exportar-almoxarifado-pdf" class="btn-modal">
-                <i class="fas fa-file-pdf"></i> Visualizar PDF
-            </button>
-        </div>
-        <div class="modal-buttons">
-            <button type="button" class="btn-modal" id="btn-fechar-modal-exportar-almoxarifado">Cancelar</button>
-        </div>
-    </div>
-</div>
-
-    <div id="modal-confirmacao" class="modal-overlay">
-        <div class="modal-content">
-            <p id="modal-texto">Tem certeza que deseja executar esta ação?</p>
-            <div class="modal-buttons">
-                <button id="btn-modal-cancelar" class="btn-modal">Cancelar</button>
-                <button id="btn-modal-confirmar" class="btn-modal btn-confirmar">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
-
-    <div id="modal-especificacoes" class="modal-overlay">
-    <div class="modal-content">
-        <h3 id="spec-modelo">Modelo da Máquina</h3>
-        <ul id="spec-lista" class="spec-lista">
-            </ul>
-        <div class="modal-buttons">
-            <button id="btn-spec-fechar" class="btn-modal">Fechar</button>
-        </div>
-    </div>
 </div>
 
 <div id="modal-maquina" class="modal-overlay">

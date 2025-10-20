@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Almoxarifado - GAS Ativos</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+</head>
+<body>
+
+    <aside class="sidebar collapsed">
+        <div class="sidebar-header">
+            <h2>AMEP ATIVOS</h2>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="../html/dashboard.html"><i class="fas fa-chart-pie"></i> <span class="nav-text">Dashboard</span></a></li>
+            <li><a href="../html/index.html"><i class="fas fa-tasks"></i> <span class="nav-text">Inventário</span></a></li>
+            <li id="nav-almoxarifado" style="display: none;"><a href="../html/almoxarifado.html"><i class="fas fa-box-open"></i> <span class="nav-text">Almoxarifado</span></a></li>
+            <li class="has-submenu">
+                <a href="#"><i class="fas fa-clipboard-list"></i> <span class="nav-text">Associações</span> <i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <ul class="submenu">
+                    <li><a href="../html/lista.html"><span class="nav-text">Máquinas</span></a></li>
+                    <li><a href="../html/lista_mobiliario.html"><span class="nav-text">Mobiliário</span></a></li>
+                </ul>
+            </li>
+            <li id="nav-admin" style="display: none;"><a href="../html/usuarios.html"><i class="fas fa-user-shield"></i> <span class="nav-text">Admin</span></a></li>
+        </ul>
+        <ul class="sidebar-actions">
+            <li><a href="#" id="btn-mudar-senha-sidebar"><i class="fas fa-key"></i> <span class="nav-text">Mudar Senha</span></a></li>
+            <li><a href="#" id="btn-logout-sidebar"><i class="fas fa-sign-out-alt"></i> <span class="nav-text">Sair</span></a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content expanded">
+        <div class="header-container">
+             <div style="display: flex; align-items: center;">
+                <button id="sidebar-toggle" class="sidebar-toggle-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Gestão de Almoxarifado</h1>
+            </div>
+            <div id="info-utilizador"></div>
+        </div>
+
+        <div class="almoxarifado-container">
+            <details open>
+                <summary>Itens do Almoxarifado</summary>
+
+                <div class="form-container-stock">
+                    <h3>Adicionar Novo Item ao Almoxarifado</h3>
+                    <form id="form-almoxarifado">
+                        <div class="form-group">
+                            <label for="almox-nome">Nome do Item:</label>
+                            <input type="text" id="almox-nome" placeholder="Ex: Mouse sem fio Logitech" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="almox-sku">Património (Opcional):</label>
+                            <input type="text" id="almox-sku" placeholder="Ex: M170-LOGI">
+                        </div>
+                        <div class="form-group">
+                            <label for="almox-quantidade">Quantidade em Estoque:</label>
+                            <input type="number" id="almox-quantidade" placeholder="Ex: 25" required min="0">
+                        </div>
+                         <div class="form-group">
+                            <label for="almox-observacoes">Observações:</label>
+                            <input type="text" id="almox-observacoes" placeholder="Qualquer detalhe adicional">
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn-adicionar-estoque">Adicionar ao Almoxarifado</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="list-container-stock">
+                    <h3>Itens no Almoxarifado</h3>
+                    <div class="search-container">
+                        <input type="text" id="campo-busca-almoxarifado" placeholder="Buscar por nome ou código...">
+                    </div>
+                    <div class="filtros-container" style="padding: 10px; justify-content: flex-end;">
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="filtro-em-emprestimo">
+                            <label for="filtro-em-emprestimo">Mostrar apenas itens com empréstimos ativos</label>
+                        </div>
+                    </div>
+                    <ul id="lista-almoxarifado">
+                        </ul>
+                </div>
+
+                <div class="export-container" style="padding: 20px;">
+                    <button id="btn-abrir-modal-exportar-almoxarifado" class="btn-exportar">
+                        <i class="fas fa-download"></i> Exportar Dados do Almoxarifado
+                    </button>
+                </div>
+            </details>
+        </div>
+    </main>
+
+    <div id="modal-exportar-almoxarifado" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Exportar Relatório do Almoxarifado</h3>
+            <p>Escolha o formato para exportar o inventário e o histórico de movimentações do almoxarifado.</p>
+            <div class="export-modal-buttons">
+                <button id="btn-exportar-almoxarifado-csv" class="btn-modal">
+                    <i class="fas fa-file-csv"></i> Exportar para CSV
+                </button>
+                <button id="btn-exportar-almoxarifado-pdf" class="btn-modal">
+                    <i class="fas fa-file-pdf"></i> Visualizar PDF
+                </button>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-modal" id="btn-fechar-modal-exportar-almoxarifado">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    <div id="modal-saida-almoxarifado" class="modal-container" style="display:none;">
+    <div class="modal-content">
+        <span class="modal-close-btn">&times;</span>
+        <h3 id="modal-saida-titulo">Registrar Saída</h3>
+        <p>Item: <strong id="modal-saida-nome-item"></strong></p>
+        <p>Quantidade em estoque: <strong id="modal-saida-estoque-atual"></strong></p>
+
+        <form id="form-saida-almoxarifado">
+            <input type="hidden" id="modal-saida-item-id">
+            
+            <div class="form-group">
+                <label for="modal-saida-quantidade">Quantidade a Retirar:</label>
+                <input type="number" id="modal-saida-quantidade" required min="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="modal-saida-pessoa">Retirado por (Pessoa):</label>
+                <input type="text" id="modal-saida-pessoa" placeholder="Nome do colaborador">
+            </div>
+
+            <div class="form-group">
+                <label for="modal-saida-setor">Destino (Setor):</label>
+                <select id="modal-saida-setor">
+                    <option value="">Nenhum (retirada pessoal)</option>
+                    </select>
+            </div>
+
+            <div class="form-group">
+                <label for="modal-saida-observacoes">Observações:</label>
+                <textarea id="modal-saida-observacoes" rows="2"></textarea>
+            </div>
+
+            <div class="form-group tipo-saida-group">
+                <label>Tipo de Saída:</label>
+                <div>
+                    <input type="radio" id="tipo-saida-consumo" name="tipoSaida" value="consumo" checked>
+                    <label for="tipo-saida-consumo">Consumo (Não será devolvido)</label>
+                </div>
+                <div>
+                    <input type="radio" id="tipo-saida-emprestimo" name="tipoSaida" value="emprestimo">
+                    <label for="tipo-saida-emprestimo">Empréstimo (Será devolvido)</label>
+                </div>
+            </div>
+            <div class="form-group" id="container-data-retorno" style="display: none;">
+                <label for="modal-saida-data-retorno">Data Prevista de Retorno (Opcional):</label>
+                <input type="date" id="modal-saida-data-retorno">
+            </div>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-confirmar">Confirmar Saída</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="modal-historico-almoxarifado" class="modal-container" style="display:none;">
+    <div class="modal-content wide">
+        <span class="modal-close-btn">&times;</span>
+        <h3 id="modal-historico-titulo">Histórico do Item</h3>
+        <p>Item: <strong id="modal-historico-nome-item"></strong></p>
+        <div class="table-container">
+            <table id="tabela-historico-almoxarifado">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Qtd.</th>
+                        <th>Destino</th>
+                        <th>Departamento</th>
+                        <th>Data Prevista</th> <th>Registrado por</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="modal-almoxarifado-editar" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Editar Item do Almoxarifado</h3>
+        <form id="form-editar-almoxarifado">
+            <input type="hidden" id="editar-almox-id">
+            
+            <div class="form-group">
+                <label for="editar-almox-nome">Nome do Item:</label>
+                <input type="text" id="editar-almox-nome" required>
+            </div>
+            <div class="form-group">
+                <label for="editar-almox-sku">Código/SKU (Opcional):</label>
+                <input type="text" id="editar-almox-sku">
+            </div>
+            <div class="form-group">
+                <label for="editar-almox-quantidade">Quantidade em Estoque:</label>
+                <input type="number" id="editar-almox-quantidade" required min="0">
+            </div>
+            <div class="form-group">
+                <label for="editar-almox-observacoes">Observações:</label>
+                <input type="text" id="editar-almox-observacoes">
+            </div>
+            
+            <div class="modal-buttons">
+                <button type="button" class="btn-modal" id="btn-editar-almox-cancelar">Cancelar</button>
+                <button type="submit" class="btn-modal btn-confirmar">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="modal-senha" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Mudar Palavra-passe</h3>
+        <form id="form-mudar-senha">
+    <div class="form-group">
+        <label for="senha-atual">Palavra-passe Atual:</label>
+        <input type="password" id="senha-atual" required>
+    </div>
+    <div class="form-group">
+        <label for="nova-senha">Nova Palavra-passe:</label>
+        <input type="password" id="nova-senha" required minlength="6">
+    </div>
+    <div class="modal-buttons">
+        <button type="button" class="btn-modal" id="btn-senha-cancelar">Cancelar</button>
+        <button type="submit" class="btn-modal btn-confirmar">Salvar Nova Senha</button>
+    </div>
+</form>
+    </div>
+</div>
+
+    <script src="../js/api.js" type="module"></script>
+    <script src="../js/almoxarifado.js" type="module"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</body>
+</html>
