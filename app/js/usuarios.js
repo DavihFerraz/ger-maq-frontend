@@ -1,4 +1,4 @@
-import { getUsers, createUser, updateUser, deleteUser } from './api.js';
+import { getUsers, createUser, updateUser, deleteUser } from '../js/api.js';
 
 let editandoId = null;
 

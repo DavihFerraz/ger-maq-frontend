@@ -1,5 +1,5 @@
 // Importa apenas as funções da API que esta página realmente utiliza
-import { getItens, getEmprestimos, devolverEmprestimo } from './api.js';
+import { getItens, getEmprestimos, devolverEmprestimo } from '../js/api.js';
 
 // --- ESTADO LOCAL ---
 let todoEstoque = [];
@@ -363,7 +363,7 @@ function fecharModalSenha() {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('authToken')) {
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
         return;
     }
     carregarDados();

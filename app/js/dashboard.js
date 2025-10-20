@@ -1,4 +1,4 @@
-import { getDashboardData, apiChangePassword } from './api.js';
+import { getDashboardData, apiChangePassword } from '../js/api.js';
 
 let dadosCompletosDashboard = null;
 let graficoSetoresInstance = null;
@@ -276,7 +276,7 @@ async function exportarRelatorioDashboard() {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('authToken')) {
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
         return;
     }
     carregarDashboard();
@@ -329,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btn-logout-sidebar').addEventListener('click', () => {
         localStorage.removeItem('authToken');
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
     });
     
     

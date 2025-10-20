@@ -1,6 +1,6 @@
 // app/sidebar.js - VERSÃO COMPLETA E FINAL
 
-import { apiChangePassword } from './api.js';
+import { apiChangePassword } from '../js/api.js';
 
 // --- Funções Auxiliares ---
 
@@ -111,7 +111,7 @@ function inicializarSidebar() {
     // 4. Lógica para os botões de ação (Logout, Mudar Senha)
     document.getElementById('btn-logout-sidebar')?.addEventListener('click', () => {
         localStorage.removeItem('authToken');
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
     });
     
     document.getElementById('btn-mudar-senha-sidebar')?.addEventListener('click', abrirModalSenha);

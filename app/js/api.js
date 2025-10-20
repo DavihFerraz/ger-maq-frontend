@@ -31,7 +31,7 @@ async function fetchAPI(endpoint, options = {}) {
                  if (errorMessage.toLowerCase().includes('token')) {
                     console.log("Token inválido ou expirado. A redirecionar para o login.");
                     localStorage.removeItem('authToken'); // Limpa o token antigo
-                    window.location.href = 'login.html'; // Redireciona
+                    window.location.href = '../html/login.html'; // Redireciona
                     // Lança um erro para parar a execução do código que fez a chamada
                     throw new Error('Sessão expirada.'); 
                  }

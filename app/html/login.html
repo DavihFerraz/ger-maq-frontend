@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Gerenciador de Máquinas</title>
     
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../css/style.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
@@ -33,11 +33,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-    <script src="api.js" type="module"></script>
+    <script src="../js/api.js" type="module"></script>
 
     <script type="module">
         // Importa a nossa função de longin do arquivo api.js
-       import { apiLogin } from './api.js';
+       import { apiLogin } from '../js/api.js';
 
     const formLogin = document.getElementById('form-login');
     if (formLogin) {
@@ -58,7 +58,7 @@
 
                 if (response.token) {
                     localStorage.setItem('authToken', response.token);
-                    window.location.href = 'dashboard.html';
+                    window.location.href = '../html/dashboard.html';
                 }
             } catch (error) {
                 console.error("Falha no login:", error);

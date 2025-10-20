@@ -19,7 +19,7 @@ import {
     registrarSaidaAlmoxarifado,
     getHistoricoItemAlmoxarifado,
     devolverItemAlmoxarifado
-} from './api.js';
+} from '../js/api.js';
 
 // 2. ESTADO LOCAL DA APLICAÇÃO
 let utilizadorAtual = null; // Pode ser preenchido no futuro com dados do usuário a partir do token
@@ -42,7 +42,7 @@ function checkAuth() {
     const token = localStorage.getItem('authToken');
     if (!token) {
         if (window.location.pathname.indexOf('login.html') === -1) {
-            window.location.href = 'login.html';
+            window.location.href = '../html/login.html';
         }
     } else {
         // Se houver um token, carregamos os dados da aplicação
@@ -1841,7 +1841,7 @@ checkAuth();
 document.addEventListener('DOMContentLoaded', () => {
     // 1. VERIFICAÇÃO DE AUTENTICAÇÃO
     if (!localStorage.getItem('authToken') && !window.location.pathname.includes('login.html')) {
-        window.location.href = 'login.html';
+        window.location.href = '../html/login.html';
         return;
     }
     carregarDados();
@@ -2014,7 +2014,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnLogoutSidebar) {
         btnLogoutSidebar.addEventListener('click', () => {
             localStorage.removeItem('authToken');
-            window.location.href = 'login.html';
+            window.location.href = '../html/login.html';
         });
     }
 

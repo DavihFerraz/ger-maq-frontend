@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Gerenciador de Ativos</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -16,16 +16,16 @@
             <h2>AMEP ATIVOS</h2>
         </div>
         <ul class="sidebar-nav">
-            <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> <span class="nav-text">Dashboard</span></a></li>
-            <li><a href="index.html"><i class="fas fa-tasks"></i> <span class="nav-text">Inventário</span></a></li>
+            <li><a href="../html/dashboard.html"><i class="fas fa-chart-pie"></i> <span class="nav-text">Dashboard</span></a></li>
+            <li><a href="../html/index.html"><i class="fas fa-tasks"></i> <span class="nav-text">Inventário</span></a></li>
             <li class="has-submenu">
                 <a href="#"><i class="fas fa-clipboard-list"></i> <span class="nav-text">Associações</span> <i class="fas fa-chevron-down submenu-arrow"></i></a>
                 <ul class="submenu">
-                    <li><a href="lista.html"><span class="nav-text">Máquinas</span></a></li>
-                    <li><a href="lista_mobiliario.html"><span class="nav-text">Mobiliário</span></a></li>
+                    <li><a href="../html/lista.html"><span class="nav-text">Máquinas</span></a></li>
+                    <li><a href="../html/lista_mobiliario.html"><span class="nav-text">Mobiliário</span></a></li>
                 </ul>
             </li>
-            <li id="nav-admin" style="display: none;"><a href="usuarios.html"><i class="fas fa-user-shield"></i> <span class="nav-text">Admin</span></a></li>
+            <li id="nav-admin" style="display: none;"><a href="../html/usuarios.html"><i class="fas fa-user-shield"></i> <span class="nav-text">Admin</span></a></li>
         </ul>
         <ul class="sidebar-actions">
             <li><a href="#" id="btn-abrir-modal-exportar"><i class="fas fa-download"></i> <span class="nav-text">Exportar Relatório</span></a></li>
@@ -135,8 +135,8 @@
 </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="api.js" type="module"></script>
-    <script src="dashboard.js" type="module"></script>
+     <script src="../js/api.js" type="module"></script>
+    <script src="../js/dashboard.js" type="module"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
