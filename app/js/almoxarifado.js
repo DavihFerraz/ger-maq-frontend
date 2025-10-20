@@ -134,8 +134,8 @@ async function renderizarAlmoxarifado() {
         const botoesHTML = `
             <button class="btn-item btn-retirada" data-id="${item.id}" data-nome="${item.modelo_tipo}" data-qtd="${item.quantidade}" ${!podeRetirar ? 'disabled' : ''}>Registrar Saída</button>
             <button class="btn-item btn-historico" data-id="${item.id}" data-nome="${item.modelo_tipo}">Histórico</button>
-            <button class="btn-item btn-editar-almoxarifado" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-almoxarifado" data-id="${item.id}">Excluir</button>
+            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+            <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>
         `;
         const emprestimoBadgeHTML = qtdEmprestada > 0
             ? `<span class="status-badge status-em-emprestimo">${qtdEmprestada} em Empréstimo</span>`
@@ -465,9 +465,9 @@ document.addEventListener('DOMContentLoaded', () => {
             abrirModalSaida(target.dataset.id, target.dataset.nome, target.dataset.qtd);
         } else if (target.classList.contains('btn-historico')) {
             abrirModalHistoricoAlmoxarifado(target.dataset.id, target.dataset.nome);
-        } else if (target.classList.contains('btn-editar-almoxarifado')) {
+        } else if (target.classList.contains('btn-editar-estoque')) {
             abrirModalEditarAlmoxarifado(target.dataset.id);
-        } else if (target.classList.contains('btn-excluir-almoxarifado')) {
+        } else if (target.classList.contains('btn-excluir-estoque')) {
             excluirItemAlmoxarifado(target.dataset.id);
         }
     });
