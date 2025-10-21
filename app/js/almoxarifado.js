@@ -7,11 +7,15 @@ import {
     registrarSaidaAlmoxarifado,
     getHistoricoItemAlmoxarifado,
     devolverItemAlmoxarifado,
-    apiChangePassword
+    apiChangePassword,
+    createAlmoxarifadoItem,
+    getAnexosItem,
+    API_BASE_URL
 } from '../js/api.js';
 
 let todoEstoque = [];
 let mapaDeUso = {};
+let arquivosParaUpload = [];
 
 // Funções de Autenticação e Carregamento
 function checkAuth() {
@@ -132,11 +136,14 @@ async function renderizarAlmoxarifado() {
         const qtdEmprestada = contagemEmprestimos[item.id] || 0;
         const podeRetirar = item.quantidade > 0;
         const botoesHTML = `
-            <button class="btn-item btn-retirada" data-id="${item.id}" data-nome="${item.modelo_tipo}" data-qtd="${item.quantidade}" ${!podeRetirar ? 'disabled' : ''}>Registrar Saída</button>
-            <button class="btn-item btn-historico" data-id="${item.id}" data-nome="${item.modelo_tipo}">Histórico</button>
-            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>
-        `;
+                <button class="btn-item btn-retirada" data-id="${item.id}" data-nome="${item.modelo_tipo}" data-qtd="${item.quantidade}" ${!podeRetirar ? 'disabled' : ''}>Registrar Saída</button>
+                <button class="btn-item btn-historico" data-id="${item.id}" data-nome="${item.modelo_tipo}">Histórico</button>
+
+                <button class="btn-item btn-anexos" data-id="${item.id}" data-nome="${item.modelo_tipo}">Anexos</button>
+
+                <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+                <button class="btn-item btn-excluir-estoque" data-id="${item.id}">Excluir</button>
+            `;
         const emprestimoBadgeHTML = qtdEmprestada > 0
             ? `<span class="status-badge status-em-emprestimo">${qtdEmprestada} em Empréstimo</span>`
             : '';
@@ -239,27 +246,88 @@ function fecharModalSenha() {
     if (modal) modal.classList.remove('visible');
 }
 
+async function abrirModalAnexos(itemId, itemName) {
+    const modal = document.getElementById('modal-anexos');
+    const listaUI = document.getElementById('lista-anexos');
+
+    document.getElementById('modal-anexos-nome-item').textContent = itemName;
+    listaUI.innerHTML = '<li>Carregando anexos...</li>';
+    modal.classList.add('visible');
+
+    try {
+        const anexos = await getAnexosItem(itemId);
+        listaUI.innerHTML = ''; // Limpa o "Carregando..."
+
+        if (anexos.length === 0) {
+            listaUI.innerHTML = '<li>Nenhum anexo encontrado para este item.</li>';
+            return;
+        }
+        const BACKEND_BASE_URL = 'http://localhost:3000';
+
+        anexos.forEach(anexo => {
+            const li = document.createElement('li');
+            // IMPORTANTE: Construa a URL completa para o arquivo
+            const urlArquivo = `${BACKEND_BASE_URL}/${anexo.caminho_arquivo}`;
+
+            li.innerHTML = `
+                <a href="${urlArquivo}" target="_blank" class="link-anexo">
+                    <i class="fas fa-file-alt"></i> ${anexo.nome_arquivo}
+                </a>
+            `;
+            listaUI.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error("Erro ao buscar anexos:", error);
+        listaUI.innerHTML = `<li>Erro ao carregar anexos: ${error.message}</li>`;
+    }
+}
+
+function fecharModalAnexos() {
+    const modal = document.getElementById('modal-anexos');
+    if (modal) {
+        modal.classList.remove('visible');
+    }
+}
+
 // Funções CRUD
 async function salvarItemAlmoxarifado(event) {
     event.preventDefault();
     const form = event.target;
-    const dados = {
-        modelo_tipo: form.querySelector('#almox-nome').value.trim(),
-        patrimonio: form.querySelector('#almox-sku').value.trim(),
-        quantidade: parseInt(form.querySelector('#almox-quantidade').value, 10),
-        setor: 'Almoxarifado', 
-        observacoes: form.querySelector('#almox-observacoes').value.trim(),
-        categoria: 'ALMOXARIFADO', 
-        status: 'Disponível' 
-    };
-    if (isNaN(dados.quantidade) || dados.quantidade < 0) {
+
+    const formData = new FormData();
+
+    // Adiciona os campos de texto
+    formData.append('modelo_tipo', form.querySelector('#almox-nome').value.trim());
+    formData.append('patrimonio', form.querySelector('#almox-sku').value.trim());
+    formData.append('quantidade', parseInt(form.querySelector('#almox-quantidade').value, 10));
+    formData.append('observacoes', form.querySelector('#almox-observacoes').value.trim());
+    formData.append('setor', 'Almoxarifado'); 
+
+    // Validação de quantidade (mantida)
+    if (isNaN(parseInt(form.querySelector('#almox-quantidade').value, 10))) {
         Toastify({ text: 'Por favor, insira uma quantidade válida.', backgroundColor: "red" }).showToast();
         return;
     }
+
+    // MODIFICADO: Adiciona os ficheiros do nosso array
+    if (arquivosParaUpload.length > 0) {
+        for (const file of arquivosParaUpload) {
+            formData.append('anexos', file); 
+        }
+    } else {
+        // Opcional: pode remover esta verificação se anexos não forem obrigatórios
+        // Toastify({ text: 'Adicione pelo menos um anexo.', backgroundColor: "orange" }).showToast();
+        // return;
+    }
+
     try {
-        await createItem(dados);
+        await createAlmoxarifadoItem(formData);
+
         Toastify({ text: "Item adicionado ao almoxarifado!" }).showToast();
         form.reset();
+        arquivosParaUpload = []; // Limpa o array de ficheiros
+        renderizarListaArquivosUpload(); // Limpa a lista na interface
         carregarDados();
     } catch (error) {
         console.error("Erro ao adicionar item de almoxarifado:", error);
@@ -429,10 +497,38 @@ function exportarAlmoxarifadoCSV() {
     link.click();
 }
 
+function renderizarListaArquivosUpload() {
+    const container = document.getElementById('lista-anexos-upload');
+    if (!container) return;
+
+    container.innerHTML = ''; // Limpa a lista
+    if (arquivosParaUpload.length === 0) {
+        container.innerHTML = '<small>Nenhum anexo selecionado.</small>';
+        return;
+    }
+
+    arquivosParaUpload.forEach((file, index) => {
+        const fileElement = document.createElement('div');
+        fileElement.classList.add('anexo-item-upload');
+        fileElement.innerHTML = `
+            <span><i class="fas fa-paperclip"></i> ${file.name}</span>
+            <button type="button" class="btn-remover-anexo" data-index="${index}" title="Remover">&times;</button>
+        `;
+        container.appendChild(fileElement);
+    });
+}
+
+// NOVA FUNÇÃO: Remove um ficheiro da lista
+function removerArquivoUpload(index) {
+    arquivosParaUpload.splice(index, 1); // Remove o ficheiro do array
+    renderizarListaArquivosUpload(); // Re-renderiza a lista
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     popularDropdownSetores();
+    renderizarListaArquivosUpload();
 
     document.getElementById('form-almoxarifado')?.addEventListener('submit', salvarItemAlmoxarifado);
     document.getElementById('form-editar-almoxarifado')?.addEventListener('submit', salvarEdicaoAlmoxarifado);
@@ -469,6 +565,8 @@ document.addEventListener('DOMContentLoaded', () => {
             abrirModalEditarAlmoxarifado(target.dataset.id);
         } else if (target.classList.contains('btn-excluir-estoque')) {
             excluirItemAlmoxarifado(target.dataset.id);
+        }else if (target.classList.contains('btn-anexos')) { 
+        abrirModalAnexos(target.dataset.id, target.dataset.nome);
         }
     });
 
@@ -498,6 +596,32 @@ document.addEventListener('DOMContentLoaded', () => {
             containerData.style.display = (event.target.value === 'emprestimo') ? 'block' : 'none';
         });
     });
+
+    document.getElementById('btn-anexos-fechar')?.addEventListener('click', fecharModalAnexos);
+
+    const inputAnexos = document.getElementById('almox-anexos');
+    if (inputAnexos) {
+        inputAnexos.addEventListener('change', (event) => {
+            if (event.target.files.length > 0) {
+                // Adiciona os novos ficheiros ao nosso array
+                arquivosParaUpload.push(...event.target.files);
+                renderizarListaArquivosUpload();
+            }
+            // Limpa o input para que o utilizador possa selecionar mais ficheiros
+            event.target.value = null; 
+        });
+    }
+
+    const listaUploadContainer = document.getElementById('lista-anexos-upload');
+    if (listaUploadContainer) {
+        listaUploadContainer.addEventListener('click', (event) => {
+            // Verifica se o clique foi no botão de remover
+            if (event.target.classList.contains('btn-remover-anexo')) {
+                const index = event.target.dataset.index;
+                removerArquivoUpload(parseInt(index, 10));
+            }
+        });
+    }
 
     // Modal de Exportação
     const fecharModalExportAlmoxarifado = () => {

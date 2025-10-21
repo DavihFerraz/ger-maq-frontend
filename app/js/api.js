@@ -1,5 +1,6 @@
 // app/api.js
-const API_BASE_URL = '/api';
+export const API_BASE_URL = 'http://localhost:3000/api';
+
 
 async function fetchAPI(endpoint, options = {}) {
     const token = localStorage.getItem('authToken');
@@ -49,6 +50,40 @@ async function fetchAPI(endpoint, options = {}) {
     }
 }
 
+export async function createAlmoxarifadoItem(itemFormData) {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${API_BASE_URL}/almoxarifado`, { // Rota /almoxarifado
+        method: 'POST',
+        headers: {
+            
+            'Authorization': `Bearer ${token}`
+        },
+        body: itemFormData // Envia o FormData
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Falha ao criar item de almoxarifado');
+    }
+    return await response.json();
+}
+
+
+export async function getAnexosItem(itemId) {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${API_BASE_URL}/almoxarifado/${itemId}/anexos`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Falha ao buscar anexos');
+    }
+    return await response.json();
+}
 // --- Funções de Autenticação ---
 export const apiLogin = (login, senha) => {
     return fetchAPI('/auth/login', {
