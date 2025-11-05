@@ -1384,6 +1384,143 @@ function formatarPatrimonio(numero) {
     return numeroLimpo.replace(/(\d{3})(?=\d)/g, '$1.');
 }
 
+function fecharModalExportarTI() {
+    const modal = document.getElementById('modal-exportar-ti');
+    if (modal) modal.classList.remove('visible');
+}
+
+/**
+ * Filtra os dados de Ativos de TI com base nas seleções do modal.
+ * @returns {Array} Um array de itens de estoque filtrados.
+ */
+function getDadosTIFiltradosParaExportar() {
+    const categoriaFiltro = document.getElementById('filtro-export-ti-categoria').value;
+    const statusFiltro = document.getElementById('filtro-export-ti-status').value;
+
+    // 1. Começa com todos os ativos de TI (Computadores e Monitores)
+    let dadosParaExportar = todoEstoque.filter(item => 
+        item.categoria === 'COMPUTADOR' || item.categoria === 'MONITOR'
+    );
+
+    // 2. Aplica o filtro de Categoria
+    if (categoriaFiltro === 'COMPUTADOR') {
+        dadosParaExportar = dadosParaExportar.filter(item => item.categoria === 'COMPUTADOR');
+    } else if (categoriaFiltro === 'MONITOR') {
+        dadosParaExportar = dadosParaExportar.filter(item => item.categoria === 'MONITOR');
+    }
+
+    // 3. Aplica o filtro de Status
+    if (statusFiltro !== 'Todos') {
+        dadosParaExportar = dadosParaExportar.filter(item => item.status === statusFiltro);
+    }
+
+    return dadosParaExportar;
+}
+
+/**
+ * Gera e baixa um CSV filtrado de Ativos de TI (Computadores e Monitores).
+ */
+function exportarAtivosTICSV() {
+    const dadosFiltrados = getDadosTIFiltradosParaExportar();
+
+    if (!dadosFiltrados || dadosFiltrados.length === 0) {
+        alert("Nenhum item encontrado com os filtros selecionados.");
+        return;
+    }
+
+    const delimiter = ';';
+    const cabecalhos = [
+        'Patrimonio', 'Modelo/Tipo', 'Categoria', 'Status', 'Setor', 
+        'Estado de Conservacao', 'Utilizador Atual', 'Processador', 'RAM', 'Armazenamento', 'Observacoes'
+    ];
+
+    const linhas = dadosFiltrados.map(item => {
+        const utilizador = mapaDeUso[item.id] ? mapaDeUso[item.id].split(' - ')[0] : 'N/A';
+        const cleanValue = (value) => `"${String(value || '').replace(/"/g, '""')}"`;
+
+        return [
+            cleanValue(formatarPatrimonio(item.patrimonio)),
+            cleanValue(item.modelo_tipo),
+            cleanValue(item.categoria),
+            cleanValue(item.status),
+            cleanValue(item.setor_nome),
+            cleanValue(item.estado_conservacao),
+            cleanValue(utilizador),
+            cleanValue(item.espec_processador), // Só existe em Computador, mas seguro para Monitor (será 'undefined' -> '')
+            cleanValue(item.espec_ram),
+            cleanValue(item.espec_armazenamento),
+            cleanValue(item.observacoes)
+        ].join(delimiter);
+    });
+
+    const conteudoCSV = [cabecalhos.join(delimiter), ...linhas].join('\n');
+    
+    const bom = '\uFEFF';
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURI(bom + conteudoCSV);
+    link.download = 'export_ativos_ti.csv';
+    link.click();
+    
+    fecharModalExportarTI();
+}
+
+/**
+ * Gera e abre um PDF filtrado de Ativos de TI (Computadores e Monitores).
+ */
+function exportarAtivosTIPDF() {
+    const dadosFiltrados = getDadosTIFiltradosParaExportar();
+
+    if (!dadosFiltrados || dadosFiltrados.length === 0) {
+        alert("Nenhum item encontrado com os filtros selecionados.");
+        return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("Não foi possível abrir a nova aba. Por favor, desative o bloqueador de pop-ups.");
+        return;
+    }
+
+    let tabelaHtml = `
+        <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório de Ativos de TI</title>
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; }
+            table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+            th, td { border: 1px solid #ddd; padding: 5px; text-align: left; }
+            th { background-color: #f7f7f7; } h1 { font-size: 20px; text-align: center; }
+        </style></head><body>
+        <h1>Relatório Filtrado de Ativos de TI</h1>
+        <table><thead><tr>
+            <th>Património</th><th>Modelo/Tipo</th><th>Categoria</th><th>Status</th>
+            <th>Setor</th><th>Utilizador</th><th>Specs</th><th>Estado</th>
+        </tr></thead><tbody>
+    `;
+
+    dadosFiltrados.forEach(item => {
+        const utilizador = mapaDeUso[item.id] ? mapaDeUso[item.id].split(' - ')[0] : 'N/A';
+        let specs = 'N/A';
+        if (item.categoria === 'COMPUTADOR') {
+            specs = `${item.espec_processador || ''} / ${item.espec_ram || ''} / ${item.espec_armazenamento || ''}`;
+        }
+        
+        tabelaHtml += `
+            <tr>
+                <td>${item.patrimonio || ''}</td><td>${item.modelo_tipo || ''}</td><td>${item.categoria || ''}</td>
+                <td>${item.status || ''}</td><td>${item.setor_nome || ''}</td><td>${utilizador}</td>
+                <td>${specs}</td><td>${item.estado_conservacao || ''}</td>
+            </tr>
+        `;
+    });
+
+    tabelaHtml += '</tbody></table></body></html>';
+
+    printWindow.document.open();
+    printWindow.document.write(tabelaHtml);
+    printWindow.document.close();
+    
+    fecharModalExportarTI();
+}
+
 function exportarInventarioCSV() {
     if (!todoEstoque || todoEstoque.length === 0) {
         alert("Não há itens no inventário para exportar.");
@@ -1505,7 +1642,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     carregarDados();
     popularDropdownSetores();
-
 
     const formEditarMobiliario = document.getElementById('form-editar-mobiliario');
     if (formEditarMobiliario) {
@@ -1846,6 +1982,17 @@ document.addEventListener('DOMContentLoaded', () => {
         exportarInventarioPDF();
         fecharModalInventario();
     });
+
+    document.getElementById('btn-abrir-modal-exportar-ti')?.addEventListener('click', () => {
+        const modal = document.getElementById('modal-exportar-ti');
+        if (modal) modal.classList.add('visible');
+    });
+
+    document.getElementById('btn-fechar-modal-exportar-ti')?.addEventListener('click', fecharModalExportarTI);
+
+    document.getElementById('btn-exportar-ti-csv')?.addEventListener('click', exportarAtivosTICSV);
+    
+    document.getElementById('btn-exportar-ti-pdf')?.addEventListener('click', exportarAtivosTIPDF);
 
 document.body.addEventListener('click', async (event) => {
     const target = event.target;
