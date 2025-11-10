@@ -51,113 +51,125 @@
                 <i class="fas fa-file-export"></i> Exportar Inventário Geral
             </button>
         </div>
-        <div class="stock-container">
-            <details>
-                <summary>Gestão de Estoque de Ativos de TI</summary>
-                <div class="form-container-stock">
-                     <div class="form-buttons">
-                    <button id="btn-abrir-assoc-maquina" class="btn-adicionar-estoque">Associar Máquina</button>
-                    <button id="btn-abrir-assoc-monitor" class="btn-adicionar-estoque">Associar Monitor</button>
-                </div>
-                    <h3 id="form-title-stock">Adicionar Novo Ativo ao Estoque</h3>
-                    <form id="form-estoque">
-                         <div class="form-group">
-                            <label for="estoque-categoria">Categoria do Ativo:</label>
-                            <select id="estoque-categoria" required>
-                                <option value="COMPUTADOR" selected>Computador</option>
-                                <option value="MONITOR">Monitor</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="estoque-modelo">Modelo:</label>
-                            <input type="text" id="estoque-modelo" placeholder="Ex: Dell Optiplex 3080 ou Dell U2419H" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="estoque-patrimonio">Património:</label>
-                            <input type="text" id="estoque-patrimonio" placeholder="Ex: 100.001.272.541" required>
-                        </div>
-                        <div id="campos-especificos-computador">
-                            <div class="form-group">
-                                <label for="estoque-processador">Processador:</label>
-                                <input type="text" id="estoque-processador" placeholder="Ex: i5-12500">
-                            </div>
-                            <div class="form-group">
-                                <label for="estoque-ram">Memória RAM:</label>
-                                <input type="text" id="estoque-ram" placeholder="Ex: 16 GB">
-                            </div>
-                            <div class="form-group">
-                                <label for="estoque-armazenamento">Armazenamento:</label>
-                                <input type="text" id="estoque-armazenamento" placeholder="Ex: SSD 512 GB">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="estoque-setor">Setor:</label>
-                            <select id="estoque-setor" required>
-                                <option value="" disabled selected>Carregando setores...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="estoque-estado">Estado de Conservação:</label>
-                            <select id="estoque-estado" required>
-                                <option value="Novo">Novo</option>
-                                <option value="Regular" selected>Regular</option>
-                                <option value="Inservível">Inservível</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="estoque-observacoes">Observações:</label>
-                            <input type="text" id="estoque-observacoes" placeholder="Ex: Placa de Vídeo, SO, etc.">
-                        </div>
-                        <div class="form-group">
-                            <label for="maquina-cadastrado-gpm"><input type="checkbox" id="maquina-cadastrado-gpm" style="width: auto;"> Já cadastrado no GPM?</label>
-                        </div>
-                        <div class="form-buttons">
-                            <button type="submit" id="btn-adicionar-mobiliario" class="btn-adicionar-estoque">Adicionar ao Estoque</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="list-container-stock">
-                    <h3>Ativos de TI no Inventário</h3>
-                    <div class="export-container" style="padding: 0; margin-bottom: 15px;">
-                        <button id="btn-abrir-modal-exportar-ti" class="btn-exportar" style="background-color: var(--cor-export); width: 100%;">
-                            <i class="fas fa-download"></i> Exportar Lista Filtrada de Ativos de TI
-                        </button>
-                    </div>
-                    <div class="search-container">
-                        <input type="text" id="campo-busca-estoque" placeholder="Buscar por modelo, património ou categoria...">
-                    </div>
-                    <div class="filtros-container">
-                    <div class="filtro-item">
-                        <label for="filtro-setor-estoque">Filtrar por Setor:</label>
-                        <select id="filtro-setor-estoque">
-                            <option value="">Todos os Setores</option>
-                            </select>
-                    </div>
-                    <div class="filtro-item">
-                        <label for="filtro-gpm-estoque">Cadastrado no GPM:</label>
-                        <select id="filtro-gpm-estoque">
-                            <option value="">Ambos</option>
-                            <option value="sim">Sim</option>
-                            <option value="nao">Não</option>
-                        </select>
-                    </div>
-                    <div class="filtro-item">
-                        <label for="filtro-status-estoque">Status de Uso:</label>
-                        <select id="filtro-status-estoque">
-                            <option value="">Todos</option>
-                            <option value="Disponível">Disponível</option>
-                            <option value="Em Uso">Em Uso</option>
-                            <option value="Inativo">Inativo</option>
-                        </select>
-                    </div>
-                </div>
-                <ul id="lista-estoque"></ul>
-                </div>
-            </details>
+        <div class="search-container" style="margin-bottom: 20px; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <i class="fas fa-search" style="color: #888; margin-right: 8px;"></i>
+            <input type="text" id="busca-geral" placeholder="Buscar em todo o inventário (Modelo, Patrimônio, Categoria...)" style="border: none; width: 95%; font-size: 1.1em; outline: none;">
         </div>
-        
-        <div class="furniture-container">
+
+        <div id="div-resultados-gerais" class="list-container-stock" style="display: none; margin-top: -10px; border-top: 3px solid var(--cor-primaria);">
+            <h3 id="titulo-resultados-gerais">Resultados da Busca</h3>
+            <ul id="ul-resultados-gerais" style="padding: 0;"></ul>
+        </div>
+
+        <div id="div-conteudo-principal">
+                <div class="stock-container">
+                <details>
+                    <summary>Gestão de Estoque de Ativos de TI</summary>
+                    <div class="form-container-stock">
+                        <div class="form-buttons">
+                        <button id="btn-abrir-assoc-maquina" class="btn-adicionar-estoque">Associar Máquina</button>
+                        <button id="btn-abrir-assoc-monitor" class="btn-adicionar-estoque">Associar Monitor</button>
+                    </div>
+                        <h3 id="form-title-stock">Adicionar Novo Ativo ao Estoque</h3>
+                        <form id="form-estoque">
+                            <div class="form-group">
+                                <label for="estoque-categoria">Categoria do Ativo:</label>
+                                <select id="estoque-categoria" required>
+                                    <option value="COMPUTADOR" selected>Computador</option>
+                                    <option value="MONITOR">Monitor</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="estoque-modelo">Modelo:</label>
+                                <input type="text" id="estoque-modelo" placeholder="Ex: Dell Optiplex 3080 ou Dell U2419H" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="estoque-patrimonio">Património:</label>
+                                <input type="text" id="estoque-patrimonio" placeholder="Ex: 100.001.272.541" required>
+                            </div>
+                            <div id="campos-especificos-computador">
+                                <div class="form-group">
+                                    <label for="estoque-processador">Processador:</label>
+                                    <input type="text" id="estoque-processador" placeholder="Ex: i5-12500">
+                                </div>
+                                <div class="form-group">
+                                    <label for="estoque-ram">Memória RAM:</label>
+                                    <input type="text" id="estoque-ram" placeholder="Ex: 16 GB">
+                                </div>
+                                <div class="form-group">
+                                    <label for="estoque-armazenamento">Armazenamento:</label>
+                                    <input type="text" id="estoque-armazenamento" placeholder="Ex: SSD 512 GB">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="estoque-setor">Setor:</label>
+                                <select id="estoque-setor" required>
+                                    <option value="" disabled selected>Carregando setores...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="estoque-estado">Estado de Conservação:</label>
+                                <select id="estoque-estado" required>
+                                    <option value="Novo">Novo</option>
+                                    <option value="Regular" selected>Regular</option>
+                                    <option value="Inservível">Inservível</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="estoque-observacoes">Observações:</label>
+                                <input type="text" id="estoque-observacoes" placeholder="Ex: Placa de Vídeo, SO, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="maquina-cadastrado-gpm"><input type="checkbox" id="maquina-cadastrado-gpm" style="width: auto;"> Já cadastrado no GPM?</label>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit" id="btn-adicionar-mobiliario" class="btn-adicionar-estoque">Adicionar ao Estoque</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="list-container-stock">
+                        <h3>Ativos de TI no Inventário</h3>
+                        <div class="export-container" style="padding: 0; margin-bottom: 15px;">
+                            <button id="btn-abrir-modal-exportar-ti" class="btn-exportar" style="background-color: var(--cor-export); width: 100%;">
+                                <i class="fas fa-download"></i> Exportar Lista Filtrada de Ativos de TI
+                            </button>
+                        </div>
+                        <div class="search-container">
+                            <input type="text" id="campo-busca-estoque" placeholder="Buscar por modelo, património ou categoria...">
+                        </div>
+                        <div class="filtros-container">
+                        <div class="filtro-item">
+                            <label for="filtro-setor-estoque">Filtrar por Setor:</label>
+                            <select id="filtro-setor-estoque">
+                                <option value="">Todos os Setores</option>
+                                </select>
+                        </div>
+                        <div class="filtro-item">
+                            <label for="filtro-gpm-estoque">Cadastrado no GPM:</label>
+                            <select id="filtro-gpm-estoque">
+                                <option value="">Ambos</option>
+                                <option value="sim">Sim</option>
+                                <option value="nao">Não</option>
+                            </select>
+                        </div>
+                        <div class="filtro-item">
+                            <label for="filtro-status-estoque">Status de Uso:</label>
+                            <select id="filtro-status-estoque">
+                                <option value="">Todos</option>
+                                <option value="Disponível">Disponível</option>
+                                <option value="Em Uso">Em Uso</option>
+                                <option value="Inativo">Inativo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <ul id="lista-estoque"></ul>
+                    </div>
+                </details>
+            </div>
+
+
+               <div class="furniture-container">
             <details>
                 <summary>Gestão de Mobiliário</summary>
                 <div class="form-container-stock">
@@ -236,7 +248,7 @@
             </details>
         </div>
 
-        <div class="others-container">
+                <div class="others-container">
             <details>
                 <summary>Gestão de Outros Ativos</summary>
 
@@ -278,38 +290,43 @@
                 </div>
 
         <div class="list-container-stock">
-            <h3>Itens "Outros" no Inventário</h3>
-            <input type="text" id="campo-busca-outros" placeholder="Buscar por nome ou património...">
-            <div class="filtros-container">
-            <div class="filtro-item">
-                <label for="filtro-setor-outros">Filtrar por Setor:</label>
-                <select id="filtro-setor-outros">
-                    <option value="">Todos os Setores</option>
-                </select>
-            </div>
-            <div class="filtro-item">
-                <label for="filtro-gpm-outros">Cadastrado no GPM:</label>
-                <select id="filtro-gpm-outros">
-                    <option value="">Ambos</option>
-                    <option value="sim">Sim</option>
-                    <option value="nao">Não</option>
-                </select>
-            </div>
-            <div class="filtro-item">
-                <label for="filtro-status-outros">Status de Uso:</label>
-                <select id="filtro-status-outros">
-                    <option value="">Todos</option>
-                    <option value="Disponível">Disponível</option>
-                    <option value="Em Uso">Em Uso</option>
-                    <option value="Inativo">Inativo</option>
-                </select>
-            </div>
+                    <h3>Itens "Outros" no Inventário</h3>
+                    <input type="text" id="campo-busca-outros" placeholder="Buscar por nome ou património...">
+                    <div class="filtros-container">
+                    <div class="filtro-item">
+                        <label for="filtro-setor-outros">Filtrar por Setor:</label>
+                        <select id="filtro-setor-outros">
+                            <option value="">Todos os Setores</option>
+                        </select>
+                    </div>
+                    <div class="filtro-item">
+                        <label for="filtro-gpm-outros">Cadastrado no GPM:</label>
+                        <select id="filtro-gpm-outros">
+                            <option value="">Ambos</option>
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                    </div>
+                    <div class="filtro-item">
+                        <label for="filtro-status-outros">Status de Uso:</label>
+                        <select id="filtro-status-outros">
+                            <option value="">Todos</option>
+                            <option value="Disponível">Disponível</option>
+                            <option value="Em Uso">Em Uso</option>
+                            <option value="Inativo">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                    <ul id="lista-outros-ativos">
+                    </ul>
+                </div>
+            </details>
         </div>
-            <ul id="lista-outros-ativos">
-            </ul>
+
         </div>
-    </details>
-</div>
+     
+
+
 
 <div id="modal-maquina" class="modal-overlay">
     <div class="modal-content">

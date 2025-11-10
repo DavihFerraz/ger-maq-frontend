@@ -124,55 +124,12 @@ function renderizarEstoque() {
         return;
     }
 
+    // (ÚNICA PARTE QUE MUDA)
     estoqueParaRenderizar.forEach(item => {
-        const estaEmUso = item.status === 'Em Uso';
-        let detalhesHtml = '';
-        let utilizadorHtml = '';
-        let botaoInativarHtml = '';
-
-        if (mapaDeUso[item.id]) {
-            const nomePessoa = mapaDeUso[item.id].split(' - ')[0];
-            utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
-        }
-
-        if (item.categoria === 'COMPUTADOR') {
-            detalhesHtml = `<br><small>Processador: ${item.espec_processador || 'N/A'}</small><br><small>RAM: ${item.espec_ram || 'N/A'}</small><br><small>Armazenamento: ${item.espec_armazenamento || 'N/A'}</small>`;
-        }
-        
-        if (item.status === 'Inativo') {
-            botaoInativarHtml = `<button class="btn-item btn-reativar" data-id="${item.id}">Reativar</button>`;
-        } else {
-            botaoInativarHtml = `<button class="btn-item btn-inativar" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Inativar</button>`;
-        }
-
+        const { innerHTML, statusClass } = criarItemLiHTML(item); // <= USA A NOVA FUNÇÃO
         const li = document.createElement('li');
-        const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'desconhecido';
         li.classList.add(`status-${statusClass}`);
-        
-        const botoesHTML = `
-            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
-            ${botaoInativarHtml}
-            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso || item.status === 'Inativo' ? 'disabled' : ''}>Excluir</button>
-        `;
-        
-        const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
-        
-        li.innerHTML = `
-    <div class="info-item">
-        <span>
-            <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
-            <br><small>Categoria: ${item.categoria}</small>
-            <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
-            <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
-            ${utilizadorHtml} 
-        </span>
-        <div class="status-badges-container">
-            <span class="status-badge status-${statusClass}">${item.status}</span>
-            ${statusGASCadastroHTML}
-        </div>
-    </div>
-    <div class="botoes-item">${botoesHTML}</div>`;
+        li.innerHTML = innerHTML;
         listaEstoqueUI.appendChild(li);
     });
 }
@@ -204,36 +161,12 @@ function renderizarMobiliario() {
 
     mobiliarioParaRenderizar.sort((a, b) => a.modelo_tipo.localeCompare(b.modelo_tipo));
     
+    // (ÚNICA PARTE QUE MUDA)
     mobiliarioParaRenderizar.forEach(item => {
-        const estaEmUso = item.status === 'Em Uso';
-        let utilizadorHtml = '';
-        let botaoInativarHtml = '';
-
-        if (mapaDeUso[item.id]) {
-            const nomePessoa = mapaDeUso[item.id].split(' - ')[0];
-            utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
-        }
-
-        if (item.status === 'Inativo') {
-            botaoInativarHtml = `<button class="btn-item btn-reativar" data-id="${item.id}">Reativar</button>`;
-        } else {
-            botaoInativarHtml = `<button class="btn-item btn-inativar" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Inativar</button>`;
-        }
-
+        const { innerHTML, statusClass } = criarItemLiHTML(item); // <= USA A NOVA FUNÇÃO
         const li = document.createElement('li');
-        const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'status-desconhecido';
         li.classList.add(`status-${statusClass}`);
-
-        const botoesHTML = `
-            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
-            ${botaoInativarHtml}
-            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso || item.status === 'Inativo' ? 'disabled' : ''}>Excluir</button>
-        `;
-        
-        const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
-        
-        li.innerHTML = `<div class="info-item"><span><strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})<br><small>Setor: ${item.setor_nome || 'N/A'}</small><br><small>Categoria: ${item.categoria || 'N/A'}</small><br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>${item.observacoes ? `<br><small>${item.observacoes}</small>` : ''}${utilizadorHtml}</span><div class="status-badges-container"><span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>${statusGASCadastroHTML}</div></div><div class="botoes-item">${botoesHTML}</div>`;
+        li.innerHTML = innerHTML;
         listaMobiliarioUI.appendChild(li);
     });
 }
@@ -266,50 +199,12 @@ function renderizarOutrosAtivos() {
 
     filtrados.sort((a, b) => (a.modelo_tipo || '').localeCompare(b.modelo_tipo || ''));
 
+    // (ÚNICA PARTE QUE MUDA)
     filtrados.forEach(item => {
-        const estaEmUso = item.status === 'Em Uso';
-        let utilizadorHtml = '';
-        let botaoInativarHtml = '';
-        
-        if (mapaDeUso[item.id]) {
-            const nomePessoa = mapaDeUso[item.id].split(' - ')[0];
-            utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
-        }
-        
-        if (item.status === 'Inativo') {
-            botaoInativarHtml = `<button class="btn-item btn-reativar" data-id="${item.id}">Reativar</button>`;
-        } else {
-            botaoInativarHtml = `<button class="btn-item btn-inativar" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Inativar</button>`;
-        }
-
+        const { innerHTML, statusClass } = criarItemLiHTML(item); // <= USA A NOVA FUNÇÃO
         const li = document.createElement('li');
-        const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'desconhecido';
         li.classList.add(`status-${statusClass}`);
-
-        const botoesHTML = `
-            <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
-            ${botaoInativarHtml}
-            <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
-            <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso || item.status === 'Inativo' ? 'disabled' : ''}>Excluir</button>
-        `;
-        
-        const statusGASCadastroHTML = item.cadastrado_gpm ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
-        
-        li.innerHTML = `
-    <div class="info-item">
-        <span>
-            <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
-            <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
-            <br><small>Categoria: ${item.categoria || 'N/A'}</small>
-            <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small> ${item.observacoes ? `<br><small>Observações: ${item.observacoes}</small>` : ''}
-            ${utilizadorHtml}
-        </span>
-        <div class="status-badges-container">
-            <span class="status-badge status-${statusClass}">${item.status || 'Desconhecido'}</span>
-            ${statusGASCadastroHTML}
-        </div>
-    </div>
-    <div class="botoes-item">${botoesHTML}</div>`;
+        li.innerHTML = innerHTML;
         listaUI.appendChild(li);
     });
 }
@@ -949,6 +844,74 @@ async function salvarAssociacaoUnificada(event) {
         console.error("Erro ao salvar associação:", error);
         Toastify({ text: `Erro: ${error.message}`, backgroundColor: "red" }).showToast();
     }
+}
+
+
+function criarItemLiHTML(item) {
+    const estaEmUso = item.status === 'Em Uso';
+    
+    // 1. Detalhes (só para COMPUTADOR)
+    let detalhesHtml = '';
+    if (item.categoria === 'COMPUTADOR') {
+        detalhesHtml = `
+            <br><small>Processador: ${item.espec_processador || 'N/A'}</small>
+            <br><small>RAM: ${item.espec_ram || 'N/A'}</small>
+            <br><small>Armazenamento: ${item.espec_armazenamento || 'N/A'}</small>
+        `;
+    }
+
+    // 2. Informação do Utilizador (se estiver em uso)
+    let utilizadorHtml = '';
+    if (mapaDeUso[item.id]) {
+        const nomePessoa = mapaDeUso[item.id].split(' - ')[0];
+        utilizadorHtml = `<br><small class="user-info">Utilizador: <strong>${nomePessoa}</strong></small>`;
+    }
+
+    // 3. Botão de Inativar/Reativar
+    let botaoInativarHtml = '';
+    if (item.status === 'Inativo') {
+        botaoInativarHtml = `<button class="btn-item btn-reativar" data-id="${item.id}">Reativar</button>`;
+    } else {
+        botaoInativarHtml = `<button class="btn-item btn-inativar" data-id="${item.id}" ${estaEmUso ? 'disabled' : ''}>Inativar</button>`;
+    }
+
+    // 4. Botoões de Ação
+    const botoesHTML = `
+        <button class="btn-item btn-historico" data-id="${item.id}">Histórico</button>
+        ${botaoInativarHtml}
+        <button class="btn-item btn-editar-estoque" data-id="${item.id}">Editar</button>
+        <button class="btn-item btn-excluir-estoque" data-id="${item.id}" ${estaEmUso || item.status === 'Inativo' ? 'disabled' : ''}>Excluir</button>
+    `;
+
+    // 5. Badge do GPM
+    const statusGPMHTML = item.cadastrado_gpm 
+        ? `<span class="status-gas cadastrado-sim">Cadastrado GPM</span>` 
+        : `<span class="status-gas cadastrado-nao">Não Cadastrado</span>`;
+    
+    // 6. Classe de Status
+    const statusClass = item.status ? item.status.toLowerCase().replace(/ /g, '-') : 'desconhecido';
+
+    // 7. Montagem Final do HTML
+    const innerHTML = `
+        <div class="info-item">
+            <span>
+                <strong>${item.modelo_tipo}</strong> (Património: ${formatarPatrimonio(item.patrimonio)})
+                <br><small>Categoria: ${item.categoria}</small>
+                <br><small>Setor: ${item.setor_nome || 'N/A'}</small>
+                <br><small>Estado: ${item.estado_conservacao || 'N/A'}</small>
+                ${detalhesHtml} 
+                ${utilizadorHtml} 
+            </span>
+            <div class="status-badges-container">
+                <span class="status-badge status-${statusClass}">${item.status}</span>
+                ${statusGPMHTML}
+            </div>
+        </div>
+        <div class="botoes-item">${botoesHTML}</div>
+    `;
+
+    // 8. Retorna o HTML e a Classe
+    return { innerHTML, statusClass };
 }
 
 // =================================================================
@@ -2013,21 +1976,87 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const campoBuscaEstoque = document.getElementById('campo-busca-estoque');
+    const buscaGeral = document.getElementById('busca-geral');
+    const divResultadosGerais = document.getElementById('div-resultados-gerais');
+    const ulResultadosGerais = document.getElementById('ul-resultados-gerais');
+    const tituloResultadosGerais = document.getElementById('titulo-resultados-gerais');
+    const divConteudoPrincipal = document.getElementById('div-conteudo-principal');
+    if (buscaGeral && divResultadosGerais && ulResultadosGerais && divConteudoPrincipal) {
+        
+        buscaGeral.addEventListener('input', () => {
+            const termo = buscaGeral.value.toLowerCase().trim();
+
+            // 1. Se a busca estiver vazia ou muito curta, mostra o conteúdo principal
+            if (termo.length < 2) {
+                divResultadosGerais.style.display = 'none';
+                divConteudoPrincipal.style.display = 'block';
+                ulResultadosGerais.innerHTML = '';
+                
+                // Limpa as buscas locais para não haver confusão
+                document.getElementById('campo-busca-estoque').value = '';
+                document.getElementById('campo-busca-mobiliario').value = '';
+                document.getElementById('campo-busca-outros').value = '';
+                renderizarEstoque();
+                renderizarMobiliario();
+                renderizarOutrosAtivos();
+                return;
+            }
+
+            // 2. Se houver busca, esconde o conteúdo principal e mostra os resultados
+            divResultadosGerais.style.display = 'block';
+            divConteudoPrincipal.style.display = 'none';
+            ulResultadosGerais.innerHTML = ''; // Limpa resultados antigos
+
+            // 3. Filtra TODO o estoque
+            const resultadosGerais = todoEstoque.filter(item => 
+                `${item.modelo_tipo} ${item.patrimonio} ${item.categoria} ${item.setor_nome}`
+                    .toLowerCase()
+                    .includes(termo)
+            );
+
+            // 4. Atualiza o título
+            tituloResultadosGerais.textContent = `${resultadosGerais.length} resultado(s) para "${buscaGeral.value}"`;
+
+            // 5. Renderiza os resultados
+            if (resultadosGerais.length === 0) {
+                ulResultadosGerais.innerHTML = '<li>Nenhum item encontrado.</li>';
+                return;
+            }
+
+            resultadosGerais.forEach(item => {
+                const { innerHTML, statusClass } = criarItemLiHTML(item); // <= USA A NOVA FUNÇÃO
+                const li = document.createElement('li');
+                li.classList.add(`status-${statusClass}`);
+                li.innerHTML = innerHTML;
+                ulResultadosGerais.appendChild(li);
+            });
+        });
+    }
+
+   const campoBuscaEstoque = document.getElementById('campo-busca-estoque');
     if (campoBuscaEstoque) {
-        campoBuscaEstoque.addEventListener('input', renderizarEstoque);
+        campoBuscaEstoque.addEventListener('input', () => {
+            document.getElementById('busca-geral').value = ''; // Limpa a busca geral
+            renderizarEstoque();
+        });
     }
 
     // Ativa a barra de pesquisa para Mobiliário
-    const campoBuscaMobiliario = document.getElementById('campo-busca-mobiliario');
+   const campoBuscaMobiliario = document.getElementById('campo-busca-mobiliario');
     if (campoBuscaMobiliario) {
-        campoBuscaMobiliario.addEventListener('input', renderizarMobiliario);
+        campoBuscaMobiliario.addEventListener('input', () => {
+            document.getElementById('busca-geral').value = ''; // Limpa a busca geral
+            renderizarMobiliario();
+        });
     }
 
     // Ativa a barra de pesquisa para Outros Ativos
-    const campoBuscaOutros = document.getElementById('campo-busca-outros');
+   const campoBuscaOutros = document.getElementById('campo-busca-outros');
     if (campoBuscaOutros) {
-        campoBuscaOutros.addEventListener('input', renderizarOutrosAtivos);
+        campoBuscaOutros.addEventListener('input', () => {
+            document.getElementById('busca-geral').value = ''; // Limpa a busca geral
+            renderizarOutrosAtivos();
+        });
     }
 
     const fecharModalInventario = () => {
