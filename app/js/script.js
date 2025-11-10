@@ -1384,6 +1384,32 @@ function formatarPatrimonio(numero) {
     return numeroLimpo.replace(/(\d{3})(?=\d)/g, '$1.');
 }
 
+
+/**
+ * Formata uma string de data (ISO) para DD/MM/YYYY.
+ * @param {string | Date} dataISO A data do banco de dados.
+ * @returns {string} A data formatada ou 'N/A'.
+ */
+function formatarDataParaRelatorio(dataISO) {
+    if (!dataISO) {
+        return 'N/A';
+    }
+    try {
+        const data = new Date(dataISO);
+        // Verifica se a data é válida
+        if (isNaN(data.getTime())) {
+            return 'N/A';
+        }
+        return data.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    } catch (e) {
+        return 'N/A';
+    }
+}
+
 function fecharModalExportarTI() {
     const modal = document.getElementById('modal-exportar-ti');
     if (modal) modal.classList.remove('visible');
@@ -1521,33 +1547,79 @@ function exportarAtivosTIPDF() {
     fecharModalExportarTI();
 }
 
+/**
+ * Filtra os dados de TODO o inventário com base nas seleções do modal geral.
+ * @returns {Array} Um array de itens de estoque filtrados.
+ */
+function getDadosInventarioFiltrados() {
+    const categoriaFiltro = document.getElementById('filtro-export-geral-categoria').value;
+    const mesFiltro = document.getElementById('filtro-export-geral-data').value; // Formato "YYYY-MM"
+
+    let dadosParaExportar = [...todoEstoque]; // Começa com TUDO
+
+    // 1. Aplica o filtro de Categoria
+    if (categoriaFiltro !== 'Todos') {
+        dadosParaExportar = dadosParaExportar.filter(item => item.categoria === categoriaFiltro);
+    }
+
+    // 2. Aplica o filtro de Data/Mês
+    if (mesFiltro) { // Se um mês foi selecionado
+        dadosParaExportar = dadosParaExportar.filter(item => {
+            
+            const dataItem = item.criado_em; // <<< VERIFIQUE O NOME DESTE CAMPO
+
+            if (!dataItem) {
+                return false; // Se o item não tiver data de cadastro, é filtrado fora
+            }
+            
+            try {
+                // Converte a data do item (ex: "2025-11-05T10:00:00.000Z") para "YYYY-MM"
+                const itemMesAno = new Date(dataItem).toISOString().slice(0, 7);
+                return itemMesAno === mesFiltro;
+            } catch (e) {
+                return false; // Data em formato inválido
+            }
+        });
+    }
+
+    return dadosParaExportar;
+}
+
 function exportarInventarioCSV() {
-    if (!todoEstoque || todoEstoque.length === 0) {
-        alert("Não há itens no inventário para exportar.");
+    const dadosFiltrados = getDadosInventarioFiltrados(); 
+
+    if (!dadosFiltrados || dadosFiltrados.length === 0) { 
+        alert("Não há itens no inventário para exportar com os filtros selecionados.");
         return;
     }
 
     const delimiter = ';';
     const cabecalhos = [
         'Patrimonio', 'Modelo/Tipo', 'Categoria', 'Status', 'Setor', 
-        'Estado de Conservacao', 'Cadastrado GPM', 'Utilizador Atual'
+        'Estado de Conservacao', 'Cadastrado GPM', 'Utilizador Atual',
+        'Processador', 'RAM', 'Armazenamento', 'Observacoes',
+        'Data de Cadastro' // NOVA COLUNA
     ];
 
-    const linhas = todoEstoque.map(item => {
+    const linhas = dadosFiltrados.map(item => { 
         const utilizador = mapaDeUso[item.id] ? mapaDeUso[item.id].split(' - ')[0] : 'N/A';
+        const dataCadastro = formatarDataParaRelatorio(item.criado_em); // Usando a nova função
         const cleanValue = (value) => `"${String(value || '').replace(/"/g, '""')}"`;
 
         return [
-            // --- CORREÇÃO APLICADA AQUI ---
-            cleanValue(formatarPatrimonio(item.patrimonio)), // Usa a função para formatar o património
-            
+            cleanValue(formatarPatrimonio(item.patrimonio)), 
             cleanValue(item.modelo_tipo),
             cleanValue(item.categoria),
             cleanValue(item.status),
             cleanValue(item.setor_nome),
             cleanValue(item.estado_conservacao),
             cleanValue(item.cadastrado_gpm ? 'Sim' : 'Nao'),
-            cleanValue(utilizador)
+            cleanValue(utilizador),
+            cleanValue(item.espec_processador),
+            cleanValue(item.espec_ram),
+            cleanValue(item.espec_armazenamento),
+            cleanValue(item.observacoes),
+            cleanValue(dataCadastro) // NOVO DADO
         ].join(delimiter);
     });
 
@@ -1556,7 +1628,7 @@ function exportarInventarioCSV() {
     const bom = '\uFEFF';
     const link = document.createElement('a');
     link.href = 'data:text/csv;charset=utf-8,' + encodeURI(bom + conteudoCSV);
-    link.download = 'inventario_completo.csv';
+    link.download = 'inventario_filtrado.csv'; 
     link.click();
 }
 
@@ -1564,64 +1636,65 @@ function exportarInventarioCSV() {
  * Gera e baixa um relatório PDF de todo o inventário.
  */
 function exportarInventarioPDF() {
-    if (!todoEstoque || todoEstoque.length === 0) {
-        alert("Não há itens no inventário para gerar o relatório.");
+    const dadosFiltrados = getDadosInventarioFiltrados(); 
+
+    if (!dadosFiltrados || dadosFiltrados.length === 0) { 
+        alert("Não há itens no inventário para gerar o relatório com os filtros selecionados.");
         return;
     }
 
-    // 1. Abre uma nova janela/aba em branco
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         alert("Não foi possível abrir a nova aba. Por favor, desative o bloqueador de pop-ups e tente novamente.");
         return;
     }
 
-    // 2. Constrói o HTML completo do relatório
     let tabelaHtml = `
         <!DOCTYPE html>
         <html lang="pt-BR">
         <head>
             <meta charset="UTF-8">
-            <title>Relatório de Inventário Completo</title>
+            <title>Relatório de Inventário Filtrado</title> 
             <style>
                 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.5; }
-                table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-                th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+                table { width: 100%; border-collapse: collapse; font-size: 8pt; } /* Fonte diminuída para caber mais colunas */
+                th, td { border: 1px solid #ddd; padding: 5px; text-align: left; word-break: break-word; } 
                 th { background-color: #f7f7f7; font-weight: 600; }
-                h1 { font-size: 24px; text-align: center; margin-bottom: 20px; }
+                h1 { font-size: 20px; text-align: center; margin-bottom: 20px; } 
                 @media print {
-                    body { -webkit-print-color-adjust: exact; } /* Garante que as cores de fundo sejam impressas */
+                    body { -webkit-print-color-adjust: exact; } 
                 }
             </style>
         </head>
         <body>
-            <h1>Relatório de Inventário Completo</h1>
+            <h1>Relatório de Inventário Filtrado</h1>
             <table>
                 <thead>
                     <tr>
                         <th>Património</th><th>Modelo/Tipo</th><th>Categoria</th><th>Status</th>
-                        <th>Setor</th><th>Estado</th><th>Utilizador Atual</th>
-                    </tr>
+                        <th>Setor</th><th>Utilizador Atual</th><th>Estado</th>
+                        <th>Data de Cadastro</th> </tr>
                 </thead>
                 <tbody>
     `;
 
-    const estoqueOrdenado = [...todoEstoque].sort((a, b) => a.categoria.localeCompare(b.categoria));
+    const estoqueOrdenado = [...dadosFiltrados].sort((a, b) => a.categoria.localeCompare(b.categoria));
 
     estoqueOrdenado.forEach(item => {
         const utilizador = mapaDeUso[item.id] ? mapaDeUso[item.id].split(' - ')[0] : 'N/A';
+        const dataCadastro = formatarDataParaRelatorio(item.criado_em); // Usando a nova função
+
         tabelaHtml += `
             <tr>
                 <td>${item.patrimonio || ''}</td><td>${item.modelo_tipo || ''}</td><td>${item.categoria || ''}</td>
-                <td>${item.status || ''}</td><td>${item.setor_nome || ''}</td><td>${item.estado_conservacao || ''}</td>
-                <td>${utilizador}</td>
-            </tr>
+                <td>${item.status || ''}</td><td>${item.setor_nome || ''}</td><td>${utilizador}</td>
+                <td>${item.estado_conservacao || ''}</td>
+                <td>${dataCadastro}</td> </tr>
         `;
     });
 
     tabelaHtml += '</tbody></table></body></html>';
 
-    // 3. Escreve o HTML na nova janela e deixa-a aberta
     printWindow.document.open();
     printWindow.document.write(tabelaHtml);
     printWindow.document.close();
